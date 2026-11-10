@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static money %}
+{% block title %}Đơn thuê của tôi · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Tài khoản</span>
+  <h1>Đơn thuê của tôi</h1>
+  <p>Theo dõi trạng thái xác nhận, thời gian nhận trả và tiền cọc của từng đơn.</p>
+</section>
+<section class="shell section" style="padding-top:0">
+  {% if orders %}
+    <div class="order-list">
+      {% for order in orders %}
+        <article class="order-card">
+          <img src="{% static order.camera.image %}" alt="{{ order.camera.name }}" loading="lazy" data-source="client" data-subject="camera">
+          <div>
+            <div class="order-code">{{ order.order_code }}</div>
+            <h3>{{ order.camera.name }} · {{ order.rate_label }}</h3>
+            <p>{{ order.start_at|date:"H:i · d/m/Y" }} — {{ order.end_at|date:"H:i · d/m/Y" }}</p>
+            <p>{{ order.rental_total|money }}đ · {{ order.get_status_display }}</p>
+          </div>
+          <a class="button button-light" href="{% url 'rentals:detail' order.pk %}">Xem đơn</a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state"><p>Bạn chưa có đơn thuê nào.</p><a class="button button-dark" href="{% url 'catalog:list' %}">Chọn máy ảnh</a></div>
+  {% endif %}
+</section>
+{% endblock %}

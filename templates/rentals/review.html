@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static money %}
+{% block title %}Kiểm tra yêu cầu thuê · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Yêu cầu thuê · Bước 2 / 2</span>
+  <h1>Kiểm tra lại yêu cầu</h1>
+  <p>Kiểm tra lịch, gói thuê và số tiền trước khi gửi đơn đến cửa hàng.</p>
+</section>
+<section class="shell content-layout">
+  <div class="form-panel">
+    <h2>{{ camera.name }}</h2>
+    <div class="summary-row"><span>Thời lượng</span><strong>{{ rate.label }}</strong></div>
+    <div class="summary-row"><span>Nhận máy</span><strong>{{ start_at|date:"H:i · d/m/Y" }}</strong></div>
+    <div class="summary-row"><span>Trả dự kiến</span><strong>{{ end_at|date:"H:i · d/m/Y" }}</strong></div>
+    <div class="summary-row"><span>Số lượng</span><strong>{{ quantity }} máy</strong></div>
+    <div class="summary-row"><span>Hình thức nhận</span><strong>{% if delivery_method == "delivery" %}Giao/nhận theo địa chỉ{% else %}Nhận tại cửa hàng{% endif %}</strong></div>
+    {% if delivery_address %}<div class="summary-row"><span>Địa chỉ giao nhận</span><strong>{{ delivery_address|linebreaksbr }}</strong></div>{% endif %}
+    {% if customer_note %}<div class="summary-row"><span>Ghi chú</span><strong>{{ customer_note|linebreaksbr }}</strong></div>{% endif %}
+    <div class="summary-row summary-total"><span>Tiền thuê</span><strong>{{ total|money }}đ</strong></div>
+    <p class="field-help">Chưa gồm tiền cọc hoặc chi phí giao nhận. Cửa hàng sẽ xác nhận trước khi chốt.</p>
+    <div class="callout">
+      <strong>Quy định lịch thuê</strong>
+      <p>Cửa hàng không nhận hủy hoặc đổi lịch. Sau khi gửi, đơn ở trạng thái chờ xác nhận và chưa phát sinh thanh toán.</p>
+    </div>
+    <form method="post" class="form-actions">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="yes">
+      <button class="button button-dark" type="submit">Gửi yêu cầu thuê <span aria-hidden="true">↗</span></button>
+      <a class="button button-light" href="{% url 'rentals:booking' camera.slug %}">Sửa lịch thuê</a>
+    </form>
+  </div>
+  <aside class="summary-panel">
+    <img class="summary-camera" src="{% static camera.image %}" alt="{{ camera.name }}" data-source="client" data-subject="camera">
+    <span class="eyebrow">Giá thuê</span>
+    <h2>{{ rate.amount|money }}đ</h2>
+    <p>{{ rate.label }} · {{ quantity }} máy</p>
+  </aside>
+</section>
+{% endblock %}

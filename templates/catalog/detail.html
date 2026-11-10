@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static money %}
+{% block title %}{{ camera.name }} · ME.E Digitalcam{% endblock %}
+{% block content %}
+<div class="shell">
+  <nav class="breadcrumbs" aria-label="Điều hướng đường dẫn">
+    <a href="{% url 'catalog:list' %}">Máy ảnh</a><span aria-hidden="true">/</span><span>{{ camera.name }}</span>
+  </nav>
+  <section class="detail-layout">
+    <div class="detail-image">
+      <img src="{% static camera.image %}" alt="{{ camera.name }}" data-source="client" data-subject="camera">
+    </div>
+    <div class="detail-copy">
+      <span class="eyebrow">{{ camera.brand }} · Máy ảnh cho thuê</span>
+      <h1>{{ camera.name }}</h1>
+      <p>{{ camera.description }}</p>
+      <div class="rate-table" aria-label="Bảng giá {{ camera.name }}">
+        {% for rate in camera.rates.all %}
+          {% if rate.is_active %}
+            <div class="rate-row"><span>{{ rate.label }}</span><strong>{{ rate.amount|money }}đ</strong></div>
+          {% endif %}
+        {% empty %}
+          <p>Giá thuê đang được cửa hàng cập nhật.</p>
+        {% endfor %}
+      </div>
+      {% if camera.deposit_amount %}
+        <div class="callout"><strong>Tiền cọc đã xác nhận</strong><p>{{ camera.deposit_amount|money }}đ. Cửa hàng sẽ xác nhận lại trong quá trình xử lý đơn.</p></div>
+      {% else %}
+        <div class="callout"><strong>Tiền cọc</strong><p>Mức cọc của mẫu máy này chưa được xác nhận. Cửa hàng sẽ báo mức cọc trước khi duyệt đơn.</p></div>
+      {% endif %}
+      <div class="form-actions">
+        <a class="button button-dark" href="{% url 'rentals:booking' camera.slug %}">Chọn lịch thuê <span aria-hidden="true">↗</span></a>
+        <a class="button button-light" href="{% url 'catalog:policies' %}">Đọc quy định</a>
+      </div>
+      <p><a class="text-link" href="{% url 'feedback:camera' camera.slug %}">Xem feedback riêng về {{ camera.name }} <span aria-hidden="true">↗</span></a></p>
+      <p class="field-help">Gửi yêu cầu chưa đồng nghĩa đơn đã được xác nhận hoặc đã thanh toán.</p>
+    </div>
+  </section>
+</div>
+{% if reviews %}
+<section class="section soft-band">
+  <div class="shell">
+    <div class="section-head"><div><span class="eyebrow">Feedback đã duyệt</span><h2>Phản hồi về {{ camera.name }}</h2></div></div>
+    <div class="review-grid">
+      {% for review in reviews %}
+        <article class="review-card">
+          <p aria-label="Đánh giá {{ review.rating }} trên 5">{% for star in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</p>
+          <p>{{ review.content }}</p>
+          <div class="review-meta">{{ review.user.first_name|default:"Khách thuê" }}</div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

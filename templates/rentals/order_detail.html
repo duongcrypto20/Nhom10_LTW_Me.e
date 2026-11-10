@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static money %}
+{% block title %}{{ order.order_code }} · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Đơn thuê · {{ order.order_code }}</span>
+  <h1>{{ order.camera.name }}</h1>
+  <p>{{ order.get_status_display }}</p>
+</section>
+<section class="shell content-layout">
+  <div class="form-panel">
+    <h2>Lịch và giao nhận</h2>
+    <div class="summary-row"><span>Thời lượng</span><strong>{{ order.rate_label }} · {{ order.quantity }} máy</strong></div>
+    <div class="summary-row"><span>Nhận máy</span><strong>{{ order.start_at|date:"H:i · d/m/Y" }}</strong></div>
+    <div class="summary-row"><span>Trả dự kiến</span><strong>{{ order.end_at|date:"H:i · d/m/Y" }}</strong></div>
+    {% if order.handover_at %}<div class="summary-row"><span>Đã giao máy</span><strong>{{ order.handover_at|date:"H:i · d/m/Y" }}</strong></div>{% endif %}
+    {% if order.returned_at %}<div class="summary-row"><span>Đã nhận trả</span><strong>{{ order.returned_at|date:"H:i · d/m/Y" }}</strong></div>{% endif %}
+    <div class="summary-row"><span>Hình thức nhận</span><strong>{{ order.get_delivery_method_display }}</strong></div>
+    {% if order.delivery_address %}<div class="summary-row"><span>Địa chỉ</span><strong>{{ order.delivery_address }}</strong></div>{% endif %}
+    <div class="summary-row summary-total"><span>Tiền thuê</span><strong>{{ order.rental_total|money }}đ</strong></div>
+    <div class="summary-row"><span>Tiền cọc</span><strong>{% if order.deposit_amount %}{{ order.deposit_amount|money }}đ{% else %}Chưa xác nhận{% endif %}</strong></div>
+    <div class="summary-row"><span>Trạng thái cọc</span><strong>{{ order.get_deposit_status_display }}</strong></div>
+    {% if order.staff_note %}<div class="callout"><strong>Thông tin từ cửa hàng</strong><p>{{ order.staff_note|linebreaksbr }}</p></div>{% endif %}
+    {% if order.status == "returned" %}
+      {% if order.feedback %}
+        <p>Phản hồi của bạn đã được gửi.</p>
+      {% else %}
+        <div class="form-actions"><a class="button button-dark" href="{% url 'feedback:create' order.pk %}">Gửi phản hồi</a></div>
+      {% endif %}
+    {% endif %}
+  </div>
+  <aside class="summary-panel">
+    <img class="summary-camera" src="{% static order.camera.image %}" alt="{{ order.camera.name }}" data-source="client" data-subject="camera">
+    <h2>Lịch sử đơn</h2>
+    <ol class="timeline">
+      {% for event in order.events.all %}
+        <li><strong>{{ event.title }}</strong>{% if event.details %}<div>{{ event.details }}</div>{% endif %}<time>{{ event.created_at|date:"H:i · d/m/Y" }}</time></li>
+      {% empty %}
+        <li>Yêu cầu đang được cửa hàng xử lý.</li>
+      {% endfor %}
+    </ol>
+  </aside>
+</section>
+{% endblock %}

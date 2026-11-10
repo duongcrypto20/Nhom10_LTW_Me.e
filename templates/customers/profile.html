@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Tài khoản · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Tài khoản ME.E Digitalcam</span>
+  <h1>Xin chào{% if request.user.first_name %}, {{ request.user.first_name }}{% endif %}</h1>
+  <p>{{ request.user.email }}</p>
+</section>
+<section class="shell account-grid">
+  <nav class="account-nav" aria-label="Khu vực tài khoản">
+    <a href="{% url 'customers:profile' %}">Thông tin tài khoản</a>
+    <a href="{% url 'rentals:list' %}">Đơn thuê</a>
+    <a href="{% url 'customers:addresses' %}">Địa chỉ của tôi</a>
+    <a href="{% url 'customers:notifications' %}">Thông báo{% if unread_count %} ({{ unread_count }}){% endif %}</a>
+  </nav>
+  <div class="account-main">
+    <section class="account-section account-panel">
+      <h2>Thông tin cá nhân</h2>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+          {% include "includes/field.html" with field=field %}
+        {% endfor %}
+        <button class="button button-dark" type="submit">Lưu thông tin</button>
+      </form>
+    </section>
+    <section class="account-section">
+      <div class="account-section-header"><h2>Đơn thuê gần đây</h2><a class="text-link" href="{% url 'rentals:list' %}">Xem tất cả</a></div>
+      {% if orders %}
+        <div class="order-list">
+          {% for order in orders %}
+            <article class="order-card">
+              <div></div>
+              <div><div class="order-code">{{ order.order_code }}</div><h3>{{ order.camera.name }}</h3><p>{{ order.start_at|date:"d/m/Y H:i" }} · {{ order.get_status_display }}</p></div>
+              <a class="button button-light" href="{% url 'rentals:detail' order.pk %}">Xem đơn</a>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><p>Bạn chưa có đơn thuê nào.</p><a class="text-link" href="{% url 'catalog:list' %}">Chọn máy ảnh</a></div>
+      {% endif %}
+    </section>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Gửi feedback · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Đơn {{ order.order_code }}</span>
+  <h1>Gửi feedback</h1>
+  <p>Phản hồi gắn với đơn thuê đã hoàn tất của bạn sẽ được cửa hàng duyệt trước khi hiển thị.</p>
+</section>
+<section class="shell auth-wrap">
+  <div class="form-panel">
+    <h2>{{ order.camera.name }}</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% for field in form %}
+        {% include "includes/field.html" with field=field %}
+      {% endfor %}
+      <p class="field-help">Ảnh tùy chọn, định dạng JPG, PNG hoặc WebP, tối đa 2 MB. Không tải ảnh giấy tờ tùy thân.</p>
+      <div class="form-actions"><button class="button button-dark" type="submit">Gửi feedback <span aria-hidden="true">↗</span></button><a class="button button-light" href="{% url 'rentals:detail' order.pk %}">Quay lại đơn</a></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

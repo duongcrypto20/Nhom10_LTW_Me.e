@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}Đã gửi yêu cầu thuê · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell auth-wrap">
+  <div class="form-panel">
+    <span class="eyebrow">Đã ghi nhận yêu cầu</span>
+    <h1>Yêu cầu đang chờ cửa hàng</h1>
+    <p>Mã đơn <strong>{{ order.order_code }}</strong>. Máy chưa được xác nhận và đơn chưa được thanh toán.</p>
+    <div class="summary-row"><span>Máy ảnh</span><strong>{{ order.camera.name }}</strong></div>
+    <div class="summary-row"><span>Thời gian nhận</span><strong>{{ order.start_at|date:"H:i · d/m/Y" }}</strong></div>
+    <div class="summary-row"><span>Thời gian trả dự kiến</span><strong>{{ order.end_at|date:"H:i · d/m/Y" }}</strong></div>
+    <div class="summary-row"><span>Tiền thuê</span><strong>{{ order.rental_total|money }}đ</strong></div>
+    <p class="field-help">Cửa hàng sẽ kiểm tra lịch, xác nhận mức cọc và cập nhật trạng thái tại trang đơn thuê.</p>
+    <div class="form-actions">
+      <a class="button button-dark" href="{% url 'rentals:detail' order.pk %}">Theo dõi đơn thuê</a>
+      <a class="button button-light" href="{% url 'catalog:list' %}">Xem máy ảnh</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

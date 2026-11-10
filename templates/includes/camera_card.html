@@ -1,0 +1,16 @@
+{% load static money %}
+<article class="camera-card">
+  <a class="camera-card-image photo-link" href="{{ camera.get_absolute_url }}">
+    <img src="{% static camera.image %}" alt="{{ camera.name }}" loading="lazy" data-source="client" data-subject="camera">
+  </a>
+  <div class="camera-card-copy">
+    <div class="camera-card-heading">
+      <span class="eyebrow">{{ camera.brand }}</span>
+      <a href="{{ camera.get_absolute_url }}"><h3>{{ camera.name }}</h3></a>
+    </div>
+    <p class="price-line">
+      {% if camera.lowest_rate %}Từ <strong>{{ camera.lowest_rate.amount|money }}đ</strong> / {{ camera.lowest_rate.label }}{% else %}Liên hệ cửa hàng{% endif %}
+    </p>
+    <a class="text-link" href="{{ camera.get_absolute_url }}">Xem máy <span aria-hidden="true">↗</span></a>
+  </div>
+</article>

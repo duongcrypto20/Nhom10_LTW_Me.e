@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static money %}
+{% block title %}Giá thuê và quy định · ME.E Digitalcam{% endblock %}
+{% block content %}
+<div class="shell policy-page">
+  <header class="page-intro">
+    <span class="eyebrow">Thông tin thuê máy</span>
+    <h1>Giá thuê và quy định</h1>
+    <p>Giá và thời lượng dưới đây được chuyển từ tài liệu ME.E Digitalcam. Đơn thuê chỉ được xác nhận sau khi cửa hàng kiểm tra lịch máy và tiền cọc.</p>
+  </header>
+  <section class="policy-detail" id="gia-thue">
+    <img class="policy-price-image" src="{% static 'images/policies/giá máy.jpg' %}" alt="Bảng giá thuê máy ảnh ME.E Digitalcam" data-source="client" data-subject="rental price list">
+    <div class="policy-copy">
+      <span class="eyebrow">Bảng giá</span>
+      <h2>Giá theo mẫu máy</h2>
+      <p>Mỗi mẫu có giá riêng cho 6 giờ, 1 ngày, 2 ngày và 3 ngày. Xem trang máy để biết giá dạng văn bản và gửi yêu cầu theo lịch.</p>
+      <a class="button button-dark" href="{% url 'catalog:list' %}">Xem máy và giá</a>
+    </div>
+  </section>
+  <section class="policy-detail" id="gio-nhan-tra">
+    <img class="policy-image" src="{% static 'images/policies/giờ nhận trả.jpg' %}" alt="Thông tin giờ nhận và trả máy" loading="lazy" data-source="client" data-subject="rental hours">
+    <div class="policy-copy">
+      <span class="eyebrow">Nhận và trả máy</span>
+      <h2>Thời lượng thuê</h2>
+      <ul>
+        <li>Gói 1 ngày được tính 23 giờ; ngày nhận và trả máy cần theo lịch đã hẹn.</li>
+        <li>Gói 6 giờ áp dụng ca sáng 08:00–14:00 hoặc ca chiều/tối 15:00–21:00; thời gian cụ thể cần cửa hàng xác nhận.</li>
+        <li>Tài liệu quy định phí trễ 50.000đ cho khoảng 15 phút đến 1 giờ. Nếu việc trễ ảnh hưởng lịch thuê kế tiếp, có thể phát sinh khoản bồi hoàn và chi phí giao nhận theo quy định cửa hàng.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="policy-detail" id="tien-coc">
+    <img class="policy-image" src="{% static 'images/policies/quy định cọc.jpg' %}" alt="Quy định đặt cọc thuê máy" loading="lazy" data-source="client" data-subject="deposit policy">
+    <div class="policy-copy">
+      <span class="eyebrow">Đặt cọc</span>
+      <h2>Cửa hàng xác nhận tiền cọc</h2>
+      <ul>
+        <li>Tài liệu cửa hàng nêu mức tham khảo 700.000đ kèm CCCD chính chủ; một số máy compact là 300.000đ kèm CCCD chính chủ.</li>
+        <li>Hình thức gián tiếp theo tài liệu gồm chuyển đủ tiền cọc, ảnh CCCD (VNID và mặt), số điện thoại và Facebook chính chủ.</li>
+        <li>Mức cọc cụ thể theo từng máy chưa được gán sẵn. Đơn đặt trên website chưa thu cọc; cửa hàng sẽ xác nhận cách thức và mức cọc trước khi duyệt.</li>
+      </ul>
+      <p>Không gửi ảnh giấy tờ tùy thân qua biểu mẫu website.</p>
+    </div>
+  </section>
+  <section class="policy-detail" id="bao-quan">
+    <img class="policy-image" src="{% static 'images/policies/bảo quản máy.jpg' %}" alt="Hướng dẫn bảo quản máy ảnh khi thuê" loading="lazy" data-source="client" data-subject="camera care">
+    <div class="policy-copy">
+      <span class="eyebrow">Trong thời gian thuê</span>
+      <h2>Bảo quản thiết bị</h2>
+      <ul>
+        <li>Không chạm tay trực tiếp vào ống kính; tránh nước, cát, bụi và ánh nắng kéo dài.</li>
+        <li>Đeo dây máy khi chụp, cất máy trong túi chống sốc và không tự tháo máy hoặc ống kính.</li>
+        <li>Giữ thẻ nhớ trong máy trong quá trình chụp; chỉ tháo để xuất ảnh sau khi đã chụp xong.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="policy-detail" id="den-bu">
+    <img class="policy-image" src="{% static 'images/policies/quy định đền bù thiệt hại.jpg' %}" alt="Quy định đền bù khi thiết bị hư hỏng" loading="lazy" data-source="client" data-subject="damage policy">
+    <div class="policy-copy">
+      <span class="eyebrow">Hư hỏng thiết bị</span>
+      <h2>Kiểm tra khi giao và nhận trả</h2>
+      <ul>
+        <li>Kiểm tra tình trạng máy, ống kính và phụ kiện cùng cửa hàng khi nhận và khi trả.</li>
+        <li>Tài liệu nêu trường hợp hư hỏng không thể sửa có thể phải bồi thường 100% giá trị thiết bị; trường hợp sửa được sẽ căn cứ mức sửa chữa.</li>
+        <li>Thẻ nhớ, pin, sạc và phụ kiện cũng thuộc quy định bảo quản và đền bù.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section" id="doi-lich">
+    <div class="policy-copy">
+      <span class="eyebrow">Trước khi xác nhận</span>
+      <h2>Kiểm tra kỹ lịch thuê</h2>
+      <p>Tài liệu cửa hàng quy định không nhận hủy hoặc đổi lịch. Hãy kiểm tra mẫu máy, thời gian nhận trả và phương thức giao nhận trước khi gửi yêu cầu. Nhân viên liên hệ để xác nhận khả năng cung cấp và tiền cọc.</p>
+      <a class="button button-dark" href="{% url 'catalog:list' %}">Chọn máy ảnh</a>
+    </div>
+  </section>
+</div>
+{% endblock %}
