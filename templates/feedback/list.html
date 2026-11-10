@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Feedback khách thuê · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">ME.E Digitalcam</span>
+  {% if selected_camera %}
+    <h1>Feedback {{ selected_camera.name }}</h1>
+    <p>Đánh giá về riêng mẫu máy này. Phản hồi mới chỉ hiển thị sau khi cửa hàng duyệt.</p>
+  {% else %}
+    <h1>Feedback khách thuê</h1>
+    <p>Chọn một mẫu máy để xem đánh giá riêng. Phản hồi mới chỉ hiển thị sau khi cửa hàng duyệt.</p>
+  {% endif %}
+</section>
+<section class="section soft-band">
+  <div class="shell">
+    <div class="photo-grid">
+      <img src="{% static 'images/feedback/M10/643000895_17877749925526574_993868567666725749_n.jpg' %}" alt="Ảnh feedback Canon M10" loading="lazy" data-source="client" data-subject="customer feedback">
+      <img src="{% static 'images/feedback/M50/649212063_17878192170526574_1491229755772355577_n.jpg' %}" alt="Ảnh feedback Canon M50" loading="lazy" data-source="client" data-subject="customer feedback">
+      <img src="{% static 'images/feedback/R50/1.png' %}" alt="Ảnh feedback Canon R50" loading="lazy" data-source="client" data-subject="customer feedback">
+      <img src="{% static 'images/feedback/XA3/1.png' %}" alt="Ảnh feedback Fujifilm XA3" loading="lazy" data-source="client" data-subject="customer feedback">
+      <img src="{% static 'images/feedback/XS10/1.png' %}" alt="Ảnh feedback Fujifilm XS10" loading="lazy" data-source="client" data-subject="customer feedback">
+      <img src="{% static 'images/feedback/X100vi/1.png' %}" alt="Ảnh feedback Fujifilm X100" loading="lazy" data-source="client" data-subject="customer feedback">
+    </div>
+  </div>
+</section>
+<section class="shell section">
+  <div class="section-head"><div><span class="eyebrow">Chọn theo máy</span><h2>Feedback từng mẫu máy</h2></div></div>
+  <div class="feedback-camera-list">
+    <a class="feedback-camera-link{% if not selected_camera %} is-selected{% endif %}" href="{% url 'feedback:list' %}">
+      <strong>Tất cả máy</strong><span>{{ review_count }} đánh giá</span>
+    </a>
+    {% for item in cameras %}
+      <a class="feedback-camera-link{% if selected_camera.pk == item.pk %} is-selected{% endif %}" href="{% url 'feedback:camera' item.slug %}">
+        <strong>{{ item.name }}</strong><span>{{ item.published_feedback_count }} đánh giá</span>
+      </a>
+    {% endfor %}
+  </div>
+  <div class="section-head feedback-results-head"><div><span class="eyebrow">Đánh giá đã duyệt</span><h2>{% if selected_camera %}Trải nghiệm với {{ selected_camera.name }}{% else %}Trải nghiệm thuê máy{% endif %}</h2></div></div>
+  <div class="feedback-stats" aria-label="Thống kê phản hồi">
+    <div><strong>{{ review_count }}</strong><span>đánh giá đã duyệt</span></div>
+    <div><strong>{% if average_rating %}{{ average_rating|floatformat:1 }}/5{% else %}—{% endif %}</strong><span>điểm trung bình</span></div>
+  </div>
+  {% if entries %}
+    <div class="review-grid">
+      {% for entry in entries %}
+        <article class="review-card">
+          <p aria-label="Đánh giá {{ entry.rating }} trên 5">{% for star in "12345" %}{% if forloop.counter <= entry.rating %}★{% else %}☆{% endif %}{% endfor %}</p>
+          <p>{{ entry.content }}</p>
+          <div class="review-meta">{{ entry.camera.name }} · {{ entry.user.first_name|default:"Khách thuê" }}</div>
+          {% if entry.photo %}<img class="feedback-photo" src="{% url 'feedback:photo' entry.pk %}" alt="Ảnh trong phản hồi về {{ entry.camera.name }}" loading="lazy">{% endif %}
+          {% if entry.shop_reply %}<div class="callout"><strong>ME.E Digitalcam</strong><p>{{ entry.shop_reply }}</p></div>{% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Chưa có phản hồi được duyệt trên website. Khách thuê có thể gửi đánh giá sau khi đơn hoàn tất.</p>
+  {% endif %}
+</section>
+{% endblock %}

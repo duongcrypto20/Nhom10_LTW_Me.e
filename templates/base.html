@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4ef">
+  <title>{% block title %}ME.E Digitalcam · Thuê máy ảnh{% endblock %}</title>
+  <meta name="description" content="{% block description %}Xem máy ảnh và giá thuê theo thời lượng. Gửi yêu cầu thuê trực tuyến với ME.E Digitalcam.{% endblock %}">
+  <link rel="icon" href="{% static 'images/policies/logo.jpg' %}">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+  <header class="site-header">
+    <div class="shell nav-row">
+      <a class="brand" href="{% url 'catalog:home' %}" aria-label="ME.E Digitalcam, trang chủ">
+        <img src="{% static 'images/policies/logo.jpg' %}" alt="">
+        <span>ME.E <small>digitalcam</small></span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+        <span class="sr-only">Mở menu</span><i></i><i></i>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Điều hướng chính">
+        <a href="{% url 'catalog:list' %}">Máy ảnh</a>
+        <a href="{% url 'catalog:policies' %}">Giá &amp; quy định</a>
+        <a href="{% url 'feedback:list' %}">Phản hồi</a>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'rentals:list' %}">Đơn thuê</a>
+          <a href="{% url 'customers:profile' %}">Tài khoản</a>
+          {% if request.user.is_staff %}<a href="{% url 'customers:staff_dashboard' %}">Quản trị</a>{% endif %}
+          <form action="{% url 'customers:logout' %}" method="post" class="nav-logout">
+            {% csrf_token %}<button type="submit" class="nav-text-button">Đăng xuất</button>
+          </form>
+        {% else %}
+          <a href="{% url 'customers:login' %}">Đăng nhập</a>
+        {% endif %}
+        <a class="button button-dark nav-cta" href="{% url 'catalog:list' %}">Chọn máy ảnh <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    {% if messages %}
+      <div class="shell message-stack" aria-live="polite">
+        {% for message in messages %}
+          <p class="notice notice-{{ message.tags|default:'info' }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-main">
+      <a class="brand brand-footer" href="{% url 'catalog:home' %}">
+        <img src="{% static 'images/policies/logo.jpg' %}" alt="">
+        <span>ME.E <small>digitalcam</small></span>
+      </a>
+      <p>Máy ảnh cho thuê · Giá và lịch thuê được cửa hàng xác nhận trước khi chốt.</p>
+      <div class="footer-links">
+        <a href="{% url 'catalog:list' %}">Danh sách máy</a>
+        <a href="{% url 'catalog:policies' %}">Quy định thuê</a>
+        <a href="{% url 'feedback:list' %}">Phản hồi</a>
+      </div>
+    </div>
+    <div class="shell footer-bottom">
+      <span>© {% now "Y" %} ME.E Digitalcam</span>
+      <span>Ảnh máy và tư liệu do cửa hàng cung cấp.</span>
+    </div>
+  </footer>
+  <script src="{% static 'js/site.js' %}" defer></script>
+</body>
+</html>

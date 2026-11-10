@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Thông báo · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Tài khoản</span>
+  <h1>Thông báo</h1>
+  <p>Cập nhật yêu cầu thuê và trạng thái đơn hàng.</p>
+</section>
+<section class="shell section" style="padding-top:0">
+  {% for notification in notifications %}
+    <article class="notification-card{% if not notification.read_at %} is-unread{% endif %}">
+      <strong>{{ notification.title }}</strong>
+      <p>{{ notification.message }}</p>
+      <time>{{ notification.created_at|date:"H:i · d/m/Y" }}</time>
+      {% if not notification.read_at %}
+        <form class="inline-form" method="post" action="{% url 'customers:notification_read' notification.pk %}">{% csrf_token %}<button class="plain-button" type="submit">Đánh dấu đã đọc</button></form>
+      {% elif notification.order_id %}
+        <a class="plain-button" href="{% url 'rentals:detail' notification.order_id %}">Xem đơn thuê</a>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p class="empty-state">Bạn chưa có thông báo.</p>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Địa chỉ của tôi · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Tài khoản</span>
+  <h1>Địa chỉ của tôi</h1>
+  <p>Lưu địa chỉ dùng cho yêu cầu giao nhận. Địa chỉ chưa được chia sẻ với cửa hàng cho đến khi gửi đơn có giao nhận.</p>
+</section>
+<section class="shell account-grid">
+  <nav class="account-nav" aria-label="Khu vực tài khoản">
+    <a href="{% url 'customers:profile' %}">Thông tin tài khoản</a>
+    <a href="{% url 'rentals:list' %}">Đơn thuê</a>
+    <a href="{% url 'customers:addresses' %}">Địa chỉ của tôi</a>
+    <a href="{% url 'customers:notifications' %}">Thông báo</a>
+  </nav>
+  <div class="account-main">
+    <section class="account-section">
+      <div class="account-section-header"><h2>Địa chỉ đã lưu</h2></div>
+      {% for address in addresses %}
+        <article class="address-card">
+          <strong>{{ address.label }}{% if address.is_default %} · Mặc định{% endif %}</strong>
+          <p>{{ address.recipient }} · {{ address.phone }}</p>
+          <p>{{ address.street }}, {{ address.district }}, {{ address.city }}</p>
+          <div class="address-actions">
+            {% if not address.is_default %}
+              <form class="inline-form" method="post" action="{% url 'customers:address_default' address.pk %}">{% csrf_token %}<button class="plain-button" type="submit">Đặt làm mặc định</button></form>
+            {% endif %}
+            <form class="inline-form" method="post" action="{% url 'customers:address_delete' address.pk %}">{% csrf_token %}<button class="plain-button" type="submit">Xóa địa chỉ</button></form>
+          </div>
+        </article>
+      {% empty %}
+        <p class="empty-state">Chưa có địa chỉ được lưu.</p>
+      {% endfor %}
+    </section>
+    <section class="account-section account-panel">
+      <h2>Thêm địa chỉ</h2>
+      <form method="post" action="{% url 'customers:address_create' %}">
+        {% csrf_token %}
+        {% for field in form %}
+          {% include "includes/field.html" with field=field %}
+        {% endfor %}
+        <button class="button button-dark" type="submit">Lưu địa chỉ</button>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock %}

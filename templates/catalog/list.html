@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load money %}
+{% block title %}Máy ảnh cho thuê · ME.E Digitalcam{% endblock %}
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Danh mục ME.E Digitalcam</span>
+  <h1>Máy ảnh cho thuê</h1>
+  <p>Chọn mẫu máy để xem giá theo thời lượng, tiền cọc và lịch nhận máy.</p>
+</section>
+<section class="shell section" style="padding-top:0">
+  <div class="catalog-toolbar">
+    <form class="filter-form" method="get">
+      <div class="form-field">
+        <label for="q">Tìm máy ảnh</label>
+        <input id="q" type="search" name="q" value="{{ query }}" placeholder="Tên máy hoặc hãng">
+      </div>
+      <div class="form-field">
+        <label for="brand">Hãng</label>
+        <select id="brand" name="brand">
+          <option value="">Tất cả</option>
+          {% for value, label in brands %}
+            <option value="{{ value }}" {% if selected_brand == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="order">Sắp xếp</label>
+        <select id="order" name="order">
+          <option value="recommended" {% if selected_order == "recommended" %}selected{% endif %}>Theo hãng</option>
+          <option value="price" {% if selected_order == "price" %}selected{% endif %}>Giá thấp trước</option>
+        </select>
+      </div>
+      <button class="button button-dark" type="submit">Lọc máy ảnh</button>
+    </form>
+    <span class="catalog-count">{{ cameras|length }} mẫu</span>
+  </div>
+  {% if cameras %}
+    <div class="camera-grid">
+      {% for camera in cameras %}
+        {% include "includes/camera_card.html" with camera=camera %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-state">Không tìm thấy máy ảnh phù hợp. Hãy thử từ khóa hoặc hãng khác.</p>
+  {% endif %}
+</section>
+{% endblock %}
