@@ -1,22 +1,225 @@
+
 {% extends "base.html" %}
-{% block title %}Gửi feedback · ME.E Digitalcam{% endblock %}
+{% load static %}
+
+{% block title %}Gửi phản hồi · ME.E Digitalcam{% endblock %}
+
 {% block content %}
-<section class="shell page-intro">
-  <span class="eyebrow">Đơn {{ order.order_code }}</span>
-  <h1>Gửi feedback</h1>
-  <p>Phản hồi gắn với đơn thuê đã hoàn tất của bạn sẽ được cửa hàng duyệt trước khi hiển thị.</p>
+
+<section class="shell page-intro feedback-page-intro">
+  <span class="eyebrow">ME.E Digitalcam · Đánh giá trải nghiệm</span>
+
+  <h1>Chia sẻ trải nghiệm của bạn</h1>
+
+  <p>
+    Cảm ơn bạn đã lựa chọn ME.E Digitalcam.
+    Hãy chia sẻ trải nghiệm thuê máy để giúp cửa hàng
+    cải thiện dịch vụ và hỗ trợ những khách hàng tiếp theo.
+  </p>
 </section>
-<section class="shell auth-wrap">
-  <div class="form-panel">
-    <h2>{{ order.camera.name }}</h2>
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {% for field in form %}
-        {% include "includes/field.html" with field=field %}
-      {% endfor %}
-      <p class="field-help">Ảnh tùy chọn, định dạng JPG, PNG hoặc WebP, tối đa 2 MB. Không tải ảnh giấy tờ tùy thân.</p>
-      <div class="form-actions"><button class="button button-dark" type="submit">Gửi feedback <span aria-hidden="true">↗</span></button><a class="button button-light" href="{% url 'rentals:detail' order.pk %}">Quay lại đơn</a></div>
-    </form>
+
+<section class="shell feedback-submit-section">
+
+  <div class="feedback-submit-layout">
+
+    <aside class="feedback-order-card" aria-labelledby="feedback-order-heading">
+
+      <span class="eyebrow">Đơn thuê đã hoàn tất</span>
+
+      <h2 id="feedback-order-heading">Thông tin đơn thuê</h2>
+
+      <div class="feedback-order-camera">
+        <img
+          src="{% static order.camera.image %}"
+          alt="{{ order.camera.name }}"
+          loading="lazy"
+        >
+
+        <div>
+          <h3>{{ order.camera.name }}</h3>
+          <p>{{ order.camera.brand }}</p>
+        </div>
+      </div>
+
+      <dl class="feedback-order-details">
+
+        <div class="feedback-order-detail">
+          <dt>Mã đơn thuê</dt>
+          <dd>{{ order.order_code }}</dd>
+        </div>
+
+        <div class="feedback-order-detail">
+          <dt>Ngày nhận máy</dt>
+          <dd>{{ order.start_at|date:"d/m/Y" }}</dd>
+        </div>
+
+        <div class="feedback-order-detail">
+          <dt>Ngày trả máy</dt>
+          <dd>
+            {% if order.returned_at %}
+              {{ order.returned_at|date:"d/m/Y" }}
+            {% else %}
+              {{ order.end_at|date:"d/m/Y" }}
+            {% endif %}
+          </dd>
+        </div>
+
+        <div class="feedback-order-detail">
+          <dt>Trạng thái</dt>
+          <dd>
+            <span class="status-pill feedback-status-completed">
+              {{ order.get_status_display }}
+            </span>
+          </dd>
+        </div>
+
+      </dl>
+
+      <a
+        class="text-link"
+        href="{% url 'rentals:detail' order.pk %}"
+      >
+        Xem chi tiết đơn thuê
+      </a>
+
+    </aside>
+
+    <div class="form-panel feedback-form-panel">
+
+      <div class="feedback-form-header">
+        <span class="eyebrow">Gửi phản hồi</span>
+
+        <h2>Đánh giá của bạn</h2>
+
+        <p>
+          Mỗi đơn thuê chỉ được gửi một phản hồi.
+          Phản hồi sẽ được hiển thị công khai sau khi cửa hàng duyệt.
+        </p>
+      </div>
+
+      <form
+        method="post"
+        enctype="multipart/form-data"
+        class="feedback-submit-form"
+      >
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div
+            class="notice notice-error feedback-form-errors"
+            role="alert"
+          >
+            {% for error in form.non_field_errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="form-field feedback-rating-field">
+
+          {{ form.rating.label_tag }}
+
+          {{ form.rating }}
+
+          {% if form.rating.errors %}
+            {% for error in form.rating.errors %}
+              <p class="field-error" role="alert">
+                {{ error }}
+              </p>
+            {% endfor %}
+          {% endif %}
+
+          <p class="field-help">
+            Chọn từ 1 đến 5 sao để đánh giá trải nghiệm thuê máy.
+          </p>
+
+        </div>
+
+        <div class="form-field feedback-content-field">
+
+          {{ form.content.label_tag }}
+
+          {{ form.content }}
+
+          {% if form.content.errors %}
+            {% for error in form.content.errors %}
+              <p class="field-error" role="alert">
+                {{ error }}
+              </p>
+            {% endfor %}
+          {% endif %}
+
+          <p class="field-help">
+            Nội dung phản hồi từ 10 đến 2.000 ký tự.
+            Bạn có thể chia sẻ về chất lượng máy,
+            quá trình nhận trả hoặc dịch vụ của cửa hàng.
+          </p>
+
+        </div>
+
+        <div class="form-field feedback-photo-field">
+
+          {{ form.photo.label_tag }}
+
+          <div class="feedback-photo-upload">
+            {{ form.photo }}
+          </div>
+
+          {% if form.photo.errors %}
+            {% for error in form.photo.errors %}
+              <p class="field-error" role="alert">
+                {{ error }}
+              </p>
+            {% endfor %}
+          {% endif %}
+
+          <p class="field-help">
+            Ảnh không bắt buộc.
+            Hỗ trợ JPG, JPEG, PNG hoặc WebP,
+            dung lượng tối đa 2 MB.
+          </p>
+
+          <p class="field-help">
+            Vui lòng không tải lên giấy tờ tùy thân
+            hoặc hình ảnh chứa thông tin cá nhân nhạy cảm.
+          </p>
+
+        </div>
+
+        <div class="feedback-form-notice">
+          <strong>Lưu ý trước khi gửi</strong>
+          <p>
+            Phản hồi của bạn sẽ được cửa hàng xem xét
+            trước khi xuất hiện trong thư viện feedback.
+            Mỗi đơn thuê chỉ có thể gửi một đánh giá.
+          </p>
+        </div>
+
+        <div class="form-actions feedback-form-actions">
+
+          <button
+            type="submit"
+            class="button button-dark"
+          >
+            Gửi đánh giá
+            <span aria-hidden="true">↗</span>
+          </button>
+
+          <a
+            class="button button-light"
+            href="{% url 'rentals:detail' order.pk %}"
+          >
+            Quay lại đơn thuê
+          </a>
+
+        </div>
+
+      </form>
+
+    </div>
+
   </div>
+
 </section>
+
 {% endblock %}

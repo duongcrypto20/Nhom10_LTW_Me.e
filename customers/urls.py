@@ -1,5 +1,5 @@
 from django.urls import path
-
+from . import staff_accounts
 from . import views
 
 app_name = "customers"
@@ -16,4 +16,6 @@ urlpatterns = [
     path("dia-chi/<int:pk>/xoa/", views.address_delete, name="address_delete"),
     path("thong-bao/", views.notification_list, name="notifications"),
     path("thong-bao/<int:pk>/doc/", views.notification_read, name="notification_read"),
+    path("quan-ly/tai-khoan/", staff_accounts.staff_accounts, name="staff_accounts"),
+    path("quan-ly/tai-khoan/<int:pk>/sua/", staff_accounts.staff_account_edit, name="staff_account_edit"),
 ]

@@ -1,0 +1,84 @@
+
+{% extends "base.html" %}
+
+{% block title %}Xử lý phản hồi · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Nhân viên · Phản hồi</span>
+  <h1>Xem và xử lý phản hồi</h1>
+  <p>
+    {{ entry.camera.name }} · {{ entry.order.order_code }}
+    · {{ entry.rating }}/5 sao
+  </p>
+</section>
+
+<section class="shell content-layout">
+  <article class="form-panel">
+    <h2>Phản hồi của khách hàng</h2>
+
+    <div class="summary-row">
+      <span>Email</span>
+      <strong>{{ entry.user.email }}</strong>
+    </div>
+
+    <div class="summary-row">
+      <span>Thời gian</span>
+      <strong>{{ entry.created_at|date:"d/m/Y H:i" }}</strong>
+    </div>
+
+    <div class="summary-row">
+      <span>Đánh giá</span>
+      <strong>{{ entry.rating }}/5 sao</strong>
+    </div>
+
+    <p>{{ entry.content|linebreaks }}</p>
+
+    {% if entry.photo %}
+      <img
+        class="feedback-photo"
+        src="{% url 'feedback:photo' entry.pk %}"
+        alt="Ảnh đánh giá của khách hàng"
+      >
+    {% endif %}
+  </article>
+
+  <aside class="summary-panel">
+    <h2>Duyệt và trả lời</h2>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% for field in form %}
+        <div class="form-field">
+          {% if field.field.widget.input_type == "checkbox" %}
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+          {% else %}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+            {{ field }}
+          {% endif %}
+
+          {% for error in field.errors %}
+            <p class="field-error">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button class="button button-dark" type="submit">
+          Lưu xử lý
+        </button>
+
+        <a class="button button-light" href="{% url 'feedback:manage' %}">
+          Quay lại
+        </a>
+      </div>
+    </form>
+  </aside>
+</section>
+{% endblock %}

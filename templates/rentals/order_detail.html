@@ -1,44 +1,361 @@
+
 {% extends "base.html" %}
 {% load static money %}
+
 {% block title %}{{ order.order_code }} · ME.E Digitalcam{% endblock %}
+
 {% block content %}
-<section class="shell page-intro">
-  <span class="eyebrow">Đơn thuê · {{ order.order_code }}</span>
-  <h1>{{ order.camera.name }}</h1>
-  <p>{{ order.get_status_display }}</p>
+
+<section class="shell page-intro rental-customer-intro">
+  <span class="eyebrow">Tài khoản · Đơn thuê của tôi</span>
+
+  <nav class="breadcrumbs" aria-label="Điều hướng">
+    <a href="{% url 'customers:profile' %}">Tài khoản</a>
+    <span aria-hidden="true">/</span>
+
+    <a href="{% url 'rentals:list' %}">Đơn thuê của tôi</a>
+    <span aria-hidden="true">/</span>
+
+    <span>{{ order.order_code }}</span>
+  </nav>
+
+  <h1>Chi tiết đơn thuê</h1>
+
+  <p>
+    Mã đơn:
+    <strong>{{ order.order_code }}</strong>
+    · Ngày tạo {{ order.created_at|date:"d/m/Y H:i" }}
+  </p>
+
+  <span class="status-pill rentals-status-{{ order.status }}">
+    {{ order.get_status_display }}
+  </span>
 </section>
-<section class="shell content-layout">
-  <div class="form-panel">
-    <h2>Lịch và giao nhận</h2>
-    <div class="summary-row"><span>Thời lượng</span><strong>{{ order.rate_label }} · {{ order.quantity }} máy</strong></div>
-    <div class="summary-row"><span>Nhận máy</span><strong>{{ order.start_at|date:"H:i · d/m/Y" }}</strong></div>
-    <div class="summary-row"><span>Trả dự kiến</span><strong>{{ order.end_at|date:"H:i · d/m/Y" }}</strong></div>
-    {% if order.handover_at %}<div class="summary-row"><span>Đã giao máy</span><strong>{{ order.handover_at|date:"H:i · d/m/Y" }}</strong></div>{% endif %}
-    {% if order.returned_at %}<div class="summary-row"><span>Đã nhận trả</span><strong>{{ order.returned_at|date:"H:i · d/m/Y" }}</strong></div>{% endif %}
-    <div class="summary-row"><span>Hình thức nhận</span><strong>{{ order.get_delivery_method_display }}</strong></div>
-    {% if order.delivery_address %}<div class="summary-row"><span>Địa chỉ</span><strong>{{ order.delivery_address }}</strong></div>{% endif %}
-    <div class="summary-row summary-total"><span>Tiền thuê</span><strong>{{ order.rental_total|money }}đ</strong></div>
-    <div class="summary-row"><span>Tiền cọc</span><strong>{% if order.deposit_amount %}{{ order.deposit_amount|money }}đ{% else %}Chưa xác nhận{% endif %}</strong></div>
-    <div class="summary-row"><span>Trạng thái cọc</span><strong>{{ order.get_deposit_status_display }}</strong></div>
-    {% if order.staff_note %}<div class="callout"><strong>Thông tin từ cửa hàng</strong><p>{{ order.staff_note|linebreaksbr }}</p></div>{% endif %}
-    {% if order.status == "returned" %}
-      {% if order.feedback %}
-        <p>Phản hồi của bạn đã được gửi.</p>
-      {% else %}
-        <div class="form-actions"><a class="button button-dark" href="{% url 'feedback:create' order.pk %}">Gửi phản hồi</a></div>
+
+<section class="shell content-layout rental-customer-layout">
+
+  <div class="rental-customer-main">
+
+    <article class="form-panel rental-customer-card">
+      <span class="eyebrow">Thông tin thiết bị</span>
+      <h2>{{ order.camera.name }}</h2>
+
+      <div class="summary-row">
+        <span>Mã đơn thuê</span>
+        <strong>{{ order.order_code }}</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Máy ảnh</span>
+        <strong>{{ order.camera.name }}</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Gói thuê</span>
+        <strong>{{ order.rate_label }}</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Thời lượng</span>
+        <strong>{{ order.duration_hours }} giờ</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Số lượng</span>
+        <strong>{{ order.quantity }} máy</strong>
+      </div>
+
+      <div class="summary-row summary-total">
+        <span>Tổng tiền thuê</span>
+        <strong>{{ order.rental_total|money }}đ</strong>
+      </div>
+    </article>
+
+    <article class="form-panel rental-customer-card">
+      <span class="eyebrow">Lịch thuê và giao nhận</span>
+      <h2>Thông tin nhận trả máy</h2>
+
+      <div class="summary-row">
+        <span>Thời gian nhận dự kiến</span>
+        <strong>
+          {{ order.start_at|date:"H:i · d/m/Y" }}
+        </strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Thời gian trả dự kiến</span>
+        <strong>
+          {{ order.end_at|date:"H:i · d/m/Y" }}
+        </strong>
+      </div>
+
+      {% if order.handover_at %}
+        <div class="summary-row">
+          <span>Thời gian đã giao máy</span>
+          <strong>
+            {{ order.handover_at|date:"H:i · d/m/Y" }}
+          </strong>
+        </div>
       {% endif %}
+
+      {% if order.returned_at %}
+        <div class="summary-row">
+          <span>Thời gian đã nhận trả</span>
+          <strong>
+            {{ order.returned_at|date:"H:i · d/m/Y" }}
+          </strong>
+        </div>
+      {% endif %}
+
+      <div class="summary-row">
+        <span>Hình thức nhận máy</span>
+        <strong>
+          {{ order.get_delivery_method_display }}
+        </strong>
+      </div>
+
+      {% if order.delivery_address %}
+        <div class="summary-row">
+          <span>Địa chỉ giao nhận</span>
+          <strong>
+            {{ order.delivery_address|linebreaksbr }}
+          </strong>
+        </div>
+      {% endif %}
+
+      {% if order.return_method %}
+        <div class="summary-row">
+          <span>Hình thức trả máy</span>
+          <strong>{{ order.return_method }}</strong>
+        </div>
+      {% endif %}
+
+      {% if order.customer_note %}
+        <div class="callout">
+          <strong>Ghi chú của bạn</strong>
+          <p>{{ order.customer_note|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+      {% if order.is_overdue %}
+        <div class="callout rental-overdue-notice">
+          <strong>Đơn thuê đã quá hạn trả dự kiến</strong>
+          <p>
+            Vui lòng liên hệ cửa hàng để xác nhận
+            thời gian và hình thức trả máy.
+          </p>
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="form-panel rental-customer-card">
+      <span class="eyebrow">Thanh toán và đặt cọc</span>
+      <h2>Thông tin tiền cọc</h2>
+
+      <div class="summary-row">
+        <span>Tiền thuê</span>
+        <strong>{{ order.rental_total|money }}đ</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Mức tiền cọc</span>
+
+        <strong>
+          {% if order.deposit_amount is not None %}
+            {{ order.deposit_amount|money }}đ
+          {% else %}
+            Chưa xác nhận
+          {% endif %}
+        </strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Trạng thái tiền cọc</span>
+
+        <strong>
+          {{ order.get_deposit_status_display }}
+        </strong>
+      </div>
+
+      {% if order.deposit_status == "unconfirmed" %}
+        <div class="callout">
+          <strong>Đang chờ xác nhận tiền cọc</strong>
+          <p>
+            Cửa hàng sẽ kiểm tra yêu cầu thuê
+            và thông báo mức tiền cọc áp dụng.
+          </p>
+        </div>
+
+      {% elif order.deposit_status == "due" %}
+        <div class="callout">
+          <strong>Chờ nhận tiền cọc</strong>
+          <p>
+            Vui lòng làm theo hướng dẫn xác nhận
+            tiền cọc từ cửa hàng.
+          </p>
+        </div>
+
+      {% elif order.deposit_status == "received" %}
+        <div class="callout">
+          <strong>Đã nhận tiền cọc</strong>
+          <p>
+            Cửa hàng đã ghi nhận tiền cọc
+            của đơn thuê này.
+          </p>
+        </div>
+
+      {% elif order.deposit_status == "refunded" %}
+        <div class="callout">
+          <strong>Đã hoàn tiền cọc</strong>
+          <p>
+            Cửa hàng đã ghi nhận hoàn tiền cọc
+            cho đơn thuê.
+          </p>
+        </div>
+
+      {% elif order.deposit_status == "deducted" %}
+        <div class="callout">
+          <strong>Tiền cọc đã được khấu trừ</strong>
+          <p>
+            Vui lòng xem thông báo từ cửa hàng
+            để biết lý do và thông tin xử lý.
+          </p>
+        </div>
+      {% endif %}
+    </article>
+
+    {% if order.status == "returned" %}
+
+      <article class="form-panel rental-customer-card">
+        <span class="eyebrow">Phản hồi khách hàng</span>
+        <h2>Đánh giá trải nghiệm thuê máy</h2>
+
+        {% if order.feedback %}
+          <div class="callout">
+            <strong>Đã gửi phản hồi</strong>
+            <p>
+              Cảm ơn bạn đã chia sẻ trải nghiệm
+              thuê máy tại ME.E Digitalcam.
+            </p>
+          </div>
+
+          <a
+            class="text-link"
+            href="{% url 'feedback:list' %}"
+          >
+            Xem trang phản hồi
+          </a>
+
+        {% else %}
+          <p>
+            Đơn thuê của bạn đã hoàn tất.
+            Bạn có thể gửi đánh giá về thiết bị
+            và chất lượng dịch vụ của cửa hàng.
+          </p>
+
+          <div class="form-actions">
+            <a
+              class="button button-dark"
+              href="{% url 'feedback:create' order.pk %}"
+            >
+              Gửi phản hồi
+            </a>
+          </div>
+        {% endif %}
+      </article>
+
     {% endif %}
+
+    <div class="form-actions rental-customer-actions">
+      <a
+        class="button button-light"
+        href="{% url 'rentals:list' %}"
+      >
+        Quay lại đơn thuê của tôi
+      </a>
+
+      <a
+        class="button button-light"
+        href="{% url 'customers:notifications' %}"
+      >
+        Xem thông báo
+      </a>
+    </div>
+
   </div>
-  <aside class="summary-panel">
-    <img class="summary-camera" src="{% static order.camera.image %}" alt="{{ order.camera.name }}" data-source="client" data-subject="camera">
-    <h2>Lịch sử đơn</h2>
-    <ol class="timeline">
-      {% for event in order.events.all %}
-        <li><strong>{{ event.title }}</strong>{% if event.details %}<div>{{ event.details }}</div>{% endif %}<time>{{ event.created_at|date:"H:i · d/m/Y" }}</time></li>
-      {% empty %}
-        <li>Yêu cầu đang được cửa hàng xử lý.</li>
-      {% endfor %}
-    </ol>
+
+  <aside class="rental-customer-sidebar">
+
+    <section class="summary-panel rental-customer-summary">
+      <img
+        class="summary-camera"
+        src="{% static order.camera.image %}"
+        alt="{{ order.camera.name }}"
+      >
+
+      <span class="eyebrow">Thiết bị đã đặt</span>
+      <h2>{{ order.camera.name }}</h2>
+
+      <div class="summary-row">
+        <span>Gói thuê</span>
+        <strong>{{ order.rate_label }}</strong>
+      </div>
+
+      <div class="summary-row">
+        <span>Số lượng</span>
+        <strong>{{ order.quantity }} máy</strong>
+      </div>
+
+      <div class="summary-row summary-total">
+        <span>Tiền thuê</span>
+        <strong>{{ order.rental_total|money }}đ</strong>
+      </div>
+    </section>
+
+    <section class="summary-panel rental-customer-history">
+      <span class="eyebrow">Tiến trình đơn thuê</span>
+      <h2>Lịch sử xử lý</h2>
+
+      <ol class="timeline">
+        {% for event in order.events.all %}
+
+          {% if event.title == "Đã gửi yêu cầu thuê" or event.title == "Đơn thuê đã được tạo" or "Trạng thái đơn:" in event.title or event.title == "Cập nhật tiền cọc" %}
+
+            <li>
+              <strong>{{ event.title }}</strong>
+
+              <time datetime="{{ event.created_at|date:'c' }}">
+                {{ event.created_at|date:"H:i · d/m/Y" }}
+              </time>
+            </li>
+
+          {% endif %}
+
+        {% empty %}
+          <li>
+            <strong>Đơn thuê đang được xử lý</strong>
+            <time>
+              {{ order.created_at|date:"H:i · d/m/Y" }}
+            </time>
+          </li>
+        {% endfor %}
+      </ol>
+
+      <p class="field-help">
+        Thông tin chi tiết và lời nhắn của cửa hàng
+        được gửi qua mục Thông báo.
+      </p>
+
+      <a
+        class="text-link"
+        href="{% url 'customers:notifications' %}"
+      >
+        Xem thông báo của tôi
+      </a>
+    </section>
+
   </aside>
+
 </section>
+
 {% endblock %}

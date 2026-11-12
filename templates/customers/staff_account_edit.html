@@ -1,0 +1,53 @@
+
+{% extends "base.html" %}
+
+{% block title %}Chỉnh sửa tài khoản · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Chủ cửa hàng</span>
+  <h1>Chỉnh sửa tài khoản</h1>
+  <p>{{ target.email }}</p>
+</section>
+
+<section class="shell section">
+  <div class="form-panel">
+    <form method="post">
+      {% csrf_token %}
+
+      {% for field in form %}
+        <div class="form-field">
+          {% if field.field.widget.input_type == "checkbox" %}
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+          {% else %}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+            {{ field }}
+          {% endif %}
+
+          {% for error in field.errors %}
+            <p class="field-error">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button class="button button-dark" type="submit">
+          Lưu thay đổi
+        </button>
+
+        <a
+          class="button button-light"
+          href="{% url 'customers:staff_accounts' %}"
+        >
+          Quay lại
+        </a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

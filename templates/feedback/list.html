@@ -1,60 +1,418 @@
+
 {% extends "base.html" %}
-{% load static %}
-{% block title %}Feedback khách thuê · ME.E Digitalcam{% endblock %}
+
+{% block title %}
+  {% if selected_camera %}
+    Feedback {{ selected_camera.name }} · ME.E Digitalcam
+  {% else %}
+    Feedback khách hàng · ME.E Digitalcam
+  {% endif %}
+{% endblock %}
+
 {% block content %}
+
 <section class="shell page-intro">
   <span class="eyebrow">ME.E Digitalcam</span>
+
   {% if selected_camera %}
     <h1>Feedback {{ selected_camera.name }}</h1>
-    <p>Đánh giá về riêng mẫu máy này. Phản hồi mới chỉ hiển thị sau khi cửa hàng duyệt.</p>
+    <p>
+      Khám phá hình ảnh và đánh giá thực tế từ khách hàng
+      đã thuê {{ selected_camera.name }} tại ME.E Digitalcam.
+    </p>
   {% else %}
-    <h1>Feedback khách thuê</h1>
-    <p>Chọn một mẫu máy để xem đánh giá riêng. Phản hồi mới chỉ hiển thị sau khi cửa hàng duyệt.</p>
+    <h1>Ảnh feedback từ khách hàng</h1>
+    <p>
+      Khám phá những hình ảnh và trải nghiệm thực tế
+      của khách hàng sau khi thuê máy ảnh.
+    </p>
   {% endif %}
 </section>
-<section class="section soft-band">
-  <div class="shell">
-    <div class="photo-grid">
-      <img src="{% static 'images/feedback/M10/643000895_17877749925526574_993868567666725749_n.jpg' %}" alt="Ảnh feedback Canon M10" loading="lazy" data-source="client" data-subject="customer feedback">
-      <img src="{% static 'images/feedback/M50/649212063_17878192170526574_1491229755772355577_n.jpg' %}" alt="Ảnh feedback Canon M50" loading="lazy" data-source="client" data-subject="customer feedback">
-      <img src="{% static 'images/feedback/R50/1.png' %}" alt="Ảnh feedback Canon R50" loading="lazy" data-source="client" data-subject="customer feedback">
-      <img src="{% static 'images/feedback/XA3/1.png' %}" alt="Ảnh feedback Fujifilm XA3" loading="lazy" data-source="client" data-subject="customer feedback">
-      <img src="{% static 'images/feedback/XS10/1.png' %}" alt="Ảnh feedback Fujifilm XS10" loading="lazy" data-source="client" data-subject="customer feedback">
-      <img src="{% static 'images/feedback/X100vi/1.png' %}" alt="Ảnh feedback Fujifilm X100" loading="lazy" data-source="client" data-subject="customer feedback">
-    </div>
-  </div>
-</section>
+
 <section class="shell section">
-  <div class="section-head"><div><span class="eyebrow">Chọn theo máy</span><h2>Feedback từng mẫu máy</h2></div></div>
-  <div class="feedback-camera-list">
-    <a class="feedback-camera-link{% if not selected_camera %} is-selected{% endif %}" href="{% url 'feedback:list' %}">
-      <strong>Tất cả máy</strong><span>{{ review_count }} đánh giá</span>
+
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Khám phá theo thiết bị</span>
+      <h2>Feedback từng mẫu máy</h2>
+      <p>Chọn mẫu máy để xem hình ảnh và đánh giá tương ứng.</p>
+    </div>
+
+    {% if selected_camera %}
+      <a
+        class="button button-light"
+        href="{% url 'feedback:list' %}"
+      >
+        Xem tất cả
+      </a>
+    {% endif %}
+  </div>
+
+  <nav
+    class="feedback-camera-list"
+    aria-label="Lọc phản hồi theo máy ảnh"
+  >
+
+    <a
+      class="feedback-camera-link{% if not selected_camera %} is-selected{% endif %}"
+      href="{% url 'feedback:list' %}"
+      {% if not selected_camera %}aria-current="page"{% endif %}
+    >
+      <strong>Tất cả máy</strong>
+      <span>Xem toàn bộ phản hồi</span>
     </a>
+
     {% for item in cameras %}
-      <a class="feedback-camera-link{% if selected_camera.pk == item.pk %} is-selected{% endif %}" href="{% url 'feedback:camera' item.slug %}">
-        <strong>{{ item.name }}</strong><span>{{ item.published_feedback_count }} đánh giá</span>
+      <a
+        class="feedback-camera-link{% if selected_camera.pk == item.pk %} is-selected{% endif %}"
+        href="{% url 'feedback:camera' item.slug %}"
+        {% if selected_camera.pk == item.pk %}aria-current="page"{% endif %}
+      >
+        <strong>{{ item.name }}</strong>
+        <span>{{ item.published_feedback_count }} đánh giá</span>
       </a>
     {% endfor %}
-  </div>
-  <div class="section-head feedback-results-head"><div><span class="eyebrow">Đánh giá đã duyệt</span><h2>{% if selected_camera %}Trải nghiệm với {{ selected_camera.name }}{% else %}Trải nghiệm thuê máy{% endif %}</h2></div></div>
-  <div class="feedback-stats" aria-label="Thống kê phản hồi">
-    <div><strong>{{ review_count }}</strong><span>đánh giá đã duyệt</span></div>
-    <div><strong>{% if average_rating %}{{ average_rating|floatformat:1 }}/5{% else %}—{% endif %}</strong><span>điểm trung bình</span></div>
-  </div>
-  {% if entries %}
-    <div class="review-grid">
-      {% for entry in entries %}
-        <article class="review-card">
-          <p aria-label="Đánh giá {{ entry.rating }} trên 5">{% for star in "12345" %}{% if forloop.counter <= entry.rating %}★{% else %}☆{% endif %}{% endfor %}</p>
-          <p>{{ entry.content }}</p>
-          <div class="review-meta">{{ entry.camera.name }} · {{ entry.user.first_name|default:"Khách thuê" }}</div>
-          {% if entry.photo %}<img class="feedback-photo" src="{% url 'feedback:photo' entry.pk %}" alt="Ảnh trong phản hồi về {{ entry.camera.name }}" loading="lazy">{% endif %}
-          {% if entry.shop_reply %}<div class="callout"><strong>ME.E Digitalcam</strong><p>{{ entry.shop_reply }}</p></div>{% endif %}
-        </article>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p>Chưa có phản hồi được duyệt trên website. Khách thuê có thể gửi đánh giá sau khi đơn hoàn tất.</p>
-  {% endif %}
+
+  </nav>
+
 </section>
+
+<section class="section soft-band">
+
+  <div class="shell">
+
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Thư viện ảnh</span>
+
+        <h2>
+          {% if selected_camera %}
+            Hình ảnh {{ selected_camera.name }}
+          {% else %}
+            Khoảnh khắc khách hàng
+          {% endif %}
+        </h2>
+
+        <p>
+          Những hình ảnh được khách hàng chia sẻ
+          và đã được cửa hàng duyệt.
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="photo-grid feedback-gallery"
+      id="feedback-gallery"
+    >
+
+      {% for entry in entries %}
+
+        {% if entry.photo %}
+          <a
+            class="feedback-gallery-item"
+            href="{% url 'feedback:photo' entry.pk %}"
+            data-feedback-lightbox
+            data-camera="{{ entry.camera.name }}"
+            data-author="{{ entry.user.first_name|default:'Khách thuê' }}"
+            aria-label="Xem ảnh feedback {{ entry.camera.name }}"
+          >
+
+            <img
+              src="{% url 'feedback:photo' entry.pk %}"
+              alt="Ảnh feedback về {{ entry.camera.name }}"
+              loading="lazy"
+            >
+
+            <span class="feedback-gallery-overlay">
+              <strong>{{ entry.camera.name }}</strong>
+              <small>Xem ảnh</small>
+            </span>
+
+          </a>
+        {% endif %}
+
+      {% endfor %}
+
+    </div>
+
+    <p
+      class="feedback-gallery-empty"
+      id="feedback-gallery-empty"
+      hidden
+    >
+      {% if selected_camera %}
+        Chưa có ảnh feedback được duyệt cho {{ selected_camera.name }}.
+      {% else %}
+        Chưa có ảnh feedback được duyệt.
+      {% endif %}
+    </p>
+
+  </div>
+
+</section>
+
+<section class="shell section">
+
+  <div class="section-head feedback-results-head">
+    <div>
+      <span class="eyebrow">Đánh giá khách hàng</span>
+
+      <h2>
+        {% if selected_camera %}
+          Trải nghiệm với {{ selected_camera.name }}
+        {% else %}
+          Khách hàng nói gì về ME.E?
+        {% endif %}
+      </h2>
+
+      <p>
+        Các đánh giá dưới đây đều đã được cửa hàng duyệt.
+      </p>
+    </div>
+  </div>
+
+  <div
+    class="feedback-stats"
+    aria-label="Thống kê phản hồi"
+  >
+
+    <div>
+      <strong>{{ review_count }}</strong>
+      <span>Đánh giá đã duyệt</span>
+    </div>
+
+    <div>
+      <strong>
+        {% if average_rating %}
+          {{ average_rating|floatformat:1 }}/5
+        {% else %}
+          —
+        {% endif %}
+      </strong>
+      <span>Điểm đánh giá trung bình</span>
+    </div>
+
+  </div>
+
+  {% if entries %}
+
+    <div class="review-grid">
+
+      {% for entry in entries %}
+
+        <article class="review-card">
+
+          <div
+            class="feedback-rating"
+            aria-label="Đánh giá {{ entry.rating }} trên 5 sao"
+          >
+
+            {% for star in "12345" %}
+              {% if forloop.counter <= entry.rating %}
+                <span aria-hidden="true">★</span>
+              {% else %}
+                <span
+                  class="star-empty"
+                  aria-hidden="true"
+                >☆</span>
+              {% endif %}
+            {% endfor %}
+
+          </div>
+
+          <p class="feedback-review-content">
+            {{ entry.content|linebreaksbr }}
+          </p>
+
+          {% if entry.photo %}
+
+            <a
+              class="feedback-review-photo"
+              href="{% url 'feedback:photo' entry.pk %}"
+              data-feedback-lightbox
+              data-camera="{{ entry.camera.name }}"
+              data-author="{{ entry.user.first_name|default:'Khách thuê' }}"
+              aria-label="Phóng to ảnh feedback {{ entry.camera.name }}"
+            >
+
+              <img
+                class="feedback-photo"
+                src="{% url 'feedback:photo' entry.pk %}"
+                alt="Ảnh đánh giá {{ entry.camera.name }}"
+                loading="lazy"
+              >
+
+            </a>
+
+          {% endif %}
+
+          {% if entry.shop_reply %}
+
+            <div class="callout feedback-shop-reply">
+
+              <strong>ME.E Digitalcam phản hồi</strong>
+
+              <p>{{ entry.shop_reply|linebreaksbr }}</p>
+
+            </div>
+
+          {% endif %}
+
+          <div class="review-meta">
+
+            <strong>
+              {{ entry.user.first_name|default:"Khách thuê" }}
+            </strong>
+
+            <span>{{ entry.camera.name }}</span>
+
+            <time datetime="{{ entry.created_at|date:'c' }}">
+              {{ entry.created_at|date:"d/m/Y" }}
+            </time>
+
+          </div>
+
+        </article>
+
+      {% endfor %}
+
+    </div>
+
+  {% else %}
+
+    <div class="empty-state">
+
+      <h3>Chưa có đánh giá nào</h3>
+
+      <p>
+        {% if selected_camera %}
+          Hiện chưa có phản hồi được duyệt
+          cho mẫu máy {{ selected_camera.name }}.
+        {% else %}
+          Chưa có phản hồi được duyệt.
+          Những đánh giá mới sẽ hiển thị
+          sau khi cửa hàng kiểm tra.
+        {% endif %}
+      </p>
+
+      <a
+        class="button button-dark"
+        href="{% url 'catalog:list' %}"
+      >
+        Khám phá máy ảnh
+      </a>
+
+    </div>
+
+  {% endif %}
+
+</section>
+
+<dialog
+  class="feedback-lightbox"
+  id="feedback-lightbox"
+  aria-label="Xem ảnh feedback"
+>
+
+  <div class="feedback-lightbox-content">
+
+    <button
+      type="button"
+      class="feedback-lightbox-close"
+      data-lightbox-close
+      aria-label="Đóng ảnh"
+    >
+      &times;
+    </button>
+
+    <figure>
+
+      <img
+        id="feedback-lightbox-image"
+        alt=""
+      >
+
+      <figcaption id="feedback-lightbox-caption"></figcaption>
+
+    </figure>
+
+  </div>
+
+</dialog>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const gallery = document.getElementById("feedback-gallery");
+    const emptyMessage = document.getElementById(
+      "feedback-gallery-empty"
+    );
+
+    if (gallery && emptyMessage) {
+      const hasPhotos = gallery.querySelector(
+        ".feedback-gallery-item"
+      ) !== null;
+
+      emptyMessage.hidden = hasPhotos;
+    }
+
+    const dialog = document.getElementById("feedback-lightbox");
+    const lightboxImage = document.getElementById(
+      "feedback-lightbox-image"
+    );
+    const lightboxCaption = document.getElementById(
+      "feedback-lightbox-caption"
+    );
+
+    if (!dialog || !lightboxImage || !lightboxCaption) {
+      return;
+    }
+
+    const imageLinks = document.querySelectorAll(
+      "[data-feedback-lightbox]"
+    );
+
+    imageLinks.forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        if (typeof dialog.showModal !== "function") {
+          return;
+        }
+
+        event.preventDefault();
+
+        lightboxImage.src = link.href;
+
+        const preview = link.querySelector("img");
+        lightboxImage.alt = preview ? preview.alt : "";
+
+        const camera = link.dataset.camera || "";
+        const author = link.dataset.author || "Khách thuê";
+
+        lightboxCaption.textContent = camera + " · " + author;
+
+        dialog.showModal();
+      });
+    });
+
+    const closeButton = dialog.querySelector(
+      "[data-lightbox-close]"
+    );
+
+    if (closeButton) {
+      closeButton.addEventListener("click", function () {
+        dialog.close();
+      });
+    }
+
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) {
+        dialog.close();
+      }
+    });
+
+    dialog.addEventListener("close", function () {
+      lightboxImage.removeAttribute("src");
+    });
+  });
+</script>
+
 {% endblock %}

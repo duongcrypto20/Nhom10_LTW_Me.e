@@ -1,0 +1,92 @@
+
+{% extends "base.html" %}
+
+{% block title %}Quản lý tài khoản · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Chủ cửa hàng</span>
+  <h1>Quản lý tài khoản và phân quyền</h1>
+  <p>
+    Tìm tài khoản, quản lý vai trò
+    và khóa hoặc mở quyền đăng nhập.
+  </p>
+</section>
+
+<section class="shell section">
+  <form method="get" class="filter-form">
+    <div class="form-field">
+      <label for="account-search">Tìm kiếm</label>
+      <input
+        id="account-search"
+        type="search"
+        name="q"
+        value="{{ query }}"
+        placeholder="Email, tên đăng nhập, họ tên..."
+      >
+    </div>
+
+    <button class="button button-dark" type="submit">
+      Tìm kiếm
+    </button>
+  </form>
+
+  <div class="table-scroll">
+    <table class="simple-table">
+      <thead>
+        <tr>
+          <th>Tài khoản</th>
+          <th>Email</th>
+          <th>Họ tên</th>
+          <th>Vai trò</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.first_name }}</td>
+
+            <td>
+              {% if u.is_superuser %}
+                Superuser
+              {% else %}
+                {{ u.customer_profile.get_role_display|default:"Khách hàng" }}
+              {% endif %}
+            </td>
+
+            <td>
+              {% if u.is_active %}
+                Hoạt động
+              {% else %}
+                Đã khóa
+              {% endif %}
+            </td>
+
+            <td>
+              {% if not u.is_superuser and u.pk != request.user.pk and u.customer_profile.role != "manager" %}
+                <a
+                  class="text-link"
+                  href="{% url 'customers:staff_account_edit' u.pk %}"
+                >
+                  Cập nhật
+                </a>
+              {% else %}
+                Tài khoản được bảo vệ
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6">Không tìm thấy tài khoản.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
