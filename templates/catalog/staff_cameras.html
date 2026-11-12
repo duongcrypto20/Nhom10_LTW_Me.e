@@ -1,0 +1,107 @@
+
+{% extends "base.html" %}
+
+{% block title %}Quản lý máy ảnh · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Quản trị · Thiết bị</span>
+  <h1>Quản lý máy ảnh</h1>
+  <p>Thêm máy, sửa thông tin, số lượng và tình trạng kinh doanh.</p>
+</section>
+
+<section class="shell section">
+  <div class="account-section-header">
+    <form method="get" class="filter-form">
+      <div class="form-field">
+        <label for="camera-q">Tìm kiếm máy ảnh</label>
+        <input
+          id="camera-q"
+          type="search"
+          name="q"
+          value="{{ q }}"
+          placeholder="Tên máy, hãng..."
+        >
+      </div>
+
+      <button class="button button-light" type="submit">
+        Tìm kiếm
+      </button>
+    </form>
+
+    {% if can_add %}
+      <a
+        class="button button-dark"
+        href="{% url 'catalog:create_camera' %}"
+      >
+        + Thêm máy ảnh
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="table-scroll">
+    <table class="simple-table">
+      <thead>
+        <tr>
+          <th>Tên máy</th>
+          <th>Hãng</th>
+          <th>Ảnh</th>
+          <th>Số lượng</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for camera in cameras %}
+          <tr>
+            <td>{{ camera.name }}</td>
+            <td>{{ camera.brand }}</td>
+            <td>{{ camera.image }}</td>
+            <td>{{ camera.available_units }}</td>
+            <td>
+              {% if camera.is_active %}
+                <span class="status-pill">Đang kinh doanh</span>
+              {% else %}
+                <span class="status-pill">Ngừng kinh doanh</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if perms.catalog.change_camera %}
+                <a
+                  class="text-link"
+                  href="{% url 'catalog:edit_camera' camera.pk %}"
+                >
+                  Cập nhật
+                </a>
+              {% else %}
+                Chỉ xem
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6">Không tìm thấy máy ảnh phù hợp.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-actions">
+    <a
+      class="button button-light"
+      href="{% url 'catalog:manage_rates' %}"
+    >
+      Quản lý gói thuê và giá
+    </a>
+
+    <a
+      class="button button-light"
+      href="{% url 'customers:staff_dashboard' %}"
+    >
+      Bảng điều hành
+    </a>
+  </div>
+</section>
+{% endblock %}

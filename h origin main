@@ -1,0 +1,86 @@
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/admin.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/apps.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/management/commands/seed_catalog.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/migrations/0001_initial.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/migrations/0002_alter_camera_available_units.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/models.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/templatetags/money.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/urls.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/admin.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/apps.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/forms.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/migrations/0001_initial.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/models.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/urls.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'customers/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/admin.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/apps.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/forms.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/migrations/0001_initial.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/models.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/urls.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feedback/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'manage.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'me_e_nhom10/asgi.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'me_e_nhom10/settings.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'me_e_nhom10/urls.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'me_e_nhom10/wsgi.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/admin.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/apps.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/forms.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/migrations/0001_initial.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/models.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/services.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/tests.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/urls.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'rentals/views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'requirements.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'static/css/site.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'static/js/site.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/base.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/catalog/detail.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/catalog/home.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/catalog/list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/catalog/policies.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/customers/addresses.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/customers/login.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/customers/notifications.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/customers/profile.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/customers/register.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/feedback/form.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/feedback/list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/includes/camera_card.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/includes/field.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/rentals/booking.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/rentals/order_detail.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/rentals/order_list.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/rentals/review.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/rentals/success.html', LF will be replaced by CRLF the next time Git touches it
+ README.md                           |   38 [32m+[m[31m-[m
+ catalog/admin.py                    |   58 [32m+[m[31m-[m
+ catalog/urls.py                     |   36 [32m+[m
+ customers/urls.py                   |    4 [32m+[m[31m-[m
+ feedback/forms.py                   |   51 [32m+[m[31m-[m
+ feedback/models.py                  |  131 [32m+[m[31m-[m
+ feedback/tests.py                   |  639 [32m+++++++[m[31m-[m
+ feedback/urls.py                    |   35 [32m+[m[31m-[m
+ feedback/views.py                   |  126 [32m+[m[31m-[m
+ rentals/admin.py                    |  597 [32m++++++[m[31m--[m
+ rentals/services.py                 |  636 [32m+++++++[m[31m-[m
+ rentals/tests.py                    |  845 [32m+++++++++[m[31m--[m
+ rentals/urls.py                     |   25 [32m+[m[31m-[m
+ rentals/views.py                    |  629 [32m+++++++[m[31m-[m
+ static/css/site.css                 | 2738 [32m+++++++++++++++++++++++++++++++[m[31m----[m
+ static/images/policies/logo.jpg     |  Bin [31m137679[m -> [32m7305[m bytes
+ templates/base.html                 |  430 [32m+++++[m[31m-[m
+ templates/feedback/form.html        |  235 [32m++[m[31m-[m
+ templates/feedback/list.html        |  422 [32m+++++[m[31m-[m
+ templates/rentals/order_detail.html |  383 [32m++++[m[31m-[m
+ 20 files changed, 7210 insertions(+), 848 deletions(-)

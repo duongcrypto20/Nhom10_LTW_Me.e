@@ -1,74 +1,422 @@
+
 {% load static %}
 <!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f4ef">
-  <title>{% block title %}ME.E Digitalcam · Thuê máy ảnh{% endblock %}</title>
-  <meta name="description" content="{% block description %}Xem máy ảnh và giá thuê theo thời lượng. Gửi yêu cầu thuê trực tuyến với ME.E Digitalcam.{% endblock %}">
-  <link rel="icon" href="{% static 'images/policies/logo.jpg' %}">
-  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <meta name="theme-color" content="#FAF8F6">
+
+  <meta
+    name="description"
+    content="{% block description %}Cho thuê máy ảnh mirrorless và compact tại Đà Nẵng. Xem máy ảnh, giá thuê và quy định tại ME.E Digitalcam.{% endblock %}"
+  >
+
+  <title>
+    {% block title %}ME.E Digitalcam · Thuê máy ảnh{% endblock %}
+  </title>
+
+  <link
+    rel="icon"
+    href="{% static 'images/policies/logo.jpg' %}"
+  >
+
+  <!-- FONT CHỮ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="{% static 'css/site.css' %}"
+  >
 </head>
+
 <body>
-  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+
+  <!-- BỎ QUA MENU -->
+  <a class="skip-link" href="#main">
+    Bỏ qua điều hướng
+  </a>
+
+  <!-- HEADER -->
   <header class="site-header">
-    <div class="shell nav-row">
-      <a class="brand" href="{% url 'catalog:home' %}" aria-label="ME.E Digitalcam, trang chủ">
-        <img src="{% static 'images/policies/logo.jpg' %}" alt="">
-        <span>ME.E <small>digitalcam</small></span>
-      </a>
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
-        <span class="sr-only">Mở menu</span><i></i><i></i>
-      </button>
-      <nav class="primary-nav" id="primary-nav" aria-label="Điều hướng chính">
-        <a href="{% url 'catalog:list' %}">Máy ảnh</a>
-        <a href="{% url 'catalog:policies' %}">Giá &amp; quy định</a>
-        <a href="{% url 'feedback:list' %}">Phản hồi</a>
-        {% if request.user.is_authenticated %}
-          <a href="{% url 'rentals:list' %}">Đơn thuê</a>
-          <a href="{% url 'customers:profile' %}">Tài khoản</a>
-          {% if request.user.is_staff %}<a href="{% url 'customers:staff_dashboard' %}">Quản trị</a>{% endif %}
-          <form action="{% url 'customers:logout' %}" method="post" class="nav-logout">
-            {% csrf_token %}<button type="submit" class="nav-text-button">Đăng xuất</button>
-          </form>
-        {% else %}
-          <a href="{% url 'customers:login' %}">Đăng nhập</a>
-        {% endif %}
-        <a class="button button-dark nav-cta" href="{% url 'catalog:list' %}">Chọn máy ảnh <span aria-hidden="true">↗</span></a>
-      </nav>
+
+    <!-- THANH THÔNG TIN -->
+    <div class="header-topbar">
+      <div class="shell header-topbar-inner">
+
+        <span>
+          Zalo:
+          <a href="tel:0917999277">0917 999 277</a>
+          /
+          <a href="tel:0834020466">0834 020 466</a>
+        </span>
+
+        <span class="header-topbar-note">
+          Máy được vệ sinh &amp; kiểm tra trước khi giao ·
+          Tiền cọc hoàn lại sau khi kiểm tra máy
+        </span>
+
+      </div>
     </div>
+
+    <!-- LOGO VÀ MENU -->
+    <div class="shell nav-row">
+
+      <a
+        class="brand"
+        href="{% url 'catalog:home' %}"
+        aria-label="me.e_digitalcam - Trang chủ"
+      >
+        <img
+          src="{% static 'images/policies/logo.jpg' %}"
+          alt=""
+          width="42"
+          height="42"
+        >
+        <span>me.e_digitalcam</span>
+      </a>
+
+      <!-- MENU MOBILE -->
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-nav"
+        aria-label="Mở hoặc đóng menu điều hướng"
+      >
+        <span class="sr-only">Mở menu</span>
+        <i></i>
+        <i></i>
+        <i></i>
+      </button>
+
+      <!-- MENU CHÍNH -->
+      <nav
+        class="primary-nav"
+        id="primary-nav"
+        aria-label="Điều hướng chính"
+      >
+
+        <a href="{% url 'catalog:list' %}">
+          Máy ảnh
+        </a>
+
+        <a href="{% url 'catalog:policies' %}#gia-thue">
+          Gói thuê
+        </a>
+
+        <a href="{% url 'feedback:list' %}">
+          Ảnh feedback
+        </a>
+
+        <a href="{% url 'catalog:policies' %}#gio-nhan-tra">
+          Quy trình
+        </a>
+
+        <a href="{% url 'catalog:policies' %}">
+          Quy định
+        </a>
+
+        <a href="{% url 'catalog:policies' %}#doi-lich">
+          Hỏi đáp
+        </a>
+
+        <!-- TÀI KHOẢN -->
+        {% if request.user.is_authenticated %}
+
+          <details class="account-dropdown">
+
+            <summary class="account-dropdown-trigger">
+              Tôi
+            </summary>
+
+            <div class="account-dropdown-menu">
+
+              <div class="account-dropdown-user">
+                <strong>
+                  {{ request.user.get_full_name|default:request.user.username }}
+                </strong>
+                <span>
+                  {{ request.user.email }}
+                </span>
+              </div>
+
+              <a href="{% url 'customers:profile' %}">
+                Thông tin tài khoản
+              </a>
+
+              <a href="{% url 'rentals:list' %}">
+                Đơn thuê của tôi
+              </a>
+
+              <a href="{% url 'customers:notifications' %}">
+                Thông báo
+              </a>
+
+              <a href="{% url 'customers:addresses' %}">
+                Địa chỉ của tôi
+              </a>
+
+              {% if request.user.is_staff %}
+
+                <div class="account-dropdown-divider"></div>
+
+                <a href="{% url 'customers:staff_dashboard' %}">
+                  Quản trị cửa hàng
+                </a>
+
+                {% if perms.rentals.view_rentalorder %}
+                  <a href="{% url 'rentals:staff_orders' %}">
+                    Quản lý đơn thuê
+                  </a>
+                {% endif %}
+
+                {% if perms.feedback.view_feedback %}
+                  <a href="{% url 'feedback:manage' %}">
+                    Quản lý phản hồi
+                  </a>
+                {% endif %}
+
+                {% if request.user.is_superuser %}
+                  <a href="{% url 'admin:index' %}">
+                    Django Admin
+                  </a>
+                {% endif %}
+
+              {% endif %}
+
+              <div class="account-dropdown-divider"></div>
+
+              <form
+                method="post"
+                action="{% url 'customers:logout' %}"
+              >
+                {% csrf_token %}
+
+                <button
+                  type="submit"
+                  class="account-dropdown-logout"
+                >
+                  Đăng xuất
+                </button>
+
+              </form>
+
+            </div>
+
+          </details>
+
+        {% else %}
+
+          <a href="{% url 'customers:login' %}">
+            Đăng nhập
+          </a>
+
+          <a
+            class="button button-dark"
+            href="{% url 'customers:register' %}"
+          >
+            Đăng ký
+          </a>
+
+        {% endif %}
+
+      </nav>
+
+    </div>
+
   </header>
 
+  <!-- NỘI DUNG WEBSITE -->
   <main id="main">
+
     {% if messages %}
-      <div class="shell message-stack" aria-live="polite">
+      <div
+        class="shell message-stack"
+        aria-live="polite"
+      >
         {% for message in messages %}
-          <p class="notice notice-{{ message.tags|default:'info' }}">{{ message }}</p>
+          <p class="notice notice-{{ message.tags|default:'info' }}">
+            {{ message }}
+          </p>
         {% endfor %}
       </div>
     {% endif %}
+
     {% block content %}{% endblock %}
+
   </main>
 
-  <footer class="site-footer">
-    <div class="shell footer-main">
-      <a class="brand brand-footer" href="{% url 'catalog:home' %}">
-        <img src="{% static 'images/policies/logo.jpg' %}" alt="">
-        <span>ME.E <small>digitalcam</small></span>
-      </a>
-      <p>Máy ảnh cho thuê · Giá và lịch thuê được cửa hàng xác nhận trước khi chốt.</p>
-      <div class="footer-links">
-        <a href="{% url 'catalog:list' %}">Danh sách máy</a>
-        <a href="{% url 'catalog:policies' %}">Quy định thuê</a>
-        <a href="{% url 'feedback:list' %}">Phản hồi</a>
-      </div>
+  <!-- FOOTER -->
+  <footer class="site-footer mee-footer">
+
+    <div class="shell footer-main mee-footer-grid">
+
+      <!-- CỘT THƯƠNG HIỆU -->
+      <section
+        class="mee-footer-column mee-footer-about"
+        aria-label="Giới thiệu ME.E Digitalcam"
+      >
+
+        <a
+          class="brand brand-footer"
+          href="{% url 'catalog:home' %}"
+          aria-label="me.e_digitalcam - Trang chủ"
+        >
+          <img
+            src="{% static 'images/policies/logo.jpg' %}"
+            alt=""
+            width="40"
+            height="40"
+            loading="lazy"
+          >
+
+          <span>me.e_digitalcam</span>
+        </a>
+
+        <p>
+          Cho thuê máy ảnh mirrorless và compact
+          tại Đà Nẵng. Thuê theo buổi hoặc theo ngày,
+          quy định cọc và đền bù công khai.
+        </p>
+
+      </section>
+
+      <!-- CỘT KHÁM PHÁ -->
+      <nav
+        class="mee-footer-column"
+        aria-label="Khám phá"
+      >
+
+        <h2>Khám phá</h2>
+
+        <div class="mee-footer-links">
+
+          <a href="{% url 'catalog:list' %}">
+            Máy cho thuê
+          </a>
+
+          <a href="{% url 'catalog:policies' %}#gia-thue">
+            Gói &amp; bảng giá
+          </a>
+
+          <a href="{% url 'catalog:policies' %}#gio-nhan-tra">
+            Quy trình thuê
+          </a>
+
+          <a href="{% url 'feedback:list' %}">
+            Đánh giá
+          </a>
+
+        </div>
+
+      </nav>
+
+      <!-- CỘT CHÍNH SÁCH -->
+      <nav
+        class="mee-footer-column"
+        aria-label="Các chính sách thuê máy"
+      >
+
+        <h2>Chính sách</h2>
+
+        <div class="mee-footer-links">
+
+          <a href="{% url 'catalog:policies' %}#tien-coc">
+            Tiền cọc
+          </a>
+
+          <a href="{% url 'catalog:policies' %}#gio-nhan-tra">
+            Nhận &amp; trả máy
+          </a>
+
+          <a href="{% url 'catalog:policies' %}#bao-quan">
+            Cách bảo quản
+          </a>
+
+          <a href="{% url 'catalog:policies' %}#den-bu">
+            Đền bù thiệt hại
+          </a>
+
+        </div>
+
+      </nav>
+
+      <!-- CỘT LIÊN HỆ -->
+      <section
+        class="mee-footer-column mee-footer-contact"
+        aria-label="Liên hệ cửa hàng"
+      >
+
+        <h2>Liên hệ</h2>
+
+        <div class="mee-footer-links">
+
+          <p>
+            <a href="tel:0917999277">
+              0917 999 277
+            </a>
+            /
+            <a href="tel:0834020466">
+              0834 020 466
+            </a>
+            (Zalo)
+          </p>
+
+          <p>
+            75 Lê Thị Hồng Gấm,
+            Hải Châu, Đà Nẵng
+          </p>
+
+          <p>
+            <a
+              href="https://www.instagram.com/me.e_digitalcam/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Instagram: @me.e_digitalcam
+            </a>
+          </p>
+
+          <p>
+            {% if request.user.is_authenticated and request.user.is_staff %}
+
+              <a href="{% url 'customers:staff_dashboard' %}">
+                Dành cho nhân viên
+              </a>
+
+            {% else %}
+
+              <a href="{% url 'customers:login' %}">
+                Dành cho nhân viên
+              </a>
+
+            {% endif %}
+          </p>
+
+        </div>
+
+      </section>
+
     </div>
-    <div class="shell footer-bottom">
-      <span>© {% now "Y" %} ME.E Digitalcam</span>
-      <span>Ảnh máy và tư liệu do cửa hàng cung cấp.</span>
+
+    <!-- BẢN QUYỀN -->
+    <div class="shell footer-bottom mee-footer-bottom">
+      <span>© me.e_digitalcam.</span>
     </div>
+
   </footer>
-  <script src="{% static 'js/site.js' %}" defer></script>
+
+  <!-- JAVASCRIPT -->
+  <script
+    src="{% static 'js/site.js' %}"
+    defer
+  ></script>
+
 </body>
 </html>

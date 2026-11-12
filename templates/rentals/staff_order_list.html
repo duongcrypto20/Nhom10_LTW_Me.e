@@ -1,0 +1,333 @@
+
+{% extends "base.html" %}
+{% load money %}
+
+{% block title %}Quản lý đơn thuê · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+
+<section class="shell page-intro rentals-admin-intro">
+  <span class="eyebrow">ME.E Digitalcam · Quản trị</span>
+
+  <div class="rentals-admin-heading">
+    <div>
+      <h1>Quản lý đơn thuê</h1>
+      <p>
+        Theo dõi yêu cầu đặt thuê, kiểm tra lịch máy,
+        xử lý giao nhận và quản lý tiền cọc.
+      </p>
+    </div>
+
+    <a
+      class="button button-light"
+      href="{% url 'customers:staff_dashboard' %}"
+    >
+      Về bảng điều hành
+    </a>
+  </div>
+</section>
+
+<section class="shell rentals-admin-section">
+
+  <div class="dashboard-metrics rentals-admin-stats">
+
+    <article class="dashboard-metric">
+      <strong>{{ statistics.total|default:0 }}</strong>
+      <span>Tổng đơn thuê</span>
+    </article>
+
+    <article class="dashboard-metric">
+      <strong>{{ statistics.pending|default:0 }}</strong>
+      <span>Đang chờ xác nhận</span>
+    </article>
+
+    <article class="dashboard-metric">
+      <strong>{{ statistics.active|default:0 }}</strong>
+      <span>Đơn đang xử lý / đang thuê</span>
+    </article>
+
+    <article class="dashboard-metric rentals-overdue-metric">
+      <strong>{{ statistics.overdue|default:0 }}</strong>
+      <span>Đơn chưa trả đúng hạn</span>
+    </article>
+
+  </div>
+
+  <div class="rentals-admin-panel">
+
+    <div class="rentals-admin-panel-header">
+      <div>
+        <span class="eyebrow">Danh sách đơn thuê</span>
+        <h2>Tra cứu và xử lý đơn</h2>
+        <p>
+          Sử dụng bộ lọc để tìm đơn cần xác nhận,
+          bàn giao, nhận trả hoặc xử lý tiền cọc.
+        </p>
+      </div>
+    </div>
+
+    <form
+      method="get"
+      action="{% url 'rentals:staff_orders' %}"
+      class="rentals-admin-filters"
+      role="search"
+    >
+
+      <div class="form-field rentals-admin-search">
+        <label for="rental-search">Tìm kiếm đơn thuê</label>
+
+        <input
+          id="rental-search"
+          type="search"
+          name="q"
+          value="{{ query }}"
+          placeholder="Mã đơn, khách hàng, SĐT, máy ảnh..."
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="rental-status">Trạng thái đơn</label>
+
+        <select id="rental-status" name="status">
+          <option
+            value="all"
+            {% if status_filter == "all" %}selected{% endif %}
+          >
+            Tất cả trạng thái
+          </option>
+
+          {% for value, label in status_choices %}
+            <option
+              value="{{ value }}"
+              {% if status_filter == value %}selected{% endif %}
+            >
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="rental-deposit">Trạng thái tiền cọc</label>
+
+        <select id="rental-deposit" name="deposit">
+          <option
+            value="all"
+            {% if deposit_filter == "all" %}selected{% endif %}
+          >
+            Tất cả trạng thái cọc
+          </option>
+
+          {% for value, label in deposit_choices %}
+            <option
+              value="{{ value }}"
+              {% if deposit_filter == value %}selected{% endif %}
+            >
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="rental-date-from">Nhận máy từ ngày</label>
+
+        <input
+          id="rental-date-from"
+          type="date"
+          name="date_from"
+          value="{{ date_from }}"
+        >
+      </div>
+
+      <div class="form-field">
+        <label for="rental-date-to">Đến ngày</label>
+
+        <input
+          id="rental-date-to"
+          type="date"
+          name="date_to"
+          value="{{ date_to }}"
+        >
+      </div>
+
+      <div class="form-actions rentals-admin-filter-actions">
+        <button type="submit" class="button button-dark">
+          Áp dụng bộ lọc
+        </button>
+
+        <a
+          class="button button-light"
+          href="{% url 'rentals:staff_orders' %}"
+        >
+          Đặt lại
+        </a>
+      </div>
+
+    </form>
+
+    {% if orders %}
+
+      <div class="table-scroll rentals-admin-table-wrap">
+
+        <table class="simple-table rentals-admin-table">
+          <thead>
+            <tr>
+              <th scope="col">Mã đơn</th>
+              <th scope="col">Khách hàng</th>
+              <th scope="col">Máy ảnh</th>
+              <th scope="col">Thời gian thuê</th>
+              <th scope="col">Tiền thuê</th>
+              <th scope="col">Trạng thái</th>
+              <th scope="col">Tiền cọc</th>
+              <th scope="col">Thao tác</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for order in orders %}
+
+              <tr>
+                <td>
+                  <strong class="order-code">
+                    {{ order.order_code }}
+                  </strong>
+
+                  <span class="rentals-admin-created">
+                    {{ order.created_at|date:"d/m/Y H:i" }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="rentals-admin-cell">
+                    <strong>{{ order.contact_name }}</strong>
+                    <span>{{ order.contact_phone }}</span>
+                    <span>{{ order.user.email }}</span>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="rentals-admin-cell">
+                    <strong>{{ order.camera.name }}</strong>
+                    <span>{{ order.rate_label }}</span>
+                    <span>{{ order.quantity }} máy</span>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="rentals-admin-cell">
+                    <span>
+                      Nhận: {{ order.start_at|date:"H:i d/m/Y" }}
+                    </span>
+                    <span>
+                      Trả: {{ order.end_at|date:"H:i d/m/Y" }}
+                    </span>
+
+                    {% if order.is_overdue %}
+                      <strong class="rentals-overdue-label">
+                        Quá hạn trả máy
+                      </strong>
+                    {% endif %}
+                  </div>
+                </td>
+
+                <td>
+                  <strong>
+                    {{ order.rental_total|money }}đ
+                  </strong>
+                </td>
+
+                <td>
+                  <span class="status-pill rentals-order-status rentals-status-{{ order.status }}">
+                    {{ order.get_status_display }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="rentals-admin-cell">
+                    <span class="status-pill rentals-deposit-status">
+                      {{ order.get_deposit_status_display }}
+                    </span>
+
+                    {% if order.deposit_amount is not None %}
+                      <strong>
+                        {{ order.deposit_amount|money }}đ
+                      </strong>
+                    {% endif %}
+                  </div>
+                </td>
+
+                <td>
+                  <a
+                    class="button button-light rentals-admin-action"
+                    href="{% url 'rentals:staff_order_detail' order.pk %}"
+                  >
+                    Xem chi tiết
+                  </a>
+                </td>
+              </tr>
+
+            {% endfor %}
+          </tbody>
+        </table>
+
+      </div>
+
+    {% else %}
+
+      <div class="empty-state rentals-admin-empty">
+        <h3>Không tìm thấy đơn thuê</h3>
+
+        <p>
+          Chưa có đơn nào phù hợp với điều kiện tìm kiếm.
+          Bạn có thể thay đổi hoặc xóa bộ lọc.
+        </p>
+
+        <a
+          class="button button-light"
+          href="{% url 'rentals:staff_orders' %}"
+        >
+          Xóa bộ lọc
+        </a>
+      </div>
+
+    {% endif %}
+
+  </div>
+
+  {% if page_obj.has_other_pages %}
+
+    <nav
+      class="rentals-admin-pagination"
+      aria-label="Phân trang đơn thuê"
+    >
+
+      {% if page_obj.has_previous %}
+        <a
+          class="button button-light"
+          href="?page={{ page_obj.previous_page_number }}&amp;q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;deposit={{ deposit_filter|urlencode }}&amp;date_from={{ date_from|urlencode }}&amp;date_to={{ date_to|urlencode }}"
+        >
+          Trang trước
+        </a>
+      {% endif %}
+
+      <span class="rentals-admin-page-info">
+        Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+      </span>
+
+      {% if page_obj.has_next %}
+        <a
+          class="button button-light"
+          href="?page={{ page_obj.next_page_number }}&amp;q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;deposit={{ deposit_filter|urlencode }}&amp;date_from={{ date_from|urlencode }}&amp;date_to={{ date_to|urlencode }}"
+        >
+          Trang tiếp
+        </a>
+      {% endif %}
+
+    </nav>
+
+  {% endif %}
+
+</section>
+
+{% endblock %}

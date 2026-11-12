@@ -1,0 +1,547 @@
+
+{% extends "base.html" %}
+{% load money %}
+
+{% block title %}{{ order.order_code }} · Quản lý đơn thuê{% endblock %}
+
+{% block content %}
+
+<section class="shell page-intro rentals-admin-intro">
+  <span class="eyebrow">ME.E Digitalcam · Quản lý đơn thuê</span>
+
+  <nav class="breadcrumbs" aria-label="Điều hướng">
+    <a href="{% url 'customers:staff_dashboard' %}">
+      Bảng điều hành
+    </a>
+    <span aria-hidden="true">/</span>
+
+    <a href="{% url 'rentals:staff_orders' %}">
+      Quản lý đơn thuê
+    </a>
+    <span aria-hidden="true">/</span>
+
+    <span>{{ order.order_code }}</span>
+  </nav>
+
+  <div class="rentals-admin-heading">
+    <div>
+      <h1>Chi tiết đơn {{ order.order_code }}</h1>
+      <p>
+        Được tạo lúc {{ order.created_at|date:"H:i · d/m/Y" }}
+      </p>
+    </div>
+
+    <a
+      class="button button-light"
+      href="{% url 'rentals:staff_orders' %}"
+    >
+      Quay lại danh sách
+    </a>
+  </div>
+</section>
+
+<section class="shell rentals-admin-detail-section">
+
+  <div class="rentals-detail-status-bar">
+
+    <div>
+      <span>Trạng thái đơn thuê</span>
+      <strong class="status-pill rentals-status-{{ order.status }}">
+        {{ order.get_status_display }}
+      </strong>
+    </div>
+
+    <div>
+      <span>Trạng thái tiền cọc</span>
+      <strong class="status-pill rentals-deposit-status">
+        {{ order.get_deposit_status_display }}
+      </strong>
+    </div>
+
+    {% if is_overdue %}
+      <div class="rentals-overdue-warning" role="status">
+        Đơn thuê đã quá thời gian trả dự kiến.
+        Cần liên hệ khách hàng để xác nhận thời gian trả máy.
+      </div>
+    {% endif %}
+
+  </div>
+
+  <div class="rentals-admin-detail-layout">
+
+    <div class="rentals-admin-detail-main">
+
+      <article class="form-panel rentals-detail-card">
+        <span class="eyebrow">Thông tin đơn</span>
+        <h2>Khách hàng và thiết bị</h2>
+
+        <dl class="rentals-detail-list">
+          <div>
+            <dt>Mã đơn thuê</dt>
+            <dd>{{ order.order_code }}</dd>
+          </div>
+
+          <div>
+            <dt>Khách hàng</dt>
+            <dd>{{ order.contact_name }}</dd>
+          </div>
+
+          <div>
+            <dt>Email</dt>
+            <dd>
+              {{ order.contact_email|default:order.user.email }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Số điện thoại</dt>
+            <dd>{{ order.contact_phone }}</dd>
+          </div>
+
+          <div>
+            <dt>Máy ảnh</dt>
+            <dd>{{ order.camera.name }}</dd>
+          </div>
+
+          <div>
+            <dt>Gói thuê</dt>
+            <dd>{{ order.rate_label }}</dd>
+          </div>
+
+          <div>
+            <dt>Số lượng</dt>
+            <dd>{{ order.quantity }} máy</dd>
+          </div>
+
+          <div>
+            <dt>Thời lượng</dt>
+            <dd>{{ order.duration_hours }} giờ</dd>
+          </div>
+
+          <div>
+            <dt>Tiền thuê</dt>
+            <dd>
+              <strong>{{ order.rental_total|money }}đ</strong>
+            </dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="form-panel rentals-detail-card">
+        <span class="eyebrow">Lịch thuê</span>
+        <h2>Thời gian và giao nhận</h2>
+
+        <dl class="rentals-detail-list">
+          <div>
+            <dt>Nhận máy dự kiến</dt>
+            <dd>{{ order.start_at|date:"H:i · d/m/Y" }}</dd>
+          </div>
+
+          <div>
+            <dt>Trả máy dự kiến</dt>
+            <dd>{{ order.end_at|date:"H:i · d/m/Y" }}</dd>
+          </div>
+
+          <div>
+            <dt>Hình thức nhận</dt>
+            <dd>{{ order.get_delivery_method_display }}</dd>
+          </div>
+
+          {% if order.delivery_address %}
+            <div>
+              <dt>Địa chỉ giao nhận</dt>
+              <dd>{{ order.delivery_address|linebreaksbr }}</dd>
+            </div>
+          {% endif %}
+
+          {% if order.handover_at %}
+            <div>
+              <dt>Thời gian bàn giao thực tế</dt>
+              <dd>{{ order.handover_at|date:"H:i · d/m/Y" }}</dd>
+            </div>
+          {% endif %}
+
+          {% if order.returned_at %}
+            <div>
+              <dt>Thời gian trả thực tế</dt>
+              <dd>{{ order.returned_at|date:"H:i · d/m/Y" }}</dd>
+            </div>
+          {% endif %}
+
+          {% if order.return_method %}
+            <div>
+              <dt>Hình thức trả máy</dt>
+              <dd>{{ order.return_method }}</dd>
+            </div>
+          {% endif %}
+        </dl>
+
+        {% if order.customer_note %}
+          <div class="callout">
+            <strong>Ghi chú từ khách hàng</strong>
+            <p>{{ order.customer_note|linebreaksbr }}</p>
+          </div>
+        {% endif %}
+      </article>
+
+      <article class="form-panel rentals-detail-card">
+        <span class="eyebrow">Kiểm tra thiết bị</span>
+        <h2>Biên bản giao và nhận trả</h2>
+
+        <div class="rentals-condition-grid">
+          <div class="rentals-condition-card">
+            <h3>Tình trạng khi giao máy</h3>
+
+            {% if order.condition_out %}
+              <p>{{ order.condition_out|linebreaksbr }}</p>
+            {% else %}
+              <p class="field-help">
+                Chưa ghi nhận tình trạng bàn giao.
+              </p>
+            {% endif %}
+          </div>
+
+          <div class="rentals-condition-card">
+            <h3>Tình trạng khi nhận trả</h3>
+
+            {% if order.condition_in %}
+              <p>{{ order.condition_in|linebreaksbr }}</p>
+            {% else %}
+              <p class="field-help">
+                Chưa ghi nhận tình trạng khi nhận trả.
+              </p>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if order.staff_note %}
+          <div class="callout rentals-private-note">
+            <strong>Ghi chú nội bộ cửa hàng</strong>
+            <p>{{ order.staff_note|linebreaksbr }}</p>
+          </div>
+        {% endif %}
+      </article>
+
+      <article class="form-panel rentals-detail-card">
+        <span class="eyebrow">Lịch sử xử lý</span>
+        <h2>Nhật ký đơn thuê</h2>
+
+        <ol class="timeline rentals-detail-timeline">
+          {% for event in order.events.all %}
+            <li>
+              <strong>{{ event.title }}</strong>
+
+              {% if event.details %}
+                <p>{{ event.details|linebreaksbr }}</p>
+              {% endif %}
+
+              <time datetime="{{ event.created_at|date:'c' }}">
+                {{ event.created_at|date:"H:i · d/m/Y" }}
+              </time>
+
+              {% if event.actor %}
+                <span class="rentals-event-actor">
+                  Người thao tác:
+                  {{ event.actor.get_full_name|default:event.actor.username }}
+                </span>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>Chưa có lịch sử xử lý đơn thuê.</li>
+          {% endfor %}
+        </ol>
+      </article>
+
+    </div>
+
+    <aside class="rentals-admin-detail-sidebar">
+
+      <section class="summary-panel rentals-processing-panel">
+        <span class="eyebrow">Quản lý tiền cọc</span>
+        <h2>Thông tin tiền cọc</h2>
+
+        <div class="summary-row">
+          <span>Mức tiền cọc</span>
+          <strong>
+            {% if order.deposit_amount is not None %}
+              {{ order.deposit_amount|money }}đ
+            {% else %}
+              Chưa xác nhận
+            {% endif %}
+          </strong>
+        </div>
+
+        <div class="summary-row">
+          <span>Trạng thái</span>
+          <strong>{{ order.get_deposit_status_display }}</strong>
+        </div>
+
+        {% if can_change and deposit_choices %}
+
+          <form
+            method="post"
+            action="{% url 'rentals:staff_order_deposit' order.pk %}"
+            class="rentals-admin-processing-form"
+          >
+            {% csrf_token %}
+
+            <div class="form-field">
+              <label for="deposit-status">Cập nhật trạng thái cọc</label>
+
+              <select
+                id="deposit-status"
+                name="deposit_status"
+                required
+              >
+                <option value="">Chọn trạng thái mới</option>
+
+                {% for value, label in deposit_choices %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="deposit-amount">Mức tiền cọc (VNĐ)</label>
+
+              <input
+                id="deposit-amount"
+                type="number"
+                name="deposit_amount"
+                min="0"
+                step="1"
+                value="{{ order.deposit_amount|default_if_none:'' }}"
+                placeholder="Nhập số tiền cọc"
+              >
+
+              <p class="field-help">
+                Khi đã nhận cọc, không được tự ý thay đổi
+                số tiền đã ghi nhận.
+              </p>
+            </div>
+
+            <div class="form-field">
+              <label for="deposit-message">Lời nhắn gửi khách hàng</label>
+
+              <textarea
+                id="deposit-message"
+                name="customer_message"
+                rows="3"
+                maxlength="1000"
+                placeholder="Nhập lý do hoặc thông tin tiền cọc..."
+              ></textarea>
+
+              <p class="field-help">
+                Bắt buộc nhập lý do khi khấu trừ tiền cọc.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              class="button button-dark"
+            >
+              Cập nhật tiền cọc
+            </button>
+
+          </form>
+
+        {% elif not can_change %}
+
+          <p class="field-help">
+            Tài khoản của bạn chỉ có quyền xem thông tin tiền cọc.
+          </p>
+
+        {% else %}
+
+          <p class="field-help">
+            Không có bước cập nhật tiền cọc tiếp theo
+            theo quy trình hiện tại.
+          </p>
+
+        {% endif %}
+      </section>
+
+      <section class="summary-panel rentals-processing-panel">
+        <span class="eyebrow">Xử lý đơn thuê</span>
+        <h2>Cập nhật trạng thái</h2>
+
+        {% if can_change and status_choices %}
+
+          <form
+            method="post"
+            action="{% url 'rentals:staff_order_status' order.pk %}"
+            class="rentals-admin-processing-form"
+          >
+            {% csrf_token %}
+
+            <div class="form-field">
+              <label for="order-new-status">Trạng thái tiếp theo</label>
+
+              <select
+                id="order-new-status"
+                name="status"
+                required
+              >
+                <option value="">Chọn trạng thái</option>
+
+                {% for value, label in status_choices %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="order-condition-out">
+                Tình trạng máy khi giao
+              </label>
+
+              <textarea
+                id="order-condition-out"
+                name="condition_out"
+                rows="3"
+                placeholder="Tình trạng thân máy, ống kính, pin, phụ kiện..."
+              >{{ order.condition_out }}</textarea>
+
+              <p class="field-help">
+                Bắt buộc khi chuyển đơn sang Đang thuê.
+              </p>
+            </div>
+
+            <div class="form-field">
+              <label for="order-condition-in">
+                Tình trạng máy khi nhận trả
+              </label>
+
+              <textarea
+                id="order-condition-in"
+                name="condition_in"
+                rows="3"
+                placeholder="Ghi nhận tình trạng khi khách trả máy..."
+              >{{ order.condition_in }}</textarea>
+
+              <p class="field-help">
+                Bắt buộc khi chuyển đơn sang Đã trả máy.
+              </p>
+            </div>
+
+            <div class="form-field">
+              <label for="order-return-method">
+                Hình thức trả máy
+              </label>
+
+              <input
+                id="order-return-method"
+                type="text"
+                name="return_method"
+                maxlength="100"
+                value="{{ order.return_method }}"
+                placeholder="Ví dụ: Trả trực tiếp tại cửa hàng"
+              >
+            </div>
+
+            <div class="form-field">
+              <label for="order-staff-note">
+                Ghi chú nội bộ
+              </label>
+
+              <textarea
+                id="order-staff-note"
+                name="staff_note"
+                rows="3"
+                placeholder="Thông tin chỉ dành cho nhân viên..."
+              >{{ order.staff_note }}</textarea>
+
+              <p class="field-help">
+                Chỉ lưu khi cập nhật trạng thái đơn.
+                Nội dung này không được gửi cho khách hàng.
+              </p>
+            </div>
+
+            <div class="form-field">
+              <label for="order-customer-message">
+                Lời nhắn gửi khách hàng
+              </label>
+
+              <textarea
+                id="order-customer-message"
+                name="customer_message"
+                rows="3"
+                maxlength="1000"
+                placeholder="Thông báo xác nhận, từ chối hoặc hướng dẫn nhận máy..."
+              ></textarea>
+
+              <p class="field-help">
+                Bắt buộc nhập lý do nếu từ chối đơn.
+              </p>
+            </div>
+
+            <div class="rentals-processing-notice">
+              <strong>Lưu ý</strong>
+              <p>
+                Khi chuyển trạng thái, hệ thống sẽ
+                lưu lịch sử thao tác và gửi thông báo
+                cho khách hàng.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              class="button button-dark"
+            >
+              Lưu trạng thái đơn
+            </button>
+
+          </form>
+
+        {% elif not can_change %}
+
+          <p class="field-help">
+            Tài khoản của bạn chỉ có quyền xem đơn thuê.
+          </p>
+
+        {% else %}
+
+          <div class="rentals-processing-complete">
+            <strong>Không có trạng thái tiếp theo</strong>
+            <p>
+              Đơn đã kết thúc quy trình xử lý
+              hoặc không cho phép chuyển trạng thái nữa.
+            </p>
+          </div>
+
+        {% endif %}
+      </section>
+
+      <div class="rentals-admin-help">
+        <h3>Hướng dẫn xử lý</h3>
+
+        <p>
+          Xác nhận mức cọc trước khi xác nhận đơn.
+          Ghi nhận tình trạng máy khi bàn giao và khi nhận trả.
+          Khi từ chối đơn, cần thông báo rõ lý do cho khách hàng.
+        </p>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <div class="form-actions rentals-admin-bottom-actions">
+    <a
+      class="button button-light"
+      href="{% url 'rentals:staff_orders' %}"
+    >
+      Quay lại danh sách đơn
+    </a>
+
+    <a
+      class="button button-light"
+      href="{% url 'customers:staff_dashboard' %}"
+    >
+      Bảng điều hành
+    </a>
+  </div>
+
+</section>
+
+{% endblock %}

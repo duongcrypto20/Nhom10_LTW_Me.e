@@ -1,0 +1,59 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ heading }} · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Quản lý cửa hàng</span>
+  <h1>{{ heading }}</h1>
+</section>
+
+<section class="shell section">
+  <div class="form-panel">
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="form-errors">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <div class="form-field">
+          {% if field.field.widget.input_type == "checkbox" %}
+            {{ field }}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+          {% else %}
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+            {{ field }}
+          {% endif %}
+
+          {% for error in field.errors %}
+            <p class="field-error">{{ error }}</p>
+          {% endfor %}
+
+          {% if field.help_text %}
+            <p class="field-help">{{ field.help_text }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="form-actions">
+        <button class="button button-dark" type="submit">
+          Lưu thay đổi
+        </button>
+
+        <a class="button button-light" href="{% url back %}">
+          Hủy
+        </a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

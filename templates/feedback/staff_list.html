@@ -1,0 +1,166 @@
+
+{% extends "base.html" %}
+
+{% block title %}Quản lý phản hồi · ME.E Digitalcam{% endblock %}
+
+{% block content %}
+<section class="shell page-intro">
+  <span class="eyebrow">Nhân viên · Phản hồi</span>
+  <h1>Quản lý phản hồi khách hàng</h1>
+  <p>Duyệt đánh giá, tìm kiếm, thống kê và trả lời khách hàng.</p>
+</section>
+
+<section class="shell section">
+  <div class="dashboard-metrics">
+    <div class="dashboard-metric">
+      <strong>{{ statistics.total }}</strong>
+      <span>Tổng phản hồi</span>
+    </div>
+    <div class="dashboard-metric">
+      <strong>{{ statistics.published }}</strong>
+      <span>Đã duyệt</span>
+    </div>
+    <div class="dashboard-metric">
+      <strong>{{ statistics.unpublished }}</strong>
+      <span>Chờ duyệt</span>
+    </div>
+    <div class="dashboard-metric">
+      <strong>{{ statistics.average_rating|floatformat:1|default:"—" }}</strong>
+      <span>Điểm trung bình / 5</span>
+    </div>
+  </div>
+
+  <form method="get" class="filter-form">
+    <div class="form-field">
+      <label for="feedback-search">Tìm kiếm</label>
+      <input
+        id="feedback-search"
+        name="q"
+        value="{{ query }}"
+        placeholder="Khách hàng, mã đơn, máy ảnh..."
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="feedback-status">Trạng thái</label>
+      <select id="feedback-status" name="status">
+        <option value="all">Tất cả</option>
+        <option value="published"
+          {% if status_filter == "published" %}selected{% endif %}
+        >Đã duyệt</option>
+        <option value="unpublished"
+          {% if status_filter == "unpublished" %}selected{% endif %}
+        >Chưa duyệt</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="feedback-camera">Máy ảnh</label>
+      <select id="feedback-camera" name="camera">
+        <option value="">Tất cả máy</option>
+        {% for camera in cameras %}
+          <option
+            value="{{ camera.pk }}"
+            {% if camera_filter == camera.pk|stringformat:'s' %}selected{% endif %}
+          >
+            {{ camera.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="feedback-rating">Số sao</label>
+      <select id="feedback-rating" name="rating">
+        <option value="">Tất cả</option>
+        {% for n in "54321" %}
+          <option
+            value="{{ n }}"
+            {% if rating_filter == n %}selected{% endif %}
+          >
+            {{ n }} sao
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button class="button button-dark" type="submit">Lọc</button>
+    <a class="button button-light" href="{% url 'feedback:manage' %}">
+      Xóa lọc
+    </a>
+  </form>
+
+  <div class="table-scroll">
+    <table class="simple-table">
+      <thead>
+        <tr>
+          <th>Mã đơn</th>
+          <th>Khách</th>
+          <th>Máy</th>
+          <th>Đánh giá</th>
+          <th>Nội dung</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for entry in entries %}
+          <tr>
+            <td>{{ entry.order.order_code }}</td>
+            <td>{{ entry.user.email }}</td>
+            <td>{{ entry.camera.name }}</td>
+            <td>{{ entry.rating }}/5</td>
+            <td>{{ entry.content|truncatechars:90 }}</td>
+            <td>
+              {% if entry.is_published %}
+                Đã duyệt
+              {% else %}
+                Chờ duyệt
+              {% endif %}
+            </td>
+            <td>
+              {% if perms.feedback.change_feedback %}
+                <a
+                  class="text-link"
+                  href="{% url 'feedback:moderate' entry.pk %}"
+                >
+                  Xem / xử lý
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7">Không có phản hồi phù hợp.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <nav class="form-actions" aria-label="Phân trang">
+      {% if page_obj.has_previous %}
+        <a
+          class="button button-light"
+          href="?page={{ page_obj.previous_page_number }}&amp;q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;camera={{ camera_filter|urlencode }}&amp;rating={{ rating_filter|urlencode }}"
+        >
+          Trang trước
+        </a>
+      {% endif %}
+
+      <span>Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+      {% if page_obj.has_next %}
+        <a
+          class="button button-light"
+          href="?page={{ page_obj.next_page_number }}&amp;q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;camera={{ camera_filter|urlencode }}&amp;rating={{ rating_filter|urlencode }}"
+        >
+          Trang tiếp
+        </a>
+      {% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}
