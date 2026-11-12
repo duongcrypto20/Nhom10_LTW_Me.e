@@ -2,7 +2,7 @@ ME.E Nhom10 — ME.E Digitalcam
 
 Website Django cho dịch vụ cho thuê máy ảnh ME.E Digitalcam. Hệ thống có danh mục và bảng giá, gửi yêu cầu thuê có kiểm tra lịch, tài khoản khách hàng, địa chỉ, thông báo, feedback có duyệt và khu vực quản trị nhân viên.
 
-Chạy trên Windows
+Chạy:
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
@@ -18,7 +18,7 @@ Nếu PowerShell chặn kích hoạt môi trường ảo, chạy lệnh cài đ�
 
  Chức năng
 
-<<<<<<< Updated upstream
+<<<<<<< 
 - **Máy ảnh:** 12 mẫu Canon/Fujifilm, tìm kiếm, lọc hãng, sắp xếp theo giá và xem bảng giá theo 6 giờ, 1 ngày, 2 ngày hoặc 3 ngày.
 - **Đặt thuê:** chọn thời lượng, lịch nhận, số lượng và cách nhận máy; xem lại giá; kiểm tra số máy khả dụng; gửi yêu cầu vào trạng thái chờ xác nhận. Lịch được giữ đến khi cửa hàng xác nhận hoặc từ chối yêu cầu.
 - **Tài khoản:** đăng ký bằng email, đăng nhập, cập nhật hồ sơ, quản lý địa chỉ, xem thông báo và đơn thuê của mình.
