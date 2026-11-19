@@ -1,0 +1,31 @@
+{% load dinh_dang %}
+{# Thẻ một thiết bị. Biến cần có: tb #}
+<div class="the-may {% if tb.ngung_cung_cap %}ngung{% endif %}">
+  <a class="anh" href="{% url 'chi_tiet_may_anh' tb.ma %}">
+    {% if tb.anh %}<img src="{{ tb.anh.url }}" alt="{{ tb.ten }}">{% endif %}
+  </a>
+  <div class="tt">
+    <div>
+      {% if tb.ngung_cung_cap %}
+        <span class="tag">Ngừng cung cấp</span>
+      {% elif tb.so_may_san_sang > 0 %}
+        <span class="tag tag-ok">Sẵn sàng hiện tại</span>
+      {% else %}
+        <span class="tag tag-cho_xu_ly">Hết máy trống</span>
+      {% endif %}
+    </div>
+    <h3>{{ tb.ten }}</h3>
+    {% with gia=tb.gia_thap_nhat %}
+      {% if gia %}<div class="gia">Từ {{ gia.gia|tien }} / {{ gia.goi_thue.ten }}</div>{% endif %}
+    {% endwith %}
+    <div class="mo-ta">{{ tb.mo_ta }}</div>
+    <div class="hang-nut">
+      {% if tb.ngung_cung_cap %}
+        <a class="btn btn-vien btn-nho" href="{% url 'chi_tiet_may_anh' tb.ma %}">Chi tiết</a>
+      {% else %}
+        <a class="btn btn-vien btn-nho" href="{% url 'kiem_tra_lich' %}?may={{ tb.ma }}">Xem lịch trống</a>
+        <a class="btn btn-nho" href="{% url 'dat_thue' tb.ma %}">Đặt thuê</a>
+      {% endif %}
+    </div>
+  </div>
+</div>

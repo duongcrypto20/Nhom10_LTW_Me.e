@@ -1,0 +1,5 @@
+{% if page_obj.has_other_pages %}<nav class="phan-trang" aria-label="Phân trang">
+{% if page_obj.has_previous %}<a class="btn btn-vien btn-nho" href="{% querystring page=page_obj.previous_page_number %}">Trang trước</a>{% endif %}
+<span>Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+{% if page_obj.has_next %}<a class="btn btn-vien btn-nho" href="{% querystring page=page_obj.next_page_number %}">Trang tiếp</a>{% endif %}
+</nav>{% endif %}

@@ -1,0 +1,22 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Giỏ thuê{% endblock %}
+{% block content %}
+<div class="dau-muc"><h1>Giỏ thuê</h1><a href="{% url 'ds_may_anh' %}" class="btn btn-vien">Chọn thêm thiết bị</a></div>
+{% if cac_dong %}
+<form method="post">{% csrf_token %}
+  <div class="cuon-ngang"><table class="bang"><thead><tr><th>Thiết bị</th><th>Số lượng</th><th>Cọc mỗi máy</th></tr></thead><tbody>
+  {% for dong in cac_dong %}<tr><td><a href="{% url 'chi_tiet_may_anh' dong.thiet_bi.ma %}">{{ dong.thiet_bi.ten }}</a></td>
+    <td><label class="sr-only" for="sl_{{ dong.thiet_bi.pk }}">Số lượng {{ dong.thiet_bi.ten }}</label><input class="so-luong" id="sl_{{ dong.thiet_bi.pk }}" name="sl_{{ dong.thiet_bi.pk }}" type="number" min="0" max="20" value="{{ dong.so_luong }}"></td>
+    <td>{{ dong.thiet_bi.tien_coc|tien }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p>Số lượng 0 sẽ bỏ thiết bị khỏi giỏ. Bấm cập nhật trước khi chọn thời gian thuê.</p>
+  <button class="btn btn-vien" name="hanh_dong" value="cap_nhat">Cập nhật giỏ thuê</button>
+</form>
+<h2 class="cach-tren">Thời gian và thông tin nhận máy</h2>
+<p>Một đơn dùng chung gói thuê và thời gian cho tất cả thiết bị. Giá và máy trống được kiểm tra lại trước khi gửi yêu cầu.</p>
+<form class="hop-form" method="post" novalidate>{% csrf_token %}{% include '_form.html' %}
+  <button class="btn" name="hanh_dong" value="dat_thue">Kiểm tra yêu cầu thuê</button>
+</form>
+{% else %}<div class="trong"><p>Giỏ thuê đang trống.</p><a class="btn" href="{% url 'ds_may_anh' %}">Chọn thiết bị</a></div>{% endif %}
+{% endblock %}

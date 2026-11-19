@@ -1,0 +1,41 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Đặt thuê {{ thiet_bi.ten }}{% endblock %}
+
+{% block content %}
+  {% if don_dang_sua %}
+    <h1>Điều chỉnh yêu cầu {{ don_dang_sua.ma }}</h1>
+    <div class="alert alert-danger">Lý do cần điều chỉnh: {{ don_dang_sua.ly_do }}</div>
+  {% else %}
+    {% include 'rentals/_buoc_dat.html' with buoc=1 %}
+    <h1>Chọn gói &amp; thời gian thuê</h1>
+  {% endif %}
+
+  <div class="cot-65">
+    <div class="hop-form">
+      <div class="field">
+        <label>Thiết bị</label>
+        <input type="text" value="{{ thiet_bi.ten }}" disabled>
+      </div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include '_form.html' %}
+        <div class="hang-nut">
+          <button class="btn" type="submit">{% if don_dang_sua %}Gửi lại yêu cầu{% else %}Tiếp tục{% endif %}</button>
+          <a class="btn btn-nhat" href="{% url 'chi_tiet_may_anh' thiet_bi.ma %}">Hủy</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="the">
+      <h3>Bảng giá {{ thiet_bi.ten }}</h3>
+      <table class="thong-tin">
+        {% for gia in thiet_bi.cac_gia.all %}
+          <tr><td>{{ gia.goi_thue.ten }} (tối đa {{ gia.goi_thue.so_gio_toi_da }} giờ)</td><td>{{ gia.gia|tien }}</td></tr>
+        {% endfor %}
+        <tr><td>Tiền cọc</td><td><strong>{{ thiet_bi.tien_coc|tien }}</strong></td></tr>
+      </table>
+      <p class="chu-nho">Thuê 1 ngày tính 23 giờ (nhận 10h trả 9h hôm sau). Thuê 1 buổi: ca sáng 8h-14h, ca chiều tối 15h-21h. Trả trễ từ phút 15 phụ thu 50.000đ mỗi giờ. <a href="{% url 'quy_dinh' %}">Xem quy định</a></p>
+    </div>
+  </div>
+{% endblock %}

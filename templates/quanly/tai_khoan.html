@@ -1,0 +1,61 @@
+{% extends 'base_app.html' %}
+{% block title %}Tài khoản và phân quyền{% endblock %}
+
+{% block content %}
+  <h1>Tài khoản &amp; phân quyền</h1>
+
+  <div class="alert alert-warning">
+    <strong>Khách hàng:</strong> đặt thuê, theo dõi đơn, gửi phản hồi.
+    <strong>Nhân viên:</strong> xử lý đơn, giao nhận, thiết bị, dịch vụ, phản hồi.
+    <strong>Chủ cửa hàng:</strong> toàn quyền, gồm phân quyền tài khoản.
+  </div>
+
+  <form class="tim-kiem" method="get">
+    <input type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên hoặc email">
+    <button class="btn" type="submit">Tìm</button>
+  </form>
+
+  {% if ds_tai_khoan %}
+    <div class="cuon-ngang">
+      <table class="bang">
+        <tr><th>Tài khoản</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th></tr>
+        {% for tk in ds_tai_khoan %}
+          <tr>
+            <td><strong>{{ tk.ho_ten }}</strong></td>
+            <td>{{ tk.email }}</td>
+            <td>
+              {% if tk == user %}
+                {{ tk.get_vai_tro_display }} (bạn)
+              {% else %}
+                <form method="post" action="{% url 'ql_doi_vai_tro' tk.pk %}" class="hang-nho"
+                      onsubmit="return confirm('Đổi vai trò của {{ tk.ho_ten|escapejs }}?')">
+                  {% csrf_token %}
+                  <select name="vai_tro">
+                    {% for ma, ten in ds_vai_tro %}
+                      <option value="{{ ma }}" {% if ma == tk.vai_tro %}selected{% endif %}>{{ ten }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn btn-vien btn-nho" type="submit">Lưu</button>
+                </form>
+              {% endif %}
+            </td>
+            <td>
+              {% if tk.is_active %}<span class="tag tag-ok">Đang hoạt động</span>
+              {% else %}<span class="tag tag-khoa">Đã khóa</span>{% endif %}
+              {% if tk != user %}
+                <form class="inline" method="post" action="{% url 'ql_khoa_tai_khoan' tk.pk %}">
+                  {% csrf_token %}
+                  <button class="btn btn-vien btn-nho" type="submit">
+                    {% if tk.is_active %}Khóa tài khoản{% else %}Mở khóa{% endif %}
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% else %}
+    <div class="trong">Không tìm thấy tài khoản.</div>
+  {% endif %}
+{% endblock %}

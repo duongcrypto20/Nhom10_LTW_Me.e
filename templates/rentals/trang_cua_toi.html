@@ -1,0 +1,55 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Trang của tôi{% endblock %}
+
+{% block content %}
+  <h1>Tổng quan</h1>
+  <p class="phu">Theo dõi các đơn thuê máy của bạn.</p>
+
+  <div class="luoi luoi-4 cach-duoi">
+    <div class="the the-so">Chờ xử lý<strong>{{ so_cho_xu_ly }}</strong></div>
+    <div class="the the-so">Chờ cọc / chờ nhận máy<strong>{{ so_da_xac_nhan }}</strong></div>
+    <div class="the the-so">Đang thuê<strong>{{ so_dang_thue }}</strong></div>
+    <div class="the the-so">Đã hoàn tất<strong>{{ so_hoan_tat }}</strong></div>
+  </div>
+
+  <div class="cot-65">
+    <div>
+      <div class="dau-muc">
+        <h2>Đơn thuê gần đây</h2>
+        <a class="btn btn-vien btn-nho" href="{% url 'don_cua_toi' %}">Xem tất cả</a>
+      </div>
+      {% if ds_don_gan_day %}
+        <table class="bang">
+          <tr><th>Đơn</th><th>Thiết bị</th><th>Thời gian</th><th>Trạng thái</th></tr>
+          {% for don in ds_don_gan_day %}
+            <tr>
+              <td><a href="{% url 'chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a>
+                <small>{{ don.tong_thanh_toan|tien }}</small></td>
+              <td>{{ don.ten_thiet_bi }}<small>Gói {{ don.goi_thue.ten }}</small></td>
+              <td>{{ don.gio_nhan|date:'H:i d/m' }} đến {{ don.gio_tra|date:'H:i d/m' }}</td>
+              <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <div class="trong">
+          <p>Bạn chưa có đơn thuê nào.</p>
+          <a class="btn" href="{% url 'ds_may_anh' %}">Chọn máy &amp; đặt thuê</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="the">
+      <h3>Thông báo mới</h3>
+      {% for tb in ds_thong_bao %}
+        <div class="dong-thong-bao">
+          {{ tb.noi_dung }}
+          <small class="chu-phu">{{ tb.ngay_tao|date:'H:i d/m/Y' }}</small>
+        </div>
+      {% empty %}
+        <p>Chưa có thông báo.</p>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

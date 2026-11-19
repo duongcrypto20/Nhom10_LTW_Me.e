@@ -1,0 +1,74 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Quản lý tiền cọc{% endblock %}
+
+{% block content %}
+  <div class="dau-trang">
+    <div>
+      <h1>Quản lý tiền cọc</h1>
+      <p>Thu cọc khi khách nhận máy, hoàn cọc khi khách trả máy. Phụ thu trả trễ được hệ thống tự trừ.</p>
+    </div>
+  </div>
+
+  <div class="luoi luoi-3 cach-duoi">
+    <div class="the the-so nhan">Đang giữ cọc<strong>{{ tong_dang_giu|tien }}</strong><small>{{ so_dang_giu }} đơn</small></div>
+    <div class="the the-so">Đơn chưa thu cọc<strong>{{ so_chua_thu }}</strong><small>khách cọc tại quầy khi nhận máy</small></div>
+    <div class="the the-so">Đã hoàn cọc tháng này<strong>{{ da_hoan_thang|tien }}</strong></div>
+  </div>
+
+  <nav class="chip-may" aria-label="Nhóm tiền cọc">
+    {% for ma, ten in cac_tab.items %}
+      <a href="?tab={{ ma }}" {% if tab == ma %}class="dang-chon" aria-current="page"{% endif %}>{{ ten }}</a>
+    {% endfor %}
+  </nav>
+
+  <form class="tim-kiem" method="get">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <label class="sr-only" for="q-coc">Tìm đơn</label>
+    <input id="q-coc" type="search" name="q" value="{{ tu_khoa }}" placeholder="Mã đơn, tên hoặc số điện thoại khách">
+    <button class="btn" type="submit">Tìm</button>
+  </form>
+
+  {% if ds_don %}
+    <div class="cuon-ngang">
+      <table class="bang">
+        {% if tab == 'da_hoan' %}
+          <tr><th>Đơn</th><th>Trả máy</th><th>Tiền cọc</th><th>Phụ thu trễ</th><th>Đền bù</th><th>Đã hoàn</th><th>Trạng thái cọc</th></tr>
+          {% for don in ds_don %}
+            <tr>
+              <td><a href="{% url 'ql_chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a><small>{{ don.khach_hang.ho_ten }}</small></td>
+              <td>{{ don.tra_thuc_te|date:'H:i d/m/Y'|default:'—' }}</td>
+              <td>{{ don.tien_coc|tien }}</td>
+              <td>{% if don.phu_thu_tra_tre %}−{{ don.phu_thu_tra_tre|tien }}{% else %}—{% endif %}</td>
+              <td>{% if don.khau_tru_den_bu %}−{{ don.khau_tru_den_bu|tien }}{% else %}—{% endif %}</td>
+              <td><strong>{{ don.hoan_lai|tien }}</strong>{% if don.can_thu_them %}<small>thu thêm {{ don.can_thu_them|tien }}</small>{% endif %}</td>
+              <td><span class="tag tag-{{ don.trang_thai_coc }}">{{ don.get_trang_thai_coc_display }}</span></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><th>Đơn</th><th>Thiết bị</th><th>Thời gian thuê</th><th>Tiền cọc</th><th>Trạng thái</th><th>Thao tác</th></tr>
+          {% for don in ds_don %}
+            <tr>
+              <td><a href="{% url 'ql_chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a><small>{{ don.khach_hang.ho_ten }}</small></td>
+              <td>{{ don.ten_thiet_bi }}</td>
+              <td>{{ don.gio_nhan|date:'H:i d/m' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}
+                {% if don.trang_thai == 'dang_thue' and don.gio_tra < bay_gio %}<small class="tag tag-can_dieu_chinh">Quá hạn trả</small>{% endif %}</td>
+              <td><strong>{{ don.tien_coc_da_thu|tien }}</strong><small>đã thu / tổng {{ don.tien_coc|tien }}</small>{% if don.tien_coc_con_lai %}<small>còn thu {{ don.tien_coc_con_lai|tien }}</small>{% endif %}</td>
+              <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
+              <td>
+                {% if don.trang_thai == 'da_xac_nhan' %}
+                  <a class="btn btn-nho" href="{% url 'ql_thu_coc' don.pk %}">{% if don.tien_coc_con_lai %}Thu cọc{% else %}Khách nhận máy{% endif %}</a>
+                {% else %}
+                  <a class="btn btn-nho" href="{% url 'ql_hoan_coc' don.pk %}">Hoàn cọc</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+      </table>
+    </div>
+  {% else %}
+    <div class="trong">Không có đơn nào trong mục này.</div>
+  {% endif %}
+  {% include '_pagination.html' with page_obj=ds_don %}
+{% endblock %}

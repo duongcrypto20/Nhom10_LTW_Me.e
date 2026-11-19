@@ -1,0 +1,49 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Đơn thuê của tôi{% endblock %}
+
+{% block content %}
+  <div class="dau-trang">
+    <div><h1>Đơn thuê của tôi</h1><p>Đơn được cửa hàng xác nhận sẽ có nút đặt cọc online để giữ máy.</p></div>
+    <a class="btn" href="{% url 'ds_may_anh' %}">Thuê thêm máy</a>
+  </div>
+
+  <form class="tim-kiem" method="get">
+    <label class="sr-only" for="q-don">Tìm đơn</label>
+    <input id="q-don" type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã đơn, ví dụ DH1001">
+    <button class="btn" type="submit">Tìm</button>
+  </form>
+
+  <div class="loc">
+    <a href="{% url 'don_cua_toi' %}" class="{% if not trang_thai_chon %}chon{% endif %}">Tất cả</a>
+    {% for ma, ten in ds_trang_thai %}
+      <a href="?trang_thai={{ ma }}" class="{% if trang_thai_chon == ma %}chon{% endif %}">{{ ten }}</a>
+    {% endfor %}
+  </div>
+
+  {% if ds_don %}
+    <div class="luoi luoi-3">
+      {% for don in ds_don %}
+        <div class="the">
+          <div class="dau-muc">
+            <strong>{{ don.ma }}</strong>
+            {% if don.cho_dat_coc %}<span class="tag tag-chua_thu">Chờ đặt cọc</span>{% else %}<span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span>{% endif %}
+          </div>
+          <h3>{{ don.ten_thiet_bi }}</h3>
+          <div>Gói {{ don.goi_thue.ten }} · {{ don.tong_thanh_toan|tien }}</div>
+          <div>{{ don.gio_nhan|date:'H:i d/m/Y' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}</div>
+          <div class="hang-nut">
+            {% if don.cho_dat_coc %}<a class="btn btn-nho" href="{% url 'dat_coc' don.pk %}">Cọc lịch {{ don.tien_coc_giu_lich|tien }}</a>{% endif %}
+            <a class="btn btn-vien btn-nho" href="{% url 'chi_tiet_don' don.pk %}">Xem chi tiết</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="trong">
+      <p>Bạn chưa có yêu cầu thuê nào phù hợp.</p>
+      <a class="btn" href="{% url 'ds_may_anh' %}">Xem máy ảnh</a>
+    </div>
+  {% endif %}
+  {% include '_pagination.html' with page_obj=ds_don %}
+{% endblock %}

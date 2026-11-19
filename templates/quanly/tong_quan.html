@@ -1,0 +1,54 @@
+{% extends 'base_app.html' %}
+{% block title %}Tổng quan{% endblock %}
+
+{% block content %}
+  <h1>Khu vực quản lý</h1>
+  <p class="phu">{{ user.get_vai_tro_display }}: {{ user.ho_ten }}</p>
+
+  <div class="luoi luoi-4 cach-duoi">
+    <div class="the the-so">Yêu cầu chờ xử lý<strong>{{ so_cho_xu_ly }}</strong></div>
+    <div class="the the-so">Đơn đang thuê<strong>{{ so_dang_thue }}</strong></div>
+    <div class="the the-so">Giao – nhận sắp tới<strong>{{ so_sap_toi }}</strong></div>
+    <div class="the the-so">Máy sẵn sàng<strong>{{ so_may_san_sang }}/{{ so_may }}</strong></div>
+  </div>
+
+  <h2>Lịch giao – nhận sắp tới</h2>
+  {% if ds_sap_toi %}
+    <table class="bang cach-duoi">
+      <tr><th>Thời điểm</th><th>Công việc</th><th>Đơn thuê</th><th>Thiết bị</th></tr>
+      {% for don in ds_sap_toi %}
+        <tr>
+          {% if don.trang_thai == 'da_xac_nhan' %}
+            <td>{{ don.gio_nhan|date:'H:i d/m/Y' }}</td><td><span class="tag tag-da_xac_nhan">Giao máy</span></td>
+          {% else %}
+            <td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td><td><span class="tag tag-dang_thue">Nhận trả</span></td>
+          {% endif %}
+          <td><a href="{% url 'ql_chi_tiet_don' don.pk %}">{{ don.ma }}</a><small>{{ don.khach_hang.ho_ten }}</small></td>
+          <td>{{ don.ten_thiet_bi }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <div class="trong cach-duoi">Chưa có lịch giao – nhận.</div>
+  {% endif %}
+
+  <div class="dau-muc">
+    <h2>Yêu cầu thuê mới nhất</h2>
+    <a class="btn btn-vien btn-nho" href="{% url 'ql_yeu_cau' %}">Xem tất cả yêu cầu</a>
+  </div>
+  {% if ds_moi_nhat %}
+    <table class="bang">
+      <tr><th>Đơn thuê</th><th>Thiết bị</th><th>Gói</th><th>Trạng thái</th></tr>
+      {% for don in ds_moi_nhat %}
+        <tr>
+          <td><a href="{% url 'ql_chi_tiet_don' don.pk %}">{{ don.ma }}</a><small>{{ don.khach_hang.ho_ten }}</small></td>
+          <td>{{ don.ten_thiet_bi }}</td>
+          <td>{{ don.goi_thue.ten }}</td>
+          <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <div class="trong">Chưa có yêu cầu thuê nào.</div>
+  {% endif %}
+{% endblock %}

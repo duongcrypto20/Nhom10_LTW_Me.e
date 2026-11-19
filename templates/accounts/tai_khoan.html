@@ -1,0 +1,21 @@
+{% extends 'base_app.html' %}
+{% block title %}Tài khoản{% endblock %}
+
+{% block content %}
+  <h1>Thông tin cá nhân</h1>
+  <div class="hop-form">
+    <table class="thong-tin cach-duoi">
+      <tr><td>Email đăng nhập</td><td>{{ user.email }}</td></tr>
+      <tr><td>Vai trò</td><td>{{ user.get_vai_tro_display }}</td></tr>
+    </table>
+    {% if user.anh_dai_dien %}<img class="anh-dai-dien" src="{{ user.anh_dai_dien.url }}" alt="Ảnh đại diện {{ user.ho_ten }}">{% endif %}
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {% include '_form.html' %}
+      <div class="hang-nut">
+        <button class="btn" type="submit">Lưu thay đổi</button>
+        <a class="btn btn-vien" href="{% url 'doi_mat_khau' %}">Đổi mật khẩu</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

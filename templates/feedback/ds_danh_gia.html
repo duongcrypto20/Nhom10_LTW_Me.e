@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ảnh và đánh giá{% endblock %}
+
+{% block content %}
+  {# 1. Đầu trang: điểm trung bình #}
+  <div class="dau-trang">
+    <div>
+      <h1>Ảnh &amp; đánh giá từ khách hàng</h1>
+      <p>Ảnh thật khách chụp bằng máy thuê ở me.e và cảm nhận sau mỗi lần thuê.</p>
+    </div>
+    {% if thong_ke.tong %}
+      <div class="diem-tb"><strong>{{ thong_ke.trung_binh }}</strong><span class="sao">★★★★★</span><small>{{ thong_ke.tong }} đánh giá</small></div>
+    {% endif %}
+  </div>
+
+  {# 2. Lọc ảnh theo dòng máy #}
+  <nav class="chip-may" aria-label="Lọc theo dòng máy">
+    <a href="{% url 'ds_danh_gia' %}" {% if not thiet_bi_chon %}class="dang-chon" aria-current="true"{% endif %}>Tất cả</a>
+    {% for tb in ds_thiet_bi %}
+      <a href="?thiet_bi={{ tb.pk }}" {% if thiet_bi_chon and thiet_bi_chon.pk == tb.pk %}class="dang-chon" aria-current="true"{% endif %}>{{ tb.ten }}</a>
+    {% endfor %}
+  </nav>
+
+  {# 3. Tất cả ảnh feedback: bấm vào ảnh để xem lớn #}
+  {% if ds_anh %}
+    <div class="luoi-anh-fb" id="anh-feedback">
+      {% for anh in ds_anh %}
+        <button type="button" class="o-anh" data-anh="{{ anh.url }}" data-chu="{{ anh.nguoi }}{% if anh.ten_may %} · {{ anh.ten_may }}{% endif %}">
+          <img src="{{ anh.url }}" alt="Ảnh feedback {{ anh.ten_may }}" loading="lazy">
+          {% if anh.ten_may %}<span>{{ anh.ten_may }}</span>{% endif %}
+        </button>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="trong cach-duoi">Chưa có ảnh feedback cho dòng máy này.</div>
+  {% endif %}
+
+  <dialog id="xem-anh" class="xem-anh" aria-label="Xem ảnh feedback">
+    <img src="" alt="Ảnh feedback phóng to">
+    <p class="chu-anh"></p>
+    <button type="button" class="nut-anh dong" data-dong aria-label="Đóng">✕</button>
+    <button type="button" class="nut-anh truoc" data-truoc aria-label="Ảnh trước">‹</button>
+    <button type="button" class="nut-anh sau" data-sau aria-label="Ảnh sau">›</button>
+  </dialog>
+
+  {# 4. Ô viết đánh giá: bấm vào để mở form #}
+  {% if not user.is_authenticated %}
+    <a class="o-viet o-viet-link" href="{% url 'dang_nhap' %}?next={% url 'ds_danh_gia' %}%23viet-danh-gia">
+      <span class="gia-o-nhap">Chia sẻ trải nghiệm của bạn… <small>(đăng nhập để viết đánh giá)</small></span>
+    </a>
+  {% elif form_viet %}
+    <details class="o-viet" id="viet-danh-gia" {% if mo_form %}open{% endif %}>
+      <summary><span class="gia-o-nhap">Chia sẻ trải nghiệm của bạn…</span><span class="btn btn-nho">Viết đánh giá</span></summary>
+      {% if form_viet.fields.don.queryset.exists or form_viet.errors %}
+        <form method="post" action="{% url 'ds_danh_gia' %}" enctype="multipart/form-data" class="form-viet" novalidate>
+          {% csrf_token %}
+          {% for loi in form_viet.non_field_errors %}<div class="alert alert-danger">{{ loi }}</div>{% endfor %}
+
+          <div class="field {% if form_viet.don.errors %}co-loi{% endif %}">
+            <label for="{{ form_viet.don.id_for_label }}">{{ form_viet.don.label }}</label>
+            {{ form_viet.don }}
+            {% for loi in form_viet.don.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+          </div>
+
+          <fieldset class="field chon-sao {% if form_viet.so_sao.errors %}co-loi{% endif %}">
+            <legend>Bạn chấm mấy sao?</legend>
+            <div class="hang-sao">
+              {% for gia_tri in '54321' %}
+                <input type="radio" name="so_sao" id="sao-{{ gia_tri }}" value="{{ gia_tri }}" {% if form_viet.so_sao.value|stringformat:'s' == gia_tri %}checked{% endif %}>
+                <label for="sao-{{ gia_tri }}" title="{{ gia_tri }} sao">★<span class="sr-only">{{ gia_tri }} sao</span></label>
+              {% endfor %}
+            </div>
+            {% for loi in form_viet.so_sao.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+          </fieldset>
+
+          <div class="field {% if form_viet.noi_dung.errors %}co-loi{% endif %}">
+            <label for="{{ form_viet.noi_dung.id_for_label }}">{{ form_viet.noi_dung.label }}</label>
+            {{ form_viet.noi_dung }}
+            {% for loi in form_viet.noi_dung.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+          </div>
+
+          <div class="field {% if form_viet.anh.errors %}co-loi{% endif %}">
+            <label for="{{ form_viet.anh.id_for_label }}">{{ form_viet.anh.label }}</label>
+            <input type="file" name="anh" id="{{ form_viet.anh.id_for_label }}" accept="image/jpeg,image/png,image/webp" data-xem-truoc="xem-truoc-anh">
+            <img id="xem-truoc-anh" class="xem-truoc" alt="Ảnh bạn vừa chọn" hidden>
+            {% for loi in form_viet.anh.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+            <small class="tro-giup">{{ form_viet.anh.help_text }}</small>
+          </div>
+
+          <div class="hang-nut">
+            <button type="submit" class="btn" data-confirm="Gửi đánh giá này cho cửa hàng?">Gửi đánh giá</button>
+            <button type="reset" class="btn btn-nhat" data-dong-form>Hủy</button>
+          </div>
+        </form>
+      {% else %}
+        <p class="chu-nho">Bạn chưa có đơn thuê nào đã hoàn tất mà chưa đánh giá. Sau khi trả máy, bạn có thể quay lại đây để viết đánh giá.</p>
+      {% endif %}
+    </details>
+  {% endif %}
+
+  {# 5. Đánh giá bạn đã gửi trước đó #}
+  {% if cua_toi is not None %}
+    <section id="danh-gia-cua-ban" class="cach-duoi">
+      <h2>Đánh giá của bạn</h2>
+      {% for dg in cua_toi %}
+        <article class="the the-danh-gia cua-toi">
+          <div class="dau-dg">
+            <span class="sao">{{ dg.cac_sao }}</span>
+            <strong>{{ dg.don.ten_thiet_bi }}</strong>
+            <span class="chu-nho">{{ dg.don.ma }} · {{ dg.ngay_tao|date:'d/m/Y H:i' }}</span>
+            <span class="tag tag-{{ dg.trang_thai }}">{{ dg.get_trang_thai_display }}</span>
+          </div>
+          <p>{{ dg.noi_dung }}</p>
+          {% if dg.anh %}<img src="{{ dg.anh.url }}" alt="Ảnh bạn đã gửi" class="anh-nho">{% endif %}
+          {% if dg.tra_loi %}<div class="tra-loi"><strong>Cửa hàng trả lời:</strong> {{ dg.tra_loi }}</div>{% endif %}
+        </article>
+      {% empty %}
+        <p class="chu-nho">Bạn chưa gửi đánh giá nào.</p>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {# 6. Thống kê sao và các đánh giá đã duyệt #}
+  <section class="khoi-danh-gia">
+    <h2>Khách hàng nói gì</h2>
+    {% include 'feedback/_loc.html' %}
+    {% if ds_danh_gia %}
+      <div class="bo-dg">
+        <div class="the hop-sao">
+          <p class="diem-lon">{{ thong_ke.trung_binh }}<small>/5</small></p>
+          {% for dong in thong_ke.theo_sao %}
+            <div class="thanh-sao">
+              {{ dong.sao }}★
+              <div class="nen"><div class="dat" style="width:{{ dong.phan_tram }}%"></div></div>
+              {{ dong.so_luong }}
+            </div>
+          {% endfor %}
+        </div>
+        <div>
+          {% for dg in ds_danh_gia %}
+            <article class="the the-danh-gia">
+              <div class="dau-dg">
+                <span class="sao">{{ dg.cac_sao }}</span>
+                <strong>{{ dg.don.khach_hang.ho_ten }}</strong>
+                <span class="chu-nho">{{ dg.don.ten_thiet_bi }} · {{ dg.ngay_tao|date:'d/m/Y' }}</span>
+              </div>
+              <p>{{ dg.noi_dung }}</p>
+              {% if dg.anh %}<img src="{{ dg.anh.url }}" alt="Ảnh feedback" class="anh-nho">{% endif %}
+              {% if dg.tra_loi %}<div class="tra-loi"><strong>Phản hồi của cửa hàng:</strong> {{ dg.tra_loi }}</div>{% endif %}
+            </article>
+          {% endfor %}
+          {% include '_pagination.html' with page_obj=ds_danh_gia %}
+        </div>
+      </div>
+    {% else %}
+      <div class="trong">Chưa có đánh giá để hiển thị.</div>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends 'base_app.html' %}
+{% block title %}Danh mục thiết bị{% endblock %}
+{% block content %}
+<h1>Danh mục thiết bị</h1>
+<div class="cuon-ngang"><table class="bang"><tr><th>Mã danh mục</th><th>Tên danh mục</th><th>Số dòng thiết bị</th></tr>
+{% for item in ds_danh_muc %}<tr><td>{{ item.ma }}</td><td>{{ item.ten }}</td><td>{{ item.cac_thiet_bi.count }}</td></tr>{% empty %}<tr><td colspan="3">Chưa có danh mục.</td></tr>{% endfor %}</table></div>
+<h2 class="cach-tren">Thêm danh mục</h2><form method="post" class="hop-form" novalidate>{% csrf_token %}{% include '_form.html' %}<button class="btn">Lưu danh mục</button></form>
+{% endblock %}

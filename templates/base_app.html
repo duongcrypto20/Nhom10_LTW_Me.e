@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}me.e_digitalcam{% endblock %} | me.e_digitalcam</title>
+  <link rel="icon" href="{% static 'img/logo.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=giao-dien-7">
+</head>
+{# Bố cục TRANG CHỨC NĂNG sau khi đăng nhập #}
+<body class="layout-app">
+  <input type="checkbox" id="mo-menu">
+  <label for="mo-menu" class="nut-menu" role="button" tabindex="0" aria-controls="menu-app" aria-expanded="false">Menu</label>
+
+  <aside class="sidebar" id="menu-app">
+    <a class="logo" href="{% url 'trang_chu' %}">
+      <img src="{% static 'img/logo.png' %}" alt="Logo ME.E">
+      <span>me.e_digitalcam</span>
+    </a>
+
+    {# Mỗi vai trò có một thanh điều hướng riêng #}
+    {% if user.la_chu_cua_hang %}
+      {% include 'sidebar/chu_cua_hang.html' %}
+    {% elif user.la_nhan_vien %}
+      {% include 'sidebar/nhan_vien.html' %}
+    {% else %}
+      {% include 'sidebar/khach_hang.html' %}
+    {% endif %}
+
+    <div class="nguoi-dung">
+      <strong>{{ user.ho_ten }}</strong>
+      <span class="tag tag-vai-tro">{{ user.get_vai_tro_display }}</span>
+      <form method="post" action="{% url 'dang_xuat' %}">
+        {% csrf_token %}
+        <button class="btn btn-nhat" type="submit">Đăng xuất</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="thanh-app">
+      <span>Xin chào, <strong>{{ user.ho_ten }}</strong></span>
+      <a href="{% url 'trang_chu' %}">Về trang chủ</a>
+    </div>
+
+    <main class="noi-dung">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'js/menu.js' %}?v=giao-dien-7"></script>
+</body>
+</html>

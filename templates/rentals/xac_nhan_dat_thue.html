@@ -1,0 +1,52 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Xác nhận đặt đơn{% endblock %}
+
+{% block content %}
+  {% include 'rentals/_buoc_dat.html' with buoc=2 %}
+  <h1>Xác nhận đặt đơn</h1>
+
+  <div class="cot-65">
+    <div>
+      <div class="the cach-duoi">
+        <h3>Thông tin yêu cầu thuê</h3>
+        <table class="thong-tin">
+          <tr><td>Thiết bị</td><td>{% for dong in cac_dong %}{{ dong.thiet_bi.ten }} × {{ dong.so_luong }} · {{ dong.thanh_tien|tien }}<br><small>{{ dong.cach_tinh_gia }}</small><br>{% endfor %}</td></tr>
+          <tr><td>Gói thuê</td><td>{{ don.goi_thue.ten }}</td></tr>
+          <tr><td>Giờ nhận máy</td><td>{{ don.gio_nhan|date:'H:i d/m/Y' }}</td></tr>
+          <tr><td>Giờ trả dự kiến</td><td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
+          <tr><td>Nhận máy</td><td>Tại cửa hàng, {{ cua_hang.dia_chi }}. Mang theo CCCD chính chủ.</td></tr>
+          <tr><td>Ghi chú</td><td>{{ don.ghi_chu|default:'—' }}</td></tr>
+        </table>
+        <a href="{% url 'dat_thue' don.thiet_bi.ma %}">Chỉnh sửa thời gian, gói thuê</a>
+      </div>
+
+      <div class="the">
+        <h3>Thông tin người thuê</h3>
+        <table class="thong-tin">
+          <tr><td>Họ tên</td><td>{{ user.ho_ten }}</td></tr>
+          <tr><td>Số điện thoại</td><td>{{ user.so_dien_thoai|default:'Chưa cập nhật' }}</td></tr>
+          <tr><td>Email</td><td>{{ user.email }}</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="the hop-hanh-dong">
+      <h3>Tóm tắt</h3>
+      <table class="thong-tin">
+        <tr><td>Tiền thuê</td><td>{{ don.tien_thue|tien }}</td></tr>
+        {% if don.giam_gia %}
+          <tr><td>Giảm giá ({{ don.ma_giam_gia }})</td><td>-{{ don.giam_gia|tien }}</td></tr>
+        {% endif %}
+        <tr><td>Tổng cọc máy</td><td>{{ don.tien_coc|tien }}</td></tr>
+        <tr><td>Cọc lịch giữ máy</td><td>{{ don.tien_coc_giu_lich|tien }} · tính vào tiền cọc máy</td></tr>
+        <tr><td><strong>Tiền thuê phải trả</strong></td><td><strong>{{ don.tong_thanh_toan|tien }}</strong></td></tr>
+      </table>
+      <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-lon rong-het" type="submit">Xác nhận đặt đơn</button>
+      </form>
+      <p class="chu-nho cach-tren">Bấm xác nhận để cọc lịch {{ don.tien_coc_giu_lich|tien }} giữ máy. Khoản này được tính vào tiền cọc máy; phần còn lại thu khi nhận máy.</p>
+    </div>
+  </div>
+{% endblock %}

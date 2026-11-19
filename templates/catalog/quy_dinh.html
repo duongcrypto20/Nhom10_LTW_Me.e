@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Quy định thuê máy{% endblock %}
+
+{% block content %}
+  <h1>Quy định thuê máy</h1>
+  {# Chỉ hiện ảnh quy định gốc của cửa hàng, bấm vào ảnh để xem kích thước đầy đủ #}
+  <div class="quy-dinh-anh">
+    <a href="{% static 'img/quy-dinh/quy-dinh-coc.jpg' %}" target="_blank" rel="noopener"><img src="{% static 'img/quy-dinh/quy-dinh-coc.jpg' %}" alt="Quy định cọc: trực tiếp cọc 700.000đ hoặc 300.000đ với máy compact kèm CCCD chính chủ; gián tiếp chuyển khoản đủ tiền cọc kèm ảnh CCCD." width="1100" height="1485" loading="lazy"></a>
+    <a href="{% static 'img/quy-dinh/gio-nhan-tra.jpg' %}" target="_blank" rel="noopener"><img src="{% static 'img/quy-dinh/gio-nhan-tra.jpg' %}" alt="Giờ nhận và trả máy: thuê 1 ngày tính 23 giờ; thuê 1 buổi ca sáng 8h-14h, ca chiều tối 15h-21h; trả trễ phụ thu 50.000đ mỗi giờ." width="1094" height="1499" loading="lazy"></a>
+    <a href="{% static 'img/quy-dinh/den-bu-thiet-hai.jpg' %}" target="_blank" rel="noopener"><img src="{% static 'img/quy-dinh/den-bu-thiet-hai.jpg' %}" alt="Quy định đền bù thiệt hại cho thân máy, ống kính và phụ kiện." width="1096" height="1497" loading="lazy"></a>
+    <a href="{% static 'img/quy-dinh/bao-quan-may.jpg' %}" target="_blank" rel="noopener"><img src="{% static 'img/quy-dinh/bao-quan-may.jpg' %}" alt="Hướng dẫn bảo quản máy trong thời gian thuê." width="1100" height="1485" loading="lazy"></a>
+    <a href="{% static 'img/quy-dinh/bang-gia.jpg' %}" target="_blank" rel="noopener"><img src="{% static 'img/quy-dinh/bang-gia.jpg' %}" alt="Bảng giá thuê máy Canon và Fujifilm theo gói 6 giờ, 1 ngày, 2 ngày, 3 ngày." width="1100" height="1480" loading="lazy"></a>
+  </div>
+{% endblock %}

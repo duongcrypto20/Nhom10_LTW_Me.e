@@ -1,0 +1,19 @@
+{# Hiển thị các ô nhập của một form kèm thông báo lỗi. Được include vào các trang có form. #}
+{% for loi in form.non_field_errors %}
+  <div class="alert alert-danger">{{ loi }}</div>
+{% endfor %}
+
+{% for field in form %}
+  <div class="field {% if field.errors %}co-loi{% endif %}">
+    {% if field.widget_type == 'checkbox' %}
+      <label class="check">{{ field }} {{ field.label }}</label>
+    {% else %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+    {% endif %}
+    {% for loi in field.errors %}
+      <div class="loi">{{ loi }}</div>
+    {% endfor %}
+    {% if field.help_text %}<small class="tro-giup">{{ field.help_text }}</small>{% endif %}
+  </div>
+{% endfor %}

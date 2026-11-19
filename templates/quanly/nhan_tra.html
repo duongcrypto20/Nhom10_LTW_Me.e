@@ -1,0 +1,79 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Nhận trả {{ don.ma }}{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'ql_giao_nhan' %}">Giao nhận &amp; tiền cọc</a> / Nhận trả</p>
+  <h1>Nhận trả · {{ don.ma }}</h1>
+
+  <form method="post" novalidate style="max-width:760px">
+    {% csrf_token %}
+    {% for loi in form.non_field_errors %}<div class="alert alert-danger">{{ loi }}</div>{% endfor %}
+
+    <div class="buoc-form">
+      <h3><span>1</span>Kiểm tra đơn thuê (UC-5.1, UC-5.2)</h3>
+      <table class="thong-tin">
+        <tr><td>Đơn</td><td>{{ don.ma }} · {{ don.khach_hang.ho_ten }}</td></tr>
+        <tr><td>Thiết bị</td><td>{{ don.thiet_bi.ten }} ({{ don.may.so_seri }})</td></tr>
+        <tr><td>Hạn trả</td><td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
+      </table>
+      {% if so_gio_tre > 0 %}
+        <div class="alert alert-danger">Khách trả trễ khoảng {{ so_gio_tre }} giờ. Hãy nhập phụ thu trả trễ ở bước 3.</div>
+      {% else %}
+        <div class="alert alert-success">Khách trả máy đúng hạn.</div>
+      {% endif %}
+      <div class="field {% if form.hinh_thuc_tra.errors %}co-loi{% endif %}">
+        <label>{{ form.hinh_thuc_tra.label }}</label>
+        {{ form.hinh_thuc_tra }}
+        {% for loi in form.hinh_thuc_tra.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+      </div>
+      <div class="field">
+        <label class="check">{{ form.da_nhan_may }} {{ form.da_nhan_may.label }}</label>
+        {% for loi in form.da_nhan_may.errors %}<div class="loi">Máy gửi về chưa được cửa hàng tiếp nhận thì chưa thể nhận trả.</div>{% endfor %}
+      </div>
+    </div>
+
+    <div class="buoc-form">
+      <h3><span>2</span>Tình trạng thiết bị (UC-5.3)</h3>
+      <p><strong>Khi giao:</strong> {{ don.tinh_trang_khi_giao|default:'Chưa ghi nhận.' }}</p>
+      <div class="field">
+        <label>{{ form.tinh_trang_khi_tra.label }}</label>
+        {{ form.tinh_trang_khi_tra }}
+        {% for loi in form.tinh_trang_khi_tra.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+      </div>
+      <div class="field"><label class="check">{{ form.co_hu_hong }} {{ form.co_hu_hong.label }}</label></div>
+      <div class="field {% if form.mo_ta_su_co.errors %}co-loi{% endif %}">
+        <label>{{ form.mo_ta_su_co.label }}</label>
+        {{ form.mo_ta_su_co }}
+        {% for loi in form.mo_ta_su_co.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <div class="buoc-form">
+      <h3><span>3</span>Tiền cọc (UC-5.4)</h3>
+      <p>Tiền cọc đã thu: <strong>{{ don.tien_coc|tien }}</strong>.
+        Giá trị đền bù 100% của máy: {{ don.thiet_bi.gia_tri_den_bu|tien }}.</p>
+      <div class="luoi luoi-2">
+        <div class="field {% if form.phu_thu_tra_tre.errors %}co-loi{% endif %}">
+          <label>{{ form.phu_thu_tra_tre.label }}</label>{{ form.phu_thu_tra_tre }}
+          {% for loi in form.phu_thu_tra_tre.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+        </div>
+        <div class="field {% if form.khau_tru_den_bu.errors %}co-loi{% endif %}">
+          <label>{{ form.khau_tru_den_bu.label }}</label>{{ form.khau_tru_den_bu }}
+          {% for loi in form.khau_tru_den_bu.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+        </div>
+      </div>
+      <p>Tiền hoàn lại = tiền cọc − phụ thu trả trễ − khấu trừ đền bù (hệ thống tự tính khi lưu).</p>
+    </div>
+
+    <div class="buoc-form">
+      <h3><span>4</span>Xác nhận &amp; cập nhật (UC-5.2, UC-5.5)</h3>
+      <p>Sau khi xác nhận: đơn chuyển <strong>Đang thuê → Đã hoàn tất</strong>; máy về <strong>Sẵn sàng</strong>,
+        hoặc <strong>Bảo trì</strong> nếu có hư hỏng.</p>
+      <div class="hang-nut">
+        <button class="btn" type="submit">Hoàn tất nhận trả</button>
+        <a class="btn btn-nhat" href="{% url 'ql_giao_nhan' %}">Hủy</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}

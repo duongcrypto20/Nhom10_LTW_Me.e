@@ -1,0 +1,46 @@
+{% extends 'base_app.html' %}
+{% block title %}Yêu cầu thuê{% endblock %}
+
+{% block content %}
+  <h1>Yêu cầu thuê</h1>
+
+  <div class="loc">
+    <a href="{% url 'ql_yeu_cau' %}" class="{% if not trang_thai_chon %}chon{% endif %}">Tất cả</a>
+    {% for ma, ten in ds_trang_thai %}
+      <a href="?trang_thai={{ ma }}" class="{% if trang_thai_chon == ma %}chon{% endif %}">{{ ten }}</a>
+    {% endfor %}
+  </div>
+
+  {% if ds_don %}
+    <div class="cuon-ngang">
+      <table class="bang">
+        <tr><th>Mã</th><th>Thiết bị &amp; kiểm tra máy trống</th><th>Gói</th><th>Thời gian</th><th>Trạng thái</th><th></th></tr>
+        {% for don in ds_don %}
+          <tr>
+            <td><a href="{% url 'ql_chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a><small>{{ don.khach_hang.ho_ten }}</small></td>
+            <td>{{ don.ten_thiet_bi }}
+              {% if don.trang_thai == 'cho_xu_ly' %}
+                {% if don.con_trong > 0 %}
+                  <span class="tag tag-ok">Đủ máy cho yêu cầu</span>
+                {% else %}
+                  <span class="tag tag-can_dieu_chinh">Chưa đủ máy</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td>{{ don.goi_thue.ten }}</td>
+            <td>{{ don.gio_nhan|date:'H:i d/m/Y' }}<br>đến {{ don.gio_tra|date:'H:i d/m/Y' }}</td>
+            <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
+            <td>
+              {% if don.trang_thai == 'cho_xu_ly' %}
+                <a class="btn btn-nho" href="{% url 'ql_xu_ly_yeu_cau' don.pk %}">Kiểm tra &amp; xử lý</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% else %}
+    <div class="trong">Không có yêu cầu thuê nào.</div>
+  {% endif %}
+  {% include '_pagination.html' with page_obj=ds_don %}
+{% endblock %}

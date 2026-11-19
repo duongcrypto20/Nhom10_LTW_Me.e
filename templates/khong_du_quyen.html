@@ -1,0 +1,3 @@
+{% extends 'base_app.html' %}
+{% block title %}Không đủ quyền truy cập{% endblock %}
+{% block content %}<h1>Không đủ quyền truy cập</h1><p>Tài khoản của bạn chưa được phân quyền cho chức năng này.</p><a class="btn" href="{% if user.la_nhan_vien %}{% url 'ql_tong_quan' %}{% else %}{% url 'trang_cua_toi' %}{% endif %}">Về trang của tôi</a>{% endblock %}

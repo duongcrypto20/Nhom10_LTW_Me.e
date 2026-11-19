@@ -1,0 +1,11 @@
+<section id="kiem-tra-may-trong" class="kiem-tra-trong">
+  <h2>Kiểm tra máy trống theo thời gian</h2>
+  <p>Chọn giờ nhận, giờ trả và số lượng để xem thiết bị có đáp ứng lịch thuê của bạn không.</p>
+  <form method="get" novalidate>
+    {% if tu_khoa %}<input type="hidden" name="q" value="{{ tu_khoa }}">{% endif %}
+    {% if loai_chon %}<input type="hidden" name="loai" value="{{ loai_chon }}">{% endif %}
+    <div class="luoi luoi-2">{% include '_form.html' with form=form_trong %}</div>
+    <div class="hang-nut"><button class="btn">Kiểm tra máy trống</button><a href="{{ request.path }}" class="btn btn-vien">Xóa thời gian</a></div>
+  </form>
+  <p class="tro-giup">Kết quả theo lịch hiện tại. Máy được giữ sau khi cửa hàng xác nhận yêu cầu.</p>
+</section>

@@ -1,0 +1,57 @@
+{% extends 'base_app.html' %}
+{% block title %}Cập nhật {{ thiet_bi.ten }}{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'ql_thiet_bi' %}">Thiết bị</a> / {{ thiet_bi.ten }}</p>
+  <h1>Cập nhật {{ thiet_bi.ten }}</h1>
+
+  <div class="hai-cot">
+    <div class="hop-form">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% include '_form.html' %}
+        <div class="hang-nut">
+          <button class="btn" type="submit">Lưu cập nhật</button>
+          <a class="btn btn-nhat" href="{% url 'ql_thiet_bi' %}">Hủy</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="the">
+      <h3>Máy vật lý (theo số sê-ri)</h3>
+      <table class="bang">
+        <tr><th>Số sê-ri</th><th>Tình trạng</th><th></th></tr>
+        {% for may in thiet_bi.cac_may.all %}
+          <tr>
+            <td>{{ may.so_seri }}</td>
+            <td><span class="tag tag-{{ may.tinh_trang }}">{{ may.get_tinh_trang_display }}</span></td>
+            <td>
+              <form method="post" action="{% url 'ql_doi_tinh_trang_may' may.pk %}" class="hang-nho">
+                {% csrf_token %}
+                <select name="tinh_trang">
+                  {% for ma, ten in ds_tinh_trang %}
+                    <option value="{{ ma }}" {% if ma == may.tinh_trang %}selected{% endif %}>{{ ten }}</option>
+                  {% endfor %}
+                </select>
+                <button class="btn btn-vien btn-nho" type="submit">Lưu</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3">Thiết bị chưa có máy nào.</td></tr>
+        {% endfor %}
+      </table>
+
+      {% if user.la_chu_cua_hang %}
+        <h3 class="cach-tren">Thêm máy</h3>
+        <form method="post" action="{% url 'ql_them_may' thiet_bi.pk %}">
+          {% csrf_token %}
+          {% for field in may_form %}
+            <div class="field"><label>{{ field.label }}</label>{{ field }}</div>
+          {% endfor %}
+          <button class="btn btn-nho" type="submit">+ Thêm máy</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

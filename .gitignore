@@ -1,9 +1,23 @@
 .venv/
+venv/
 __pycache__/
 *.py[cod]
+_work/
 db.sqlite3
-media/
-staticfiles/
+db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
 .env
+.env.*
+!.env.example
+staticfiles/
+.pytest_cache/
 .idea/
 .vscode/
+media/*
+!media/thietbi/
+*_files/
+*.download
+/THÔNG TIN/
+/ẢNH MÁY ẢNH/
+/Ảnh feedback/

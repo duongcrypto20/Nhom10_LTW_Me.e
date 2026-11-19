@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load dinh_dang %}
+{% block title %}{{ thiet_bi.ten }}{% endblock %}
+
+{% block content %}
+  <p class="duong-dan"><a href="{% url 'ds_may_anh' %}">Máy ảnh</a> / {{ thiet_bi.ten }}</p>
+
+  <div class="hai-cot">
+    <div class="anh-lon">
+      {% if thiet_bi.anh %}<img src="{{ thiet_bi.anh.url }}" alt="{{ thiet_bi.ten }}">{% endif %}
+    </div>
+
+    <div>
+      {% if thiet_bi.ngung_cung_cap %}
+        <span class="tag">Ngừng cung cấp</span>
+      {% else %}
+        <span class="tag tag-ok">{{ thiet_bi.tinh_trang_hien_thi }}</span>
+        <span class="chu-nho">Còn {{ thiet_bi.so_may_san_sang }}/{{ thiet_bi.so_may }} chiếc sẵn sàng</span>
+      {% endif %}
+
+      <h1 class="cach-tren">{{ thiet_bi.ten }}</h1>
+      <p class="phu">{{ thiet_bi.get_loai_display }} · {{ thiet_bi.hang }} · {{ thiet_bi.thong_so }}</p>
+      <p>{{ thiet_bi.mo_ta }}{% if thiet_bi.phu_hop %} Phù hợp: {{ thiet_bi.phu_hop }}.{% endif %}</p>
+
+      <div class="luoi luoi-4">
+        {% for gia in ds_gia %}
+          <div class="o-gia">{{ gia.goi_thue.ten }}<strong>{{ gia.gia|tien }}</strong></div>
+        {% empty %}
+          <p>Thiết bị chưa có bảng giá.</p>
+        {% endfor %}
+      </div>
+
+      <p>Tiền cọc máy: <strong>{{ thiet_bi.tien_coc|tien }}</strong> · cọc lịch trước để giữ máy, khoản này được tính vào cọc máy. Phần còn lại thu khi nhận máy, hoàn cọc sau khi trả máy.</p>
+
+      {% if not thiet_bi.ngung_cung_cap and ds_gia %}
+        <div class="hang-nut">
+          <a class="btn" href="{% url 'dat_thue' thiet_bi.ma %}">Đặt thuê máy này</a>
+          <a class="btn btn-vien" href="{% url 'kiem_tra_lich' %}?may={{ thiet_bi.ma }}">Kiểm tra máy trống</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="hai-cot cach-tren">
+    <div>
+      <h2>Thông số kỹ thuật</h2>
+      <p>{{ thiet_bi.thong_so|default:'Đang cập nhật' }}</p>
+      <h2>Hướng dẫn sử dụng</h2>
+      <p>{{ thiet_bi.huong_dan|default:'Nhân viên hướng dẫn sử dụng khi bạn nhận máy tại cửa hàng.'|linebreaksbr }}</p>
+      {% if thiet_bi.video_huong_dan %}<a class="btn btn-vien" href="{{ thiet_bi.video_huong_dan }}" target="_blank" rel="noopener">Xem video hướng dẫn</a>{% endif %}
+    </div>
+    <div>
+      <h2>Đánh giá của khách đã thuê</h2>
+      {% for dg in ds_danh_gia %}
+        <article class="dong-thong-bao">
+          <span class="sao" aria-label="{{ dg.so_sao }} trên 5 sao">{{ dg.cac_sao }}</span> <strong>{{ dg.don.khach_hang.ho_ten }}</strong>
+          <p>{{ dg.noi_dung }}</p>
+          {% if dg.anh %}<img class="anh-feedback" src="{{ dg.anh.url }}" alt="Ảnh feedback của {{ dg.don.khach_hang.ho_ten }}">{% endif %}
+          {% if dg.tra_loi %}<div class="tra-loi"><strong>Cửa hàng trả lời:</strong> {{ dg.tra_loi }}</div>{% endif %}
+        </article>
+      {% empty %}
+        <p class="chu-phu">Chưa có đánh giá cho máy này. <a href="{% url 'ds_danh_gia' %}">Xem đánh giá các máy khác</a></p>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

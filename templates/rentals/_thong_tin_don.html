@@ -1,0 +1,60 @@
+{% load dinh_dang %}
+{# Phần thông tin chung của một đơn thuê, dùng cho cả khách hàng và khu vực quản lý. Biến: don #}
+
+<ol class="tien-trinh" aria-label="Tiến trình đơn thuê">
+  <li class="moc {% if don.buoc_hien_tai >= 1 %}dat{% endif %}">Đã đặt đơn</li>
+  <li class="moc {% if don.buoc_hien_tai >= 2 %}dat{% endif %}">Đã giữ máy</li>
+  <li class="moc {% if don.buoc_hien_tai >= 3 %}dat{% endif %}">Đã cọc</li>
+  <li class="moc {% if don.buoc_hien_tai >= 4 %}dat{% endif %}">Đang thuê</li>
+  <li class="moc {% if don.buoc_hien_tai >= 5 %}dat{% endif %}">Hoàn tất</li>
+</ol>
+
+<div class="the cach-duoi">
+  <table class="thong-tin">
+    <tr><td>Đơn</td><td><strong>{{ don.ma }}</strong> · {{ don.khach_hang.ho_ten }}
+      <span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td></tr>
+    <tr><td>Thiết bị</td><td>{% for dong in don.cac_chi_tiet.all %}<strong>{{ dong.thiet_bi.ten }} × {{ dong.so_luong }}</strong> · {{ dong.thanh_tien|tien }}<br>
+      {% for pb in dong.cac_phan_bo.all %}<span class="tag">{{ pb.may.so_seri }}</span>{% endfor %}<br>
+      {% if dong.cach_tinh_gia %}<small>{{ dong.cach_tinh_gia }}</small><br>{% endif %}
+      {% empty %}{{ don.thiet_bi.ten }}{% endfor %}</td></tr>
+    <tr><td>Gói thuê</td><td>{{ don.goi_thue.ten }}</td></tr>
+    <tr><td>Thời gian</td><td>{{ don.gio_nhan|date:'H:i d/m/Y' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
+    <tr><td>Tiền thuê</td><td>{{ don.tong_thanh_toan|tien }}
+      {% if don.giam_gia %}(đã giảm {{ don.giam_gia|tien }}){% endif %}</td></tr>
+    <tr><td>Tổng cọc máy</td><td>{{ don.tien_coc|tien }} ·
+      <span class="tag tag-{{ don.trang_thai_coc }}">{{ don.get_trang_thai_coc_display }}</span></td></tr>
+    {% if don.trang_thai_coc == 'da_thu' %}
+      <tr><td>Tiền cọc đã thu</td><td>{{ don.tien_coc_da_thu|tien }}</td></tr>
+      {% if don.tien_coc_con_lai %}<tr><td>Cọc máy còn lại</td><td>{{ don.tien_coc_con_lai|tien }} · thu khi nhận máy</td></tr>{% endif %}
+    {% endif %}
+    <tr><td>Giao thực tế</td><td>{{ don.giao_thuc_te|date:'H:i d/m/Y'|default:'—' }}</td></tr>
+    <tr><td>Trả thực tế</td><td>{{ don.tra_thuc_te|date:'H:i d/m/Y'|default:'—' }}</td></tr>
+    <tr><td>Hình thức trả</td><td>{{ don.get_hinh_thuc_tra_display|default:'—' }}</td></tr>
+    <tr><td>Phụ thu trả trễ</td><td>{% if don.phu_thu_tra_tre %}{{ don.phu_thu_tra_tre|tien }}{% else %}Không{% endif %}</td></tr>
+    <tr><td>Khấu trừ cọc</td><td>{% if don.khau_tru_den_bu %}{{ don.khau_tru_den_bu|tien }}{% else %}Không{% endif %}</td></tr>
+    {% if don.can_thu_them %}<tr><td>Thu bổ sung</td><td>{{ don.can_thu_them|tien }}</td></tr>{% endif %}
+    {% if don.ma_van_don_tra %}<tr><td>Vận chuyển trả máy</td><td>{{ don.don_vi_van_chuyen }} · {{ don.ma_van_don_tra }}</td></tr>{% endif %}
+    {% if don.ghi_chu %}<tr><td>Ghi chú</td><td>{{ don.ghi_chu }}</td></tr>{% endif %}
+  </table>
+</div>
+
+{% if don.cac_su_co.exists %}
+<div class="the cach-duoi">
+  <h3>Sự cố máy</h3>
+  {% for sc in don.cac_su_co.all %}
+    <div class="dong-su-co">
+      <p><strong>{{ sc.may.so_seri }}</strong> · {{ sc.get_loai_display }} · {{ sc.ngay_tao|date:'H:i d/m/Y' }}{% if sc.chi_phi %} · đền bù {{ sc.chi_phi|tien }}{% endif %}<br>{{ sc.mo_ta }}</p>
+      {% if sc.cac_anh.all %}<div class="anh-su-co">{% for a in sc.cac_anh.all %}<a href="{{ a.anh.url }}" target="_blank" rel="noopener"><img src="{{ a.anh.url }}" alt="Ảnh tình trạng máy {{ sc.may.so_seri }}" loading="lazy"></a>{% endfor %}</div>{% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="the">
+  <h3>Giao dịch</h3>
+  {% for gd in don.cac_giao_dich.all %}
+    <div class="dong-thong-bao">{{ gd.ngay_tao|date:'H:i d/m/Y' }} · {{ gd.get_loai_display }} · <strong>{{ gd.so_tien|tien }}</strong> · {{ gd.get_phuong_thuc_display }} · {{ gd.get_trang_thai_display }}{% if gd.ma_tham_chieu %} · mã {{ gd.ma_tham_chieu }}{% endif %}{% if gd.ghi_chu %}<br>{{ gd.ghi_chu }}{% endif %}</div>
+  {% empty %}
+    <p>Chưa có giao dịch.</p>
+  {% endfor %}
+</div>

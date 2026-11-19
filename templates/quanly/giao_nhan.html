@@ -1,0 +1,48 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Giao máy và nhận trả{% endblock %}
+
+{% block content %}
+  <div class="dau-trang">
+    <div>
+      <h1>Giao máy &amp; nhận trả</h1>
+      <p>Đơn đã xác nhận chờ giao và đơn đang thuê chờ nhận trả, xếp theo giờ nhận máy.</p>
+    </div>
+    <a class="btn btn-vien" href="{% url 'ql_lich' %}">Xem lịch máy</a>
+  </div>
+
+  <form class="tim-kiem" method="get">
+    <label class="sr-only" for="q-giao-nhan">Tìm đơn</label>
+    <input id="q-giao-nhan" type="search" name="q" value="{{ tu_khoa }}" placeholder="Mã đơn, tên hoặc số điện thoại khách">
+    <button class="btn" type="submit">Tìm</button>
+  </form>
+
+  {% if ds_don %}
+    <div class="cuon-ngang">
+      <table class="bang">
+        <tr><th>Đơn</th><th>Thiết bị / sê-ri</th><th>Thời gian</th><th>Trạng thái</th><th>Tiền cọc</th><th>Thao tác</th></tr>
+        {% for don in ds_don %}
+          <tr>
+            <td><a href="{% url 'ql_chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a><small>{{ don.khach_hang.ho_ten }}</small></td>
+            <td>{{ don.ten_thiet_bi }}{% for dong in don.cac_chi_tiet.all %}{% for pb in dong.cac_phan_bo.all %}<small>{{ pb.may.so_seri }}</small>{% endfor %}{% endfor %}</td>
+            <td>{{ don.gio_nhan|date:'H:i d/m' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}
+              {% if don.trang_thai == 'dang_thue' and don.gio_tra < bay_gio %}<small class="tag tag-can_dieu_chinh">Quá hạn trả</small>{% endif %}</td>
+            <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
+            <td><span class="tag tag-{{ don.trang_thai_coc }}">{{ don.get_trang_thai_coc_display }}</span>
+              {% if don.hinh_thuc_coc %}<small>{{ don.get_hinh_thuc_coc_display }} · {{ don.tien_coc|tien }}</small>{% else %}<small>{{ don.tien_coc|tien }}</small>{% endif %}</td>
+            <td class="nhom-nut-bang">
+              {% if don.trang_thai == 'da_xac_nhan' %}
+                <a class="btn btn-nho" href="{% url 'ql_giao_may' don.pk %}">Giao máy</a>
+              {% else %}
+                <a class="btn btn-nho" href="{% url 'ql_nhan_tra' don.pk %}">Nhận trả</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% else %}
+    <div class="trong">Không có đơn nào cần giao hoặc nhận trả.</div>
+  {% endif %}
+  {% include '_pagination.html' with page_obj=ds_don %}
+{% endblock %}

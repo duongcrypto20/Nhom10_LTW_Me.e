@@ -1,0 +1,12 @@
+{% extends 'base_app.html' %}
+{% block title %}Địa chỉ nhận thiết bị{% endblock %}
+{% block content %}
+<div class="dau-muc"><h1>Địa chỉ nhận thiết bị</h1><a class="btn" href="{% url 'them_dia_chi' %}">Thêm địa chỉ</a></div>
+{% for dc in ds_dia_chi %}<section class="dong-dia-chi">
+  <h2>{{ dc.ho_ten_nhan }} {% if dc.mac_dinh %}<span class="tag tag-ok">Mặc định</span>{% endif %}</h2>
+  <p>{{ dc.so_dien_thoai_nhan }}<br>{{ dc.dia_chi_chi_tiet }}</p>
+  <div class="hang-nut"><a class="btn btn-vien" href="{% url 'sua_dia_chi' dc.pk %}">Sửa địa chỉ</a>
+  {% if not dc.mac_dinh %}<form method="post" action="{% url 'dia_chi_mac_dinh' dc.pk %}">{% csrf_token %}<button class="btn btn-nhat">Đặt mặc định</button></form>{% endif %}
+  <form method="post" action="{% url 'xoa_dia_chi' dc.pk %}">{% csrf_token %}<button class="btn btn-nhat" data-confirm="Xóa địa chỉ này khỏi sổ địa chỉ?">Xóa địa chỉ</button></form></div>
+</section>{% empty %}<div class="trong">Bạn chưa lưu địa chỉ nhận thiết bị.</div>{% endfor %}
+{% endblock %}

@@ -1,0 +1,3 @@
+{% if tb.da_kiem_tra_lich %}
+<p class="ket-qua-trong" role="status"><strong>{% if tb.du_may %}Đủ máy{% else %}Chưa đủ máy{% endif %}</strong><br>Còn {{ tb.so_may_trong_lich }} máy trong khoảng thời gian bạn chọn.</p>
+{% endif %}

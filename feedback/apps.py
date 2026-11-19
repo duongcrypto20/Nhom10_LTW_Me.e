@@ -1,8 +1,6 @@
-﻿from django.apps import AppConfig
+from django.apps import AppConfig
 
 
 class FeedbackConfig(AppConfig):
     name = 'feedback'
-    verbose_name = "Phản hồi khách hàng"
-
-
+    verbose_name = 'Phản hồi và đánh giá'

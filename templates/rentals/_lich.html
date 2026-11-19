@@ -1,0 +1,40 @@
+{# Lịch tháng của một dòng máy. Biến: lich (từ rentals.utils.lich_thang), quan_ly (True ở khu vực quản lý), ngay_xem #}
+<section class="lich" aria-labelledby="lich-tieu-de">
+  <div class="lich-dau">
+    <div>
+      <h3 id="lich-tieu-de">Tháng {{ lich.thang }}, {{ lich.nam }}</h3>
+      <p class="lich-phu">{{ lich.thiet_bi.ten }} · {{ lich.so_may }} máy</p>
+    </div>
+    <div class="lich-dieu-huong">
+      <a class="nut-tron" href="{% querystring thang=lich.thang_truoc ngay=None %}#lich-tieu-de" aria-label="Xem tháng trước">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="nut-tron" href="{% querystring thang=lich.thang_sau ngay=None %}#lich-tieu-de" aria-label="Xem tháng sau">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="lich-luoi" role="grid">
+    <div class="lich-thu" role="columnheader">T2</div><div class="lich-thu" role="columnheader">T3</div><div class="lich-thu" role="columnheader">T4</div><div class="lich-thu" role="columnheader">T5</div><div class="lich-thu" role="columnheader">T6</div><div class="lich-thu" role="columnheader">T7</div><div class="lich-thu" role="columnheader">CN</div>
+    {% for tuan in lich.cac_tuan %}{% for o in tuan %}
+      {% if not o %}<div class="lich-o o-rong" aria-hidden="true"></div>
+      {% else %}
+        {% if quan_ly %}<a href="{% querystring ngay=o.ngay|date:'Y-m-d' %}#ngay-chi-tiet"{% else %}<div{% endif %}
+          class="lich-o tt-{{ o.trang_thai }}{% if o.qua_khu %} qua-khu{% endif %}{% if o.hom_nay %} hom-nay{% endif %}{% if o.chon %} chon{% endif %}{% if ngay_xem and ngay_xem.ngay == o.ngay %} dang-xem{% endif %}"
+          role="gridcell" aria-label="Ngày {{ o.ngay|date:'d/m' }}{% if o.qua_khu and not quan_ly %}: đã qua{% else %}: {{ o.nhan }}, {{ o.trong|length }} trống, {{ o.dang_thue|length }} đang thuê, {{ o.bao_tri|length }} bảo trì{% endif %}{% if o.chon %}, ngày bạn chọn{% endif %}">
+          <b>{{ o.ngay.day }}</b>
+          {% if not o.qua_khu or quan_ly %}<span class="lich-tt">{{ o.nhan }}</span>{% endif %}
+          {% if quan_ly %}<span class="lich-dem">{{ o.trong|length }} trống · {{ o.dang_thue|length }} thuê{% if o.bao_tri %} · {{ o.bao_tri|length }} bảo trì{% endif %}</span>{% endif %}
+        {% if quan_ly %}</a>{% else %}</div>{% endif %}
+      {% endif %}
+    {% endfor %}{% endfor %}
+  </div>
+
+  <p class="lich-chu-thich">
+    <span><i class="o-mau mau-trong"></i>Trống</span>
+    <span><i class="o-mau mau-thue"></i>Đang thuê</span>
+    {% if quan_ly or lich.co_bao_tri %}<span><i class="o-mau mau-bao-tri"></i>Bảo trì</span>{% endif %}
+    {% if not quan_ly %}<span><i class="o-mau mau-chon"></i>Ngày bạn chọn</span>{% endif %}
+  </p>
+</section>

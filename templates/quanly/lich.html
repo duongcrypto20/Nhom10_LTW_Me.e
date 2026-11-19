@@ -1,0 +1,51 @@
+{% extends 'base_app.html' %}
+{% block title %}Lịch máy{% endblock %}
+
+{% block content %}
+  <div class="dau-trang">
+    <div>
+      <h1>Lịch máy</h1>
+      <p>Chọn dòng máy để xem từng ngày còn bao nhiêu máy trống, bao nhiêu máy đang thuê hoặc đang bảo trì. Bấm vào một ngày để xem từng số sê-ri.</p>
+    </div>
+  </div>
+
+  <nav class="lich-chon-may" aria-label="Chọn dòng máy">
+    {% for tb in ds_thiet_bi %}
+      <a href="?may={{ tb.ma }}{% if lich %}&amp;thang={{ lich.nam }}-{{ lich.thang|stringformat:'02d' }}{% endif %}" class="{% if thiet_bi and tb.pk == thiet_bi.pk %}chon{% endif %}"{% if thiet_bi and tb.pk == thiet_bi.pk %} aria-current="true"{% endif %}>{{ tb.ten }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if lich %}
+    {% include 'rentals/_lich.html' with quan_ly=True %}
+
+    {% if ngay_xem %}
+      <section class="the ngay-chi-tiet" id="ngay-chi-tiet" aria-labelledby="tieu-de-ngay">
+        <div class="lich-dau">
+          <h3 id="tieu-de-ngay">Ngày {{ ngay_xem.ngay|date:'d/m/Y' }} · {{ thiet_bi.ten }}</h3>
+          <a class="btn btn-nhat btn-nho" href="?may={{ thiet_bi.ma }}&amp;thang={{ lich.nam }}-{{ lich.thang|stringformat:'02d' }}">Đóng</a>
+        </div>
+        <h3><i class="cham cham-thue"></i> Đang thuê ({{ ngay_xem.dang_thue|length }})</h3>
+        <ul class="ds-may-ngay">
+          {% for muc in ngay_xem.dang_thue %}
+            <li><span class="tag">{{ muc.may.so_seri }}</span>
+              <a href="{% url 'ql_chi_tiet_don' muc.don.pk %}">{{ muc.don.ma }}</a> · {{ muc.don.khach_hang.ho_ten }}
+              · {{ muc.don.gio_nhan|date:'H:i d/m' }} đến {{ muc.don.gio_tra|date:'H:i d/m' }}
+              <span class="tag tag-{{ muc.don.trang_thai }}">{{ muc.don.get_trang_thai_display }}</span></li>
+          {% empty %}<li class="chu-phu">Không có máy đang thuê trong ngày này.</li>{% endfor %}
+        </ul>
+        <h3><i class="cham cham-trong"></i> Còn trống ({{ ngay_xem.trong|length }})</h3>
+        <ul class="ds-may-ngay">
+          {% for muc in ngay_xem.trong %}<li><span class="tag tag-ok">{{ muc.may.so_seri }}</span> Sẵn sàng cho thuê ngày này</li>
+          {% empty %}<li class="chu-phu">Không còn máy trống.</li>{% endfor %}
+        </ul>
+        <h3><i class="cham cham-bao-tri"></i> Bảo trì, hư hỏng ({{ ngay_xem.bao_tri|length }})</h3>
+        <ul class="ds-may-ngay">
+          {% for muc in ngay_xem.bao_tri %}<li><span class="tag tag-bao_tri">{{ muc.may.so_seri }}</span> {{ muc.may.get_tinh_trang_display }}</li>
+          {% empty %}<li class="chu-phu">Không có máy bảo trì.</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  {% else %}
+    <div class="trong">Chưa có dòng máy đang cung cấp.</div>
+  {% endif %}
+{% endblock %}

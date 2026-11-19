@@ -1,0 +1,18 @@
+{% extends 'base_app.html' %}
+{% block title %}Thông báo{% endblock %}
+
+{% block content %}
+  <h1>Thông báo</h1>
+  <form method="post">{% csrf_token %}<button class="btn btn-vien">Đánh dấu tất cả đã đọc</button></form>
+  {% for tb in ds_thong_bao %}
+    <div class="the cach-duoi">
+      {% if not tb.da_doc %}<span class="tag tag-cho_xu_ly">Mới</span>{% endif %}
+      {{ tb.noi_dung }}
+      {% if tb.don %}<p><a href="{% if user.la_khach_hang %}{% url 'chi_tiet_don' tb.don.pk %}{% else %}{% url 'ql_chi_tiet_don' tb.don.pk %}{% endif %}">Xem đơn {{ tb.don.ma }}</a></p>{% endif %}
+      <small class="chu-phu">{{ tb.ngay_tao|date:'H:i d/m/Y' }}</small>
+    </div>
+  {% empty %}
+    <div class="trong">Bạn chưa có thông báo nào.</div>
+  {% endfor %}
+  {% include '_pagination.html' with page_obj=ds_thong_bao %}
+{% endblock %}

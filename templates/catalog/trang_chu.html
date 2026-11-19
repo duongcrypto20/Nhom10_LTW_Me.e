@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Trang chủ{% endblock %}
+{% block lop_noi_dung %}rong{% endblock %}
+{% block lop_thong_bao %}khung{% endblock %}
+
+{% block content %}
+  {# 1. Hero: ảnh máy ảnh làm nền (làm mờ bằng CSS), bên phải là cùng ảnh nhưng rõ nét #}
+  <section class="hero" aria-labelledby="tieu-de-hero">
+    <div class="hero-nen" style="background-image:url('{% static 'img/hero-may-anh.jpg' %}')"></div>
+    <div class="hero-trong">
+      <div class="hero-chu">
+        <h1 id="tieu-de-hero">Chọn máy ảnh ưng ý cho chuyến đi của bạn</h1>
+        <p>Thuê máy ảnh theo giờ, theo ngày tại Đà Nẵng.</p>
+
+        <div class="hero-nut">
+          <a class="btn btn-lon" href="{% url 'ds_may_anh' %}">Xem máy ảnh</a>
+          <a class="btn btn-lon btn-kinh" href="{% url 'goi_thue' %}">Xem bảng giá</a>
+        </div>
+
+        {# Ô tìm kiếm gửi sang trang danh sách máy ảnh (tham số q giống trang Máy ảnh) #}
+        <form class="hero-tim" method="get" action="{% url 'ds_may_anh' %}" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <label for="tim-may" class="sr-only">Tìm máy ảnh</label>
+          <input id="tim-may" type="search" name="q" placeholder="Tìm theo tên máy hoặc hãng">
+          <button class="btn" type="submit">Tìm</button>
+        </form>
+      </div>
+
+      <div class="hero-anh">
+        <img src="{% static 'img/hero-may-anh.jpg' %}" alt="Máy ảnh nhìn từ trên xuống với các vòng chỉnh tốc độ" width="663" height="647" fetchpriority="high">
+      </div>
+    </div>
+  </section>
+
+  {# 2. Điểm nổi bật (chỉ dùng thông tin cửa hàng đã có) #}
+  <section class="diem-noi-bat" aria-label="Điểm nổi bật">
+    <div class="diem">
+      <strong>Thuê theo giờ, theo ngày</strong>
+      <span>Chọn gói phù hợp với lịch trình</span>
+    </div>
+    <div class="diem">
+      <strong>Máy sạch, đã kiểm tra</strong>
+      <span>Máy được vệ sinh &amp; kiểm tra trước khi giao</span>
+    </div>
+    <div class="diem">
+      <strong>Hỗ trợ qua Zalo</strong>
+      <span>{{ cua_hang.zalo }}</span>
+    </div>
+  </section>
+
+  {# 3. Thiết bị đang cho thuê #}
+  <section class="muc" aria-labelledby="tieu-de-may">
+    <div class="trong-muc">
+      <div class="dau-muc">
+        <h2 id="tieu-de-may">Thiết bị đang cho thuê</h2>
+        <a class="lien-ket-chay" href="{% url 'ds_may_anh' %}">Xem tất cả máy ảnh</a>
+      </div>
+      <div class="luoi luoi-4">
+        {% for tb in ds_thiet_bi %}
+          {% include 'catalog/_the_may.html' %}
+        {% empty %}
+          <p>Chưa có thiết bị. Hãy chạy lệnh <code>python manage.py taodulieu</code>.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# 4. Gói thuê #}
+  <section class="muc kem" aria-labelledby="tieu-de-goi">
+    <div class="trong-muc">
+      <div class="dau-muc">
+        <h2 id="tieu-de-goi">Chọn gói thuê phù hợp</h2>
+        <a class="lien-ket-chay" href="{% url 'goi_thue' %}">Xem bảng giá</a>
+      </div>
+      <div class="luoi luoi-4">
+        {% for goi in ds_goi %}
+          <div class="the-goi">
+            <h3>{{ goi.ten }}</h3>
+            <div>Tối đa {{ goi.so_gio_toi_da }} giờ</div>
+            <p>{{ goi.mo_ta }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# 5. Quy trình thuê #}
+  <section class="muc toi" aria-labelledby="tieu-de-quy-trinh">
+    <div class="trong-muc">
+      <div class="hai-cot">
+        <img class="anh-fb" src="{% static 'img/feedback4.jpg' %}" alt="Khách hàng của me.e" loading="lazy">
+        <div>
+          <h2 id="tieu-de-quy-trinh">Thuê máy chỉ với 4 bước</h2>
+          <ol class="ds-buoc" role="list">
+            <li class="buoc"><span>01</span> Kiểm tra máy trống theo ngày giờ bạn cần</li>
+            <li class="buoc"><span>02</span> Chọn gói thuê và xác nhận đặt đơn</li>
+            <li class="buoc"><span>03</span> Đặt cọc online, máy được giữ ngay</li>
+            <li class="buoc"><span>04</span> Nhận máy, trả máy và nhận lại cọc</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# 6. Ảnh và đánh giá của khách #}
+  <section class="muc" aria-labelledby="tieu-de-danh-gia">
+    <div class="trong-muc">
+      <div class="dau-muc">
+        <h2 id="tieu-de-danh-gia">Những khoảnh khắc từ khách hàng</h2>
+        <a class="lien-ket-chay" href="{% url 'ds_danh_gia' %}">Xem ảnh và đánh giá</a>
+      </div>
+      <div class="luoi luoi-4">
+        <img class="anh-fb" src="{% static 'img/feedback1.jpg' %}" alt="Ảnh feedback 1" loading="lazy">
+        <img class="anh-fb" src="{% static 'img/feedback2.jpg' %}" alt="Ảnh feedback 2" loading="lazy">
+        <img class="anh-fb" src="{% static 'img/feedback3.jpg' %}" alt="Ảnh feedback 3" loading="lazy">
+        <img class="anh-fb" src="{% static 'img/feedback4.jpg' %}" alt="Ảnh feedback 4" loading="lazy">
+      </div>
+      {% if ds_danh_gia %}
+        <div class="luoi luoi-2 cach-tren">
+          {% for dg in ds_danh_gia %}
+            <div class="the">
+              <div class="sao" aria-label="Đánh giá">{{ dg.cac_sao }}</div>
+              <strong>{{ dg.don.khach_hang.ho_ten }}</strong>, {{ dg.don.thiet_bi.ten }}
+              <p>{{ dg.noi_dung }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+{% endblock %}

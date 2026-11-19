@@ -1,0 +1,18 @@
+{% extends 'base_app.html' %}
+{# Trang form dùng chung cho các thao tác thêm/sửa đơn giản #}
+{% block title %}{{ tieu_de }}{% endblock %}
+
+{% block content %}
+  <h1>{{ tieu_de }}</h1>
+  <div class="hop-form">
+    {% if ghi_chu %}<div class="alert">{{ ghi_chu }}</div>{% endif %}
+    <form method="post" {% if co_file %}enctype="multipart/form-data"{% endif %} novalidate>
+      {% csrf_token %}
+      {% include '_form.html' %}
+      <div class="hang-nut">
+        <button class="btn" type="submit"{% if xac_nhan %} data-confirm="{{ xac_nhan }}"{% endif %}>{{ nut }}</button>
+        <a class="btn btn-nhat" href="{% url url_huy %}">Hủy</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

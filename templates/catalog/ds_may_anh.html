@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Máy ảnh{% endblock %}
+
+{% block content %}
+  <h1>Máy ảnh cho thuê</h1>
+  <div class="dai-kiem-tra">
+    <p><strong>Cần máy vào ngày cụ thể?</strong> Chọn dòng máy, ngày giờ nhận và trả để xem lịch máy trống.</p>
+    <a class="btn" href="{% url 'kiem_tra_lich' %}">Kiểm tra máy trống</a>
+  </div>
+
+  <form class="tim-kiem" method="get">
+    <input type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên máy hoặc hãng">
+    <input type="hidden" name="loai" value="{{ loai_chon }}">
+    <button class="btn" type="submit">Tìm</button>
+  </form>
+
+  <div class="loc">
+    <a href="{% querystring loai='' %}" class="{% if not loai_chon %}chon{% endif %}">Tất cả</a>
+    {% for ma, ten in ds_loai %}
+      <a href="{% querystring loai=ma %}" class="{% if loai_chon == ma %}chon{% endif %}">{{ ten }}</a>
+    {% endfor %}
+  </div>
+
+  {% if ds_thiet_bi %}
+    <div class="luoi luoi-4">
+      {% for tb in ds_thiet_bi %}
+        {% include 'catalog/_the_may.html' %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="trong">Chưa có thiết bị phù hợp trong danh sách.</div>
+  {% endif %}
+{% endblock %}

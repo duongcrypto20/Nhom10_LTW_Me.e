@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load dinh_dang %}
+{% block title %}Kiểm tra máy trống{% endblock %}
+
+{% block content %}
+  <div class="dau-trang">
+    <div>
+      <h1>Kiểm tra máy trống</h1>
+      <p>Chọn dòng máy và thời gian bạn muốn thuê. Lịch tháng sẽ cho biết ngày nào máy còn trống, ngày nào đang có khách thuê.</p>
+    </div>
+  </div>
+
+  <div class="trang-lich">
+    {# Bước 1: chọn dòng máy, ngày giờ nhận và trả #}
+    <form class="form-lich" method="get" action="{% url 'kiem_tra_lich' %}" novalidate>
+      {% for loi in form.non_field_errors %}<div class="alert alert-danger">{{ loi }}</div>{% endfor %}
+      {% include '_o_nhap.html' with field=form.thiet_bi %}
+      <div class="hang-ngay-gio">
+        {% include '_o_nhap.html' with field=form.ngay_nhan %}
+        {% include '_o_nhap.html' with field=form.gio_nhan %}
+      </div>
+      <div class="hang-ngay-gio">
+        {% include '_o_nhap.html' with field=form.ngay_tra %}
+        {% include '_o_nhap.html' with field=form.gio_tra %}
+      </div>
+      <button class="btn btn-lon rong-het" type="submit">Kiểm tra</button>
+      <p class="chu-nho">Thuê 1 ngày tính 23 giờ. Thuê 1 buổi: ca sáng 8h đến 14h, ca chiều tối 15h đến 21h.</p>
+    </form>
+
+    {# Bước 2: kết quả và lịch tháng #}
+    <div class="ket-qua-lich" id="ket-qua">
+      {% if ket_qua %}
+        <div class="tom-tat-lich {% if ket_qua.con %}con-may{% else %}het-may{% endif %}" role="status">
+          {% if ket_qua.thiet_bi.anh %}<img src="{{ ket_qua.thiet_bi.anh.url }}" alt="" width="72" height="72">{% endif %}
+          <div>
+            <p class="tom-tat-ten">{{ ket_qua.thiet_bi.ten }}</p>
+            <p class="tom-tat-ket-luan">
+              {% if ket_qua.con %}Còn {{ ket_qua.con }}/{{ ket_qua.tong }} máy trống{% else %}Đã hết máy trống{% endif %}
+              <span>từ {{ ket_qua.nhan|date:'H:i d/m' }} đến {{ ket_qua.tra|date:'H:i d/m/Y' }}</span>
+            </p>
+          </div>
+          {% if ket_qua.con %}
+            <a class="btn" href="{{ ket_qua.link_dat_thue }}">Đặt thuê thời gian này</a>
+          {% endif %}
+        </div>
+        {% if not ket_qua.con %}
+          <p class="goi-y-lich">Xem các ngày còn <strong>Trống</strong> trên lịch rồi chọn lại thời gian, hoặc chọn dòng máy khác.</p>
+        {% endif %}
+        {% include 'rentals/_lich.html' with lich=ket_qua.lich %}
+      {% else %}
+        <div class="lich-cho">
+          <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <p><strong>Lịch máy sẽ hiện ở đây</strong></p>
+          <p>Chọn dòng máy, ngày giờ nhận và trả rồi bấm Kiểm tra.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

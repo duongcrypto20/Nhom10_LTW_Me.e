@@ -1,0 +1,59 @@
+{% extends 'base_app.html' %}
+{% load dinh_dang %}
+{% block title %}Xử lý {{ don.ma }}{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'ql_yeu_cau' %}">Yêu cầu thuê</a> / {{ don.ma }}</p>
+  <h1>Kiểm tra &amp; xử lý yêu cầu {{ don.ma }}</h1>
+
+  <div class="hai-cot">
+    <div class="the">
+      <h3>Thông tin yêu cầu</h3>
+      <table class="thong-tin">
+        <tr><td>Khách hàng</td><td>{{ don.khach_hang.ho_ten }}</td></tr>
+        <tr><td>Số điện thoại</td><td>{{ don.khach_hang.so_dien_thoai|default:'—' }}</td></tr>
+        <tr><td>Thiết bị</td><td>{{ don.ten_thiet_bi }}</td></tr>
+        <tr><td>Gói thuê</td><td>{{ don.goi_thue.ten }}</td></tr>
+        <tr><td>Giờ nhận</td><td>{{ don.gio_nhan|date:'H:i d/m/Y' }}</td></tr>
+        <tr><td>Giờ trả dự kiến</td><td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
+        <tr><td>Hình thức nhận</td><td>{{ don.get_hinh_thuc_nhan_display }}</td></tr>
+        <tr><td>Tiền thuê</td><td>{{ don.tong_thanh_toan|tien }}</td></tr>
+        <tr><td>Ghi chú</td><td>{{ don.ghi_chu|default:'—' }}</td></tr>
+      </table>
+    </div>
+
+    <div class="the">
+      <h3>Kiểm tra máy trống</h3>
+      {% for item in kiem_tra_trong %}<p>{{ item.dong.thiet_bi.ten }} · Cần {{ item.dong.so_luong }} · Còn {{ item.con }}/{{ item.tong }} máy · <strong>{% if item.du %}Đủ máy{% else %}Thiếu máy{% endif %}</strong></p>{% endfor %}
+      {% if con_trong > 0 %}
+        <div class="alert alert-success">Đủ máy cho tất cả thiết bị trong yêu cầu.</div>
+      {% else %}
+        <div class="alert alert-danger">Chưa đủ máy cho yêu cầu trong khoảng thời gian này.</div>
+      {% endif %}
+
+      <strong>Lịch thuê trùng thời gian</strong>
+      {% for d in don_trung %}
+        <div>{{ d.ma }} · {{ d.may.so_seri|default:'chưa gán máy' }} ·
+          {{ d.gio_nhan|date:'H:i d/m' }} đến {{ d.gio_tra|date:'H:i d/m' }}</div>
+      {% empty %}
+        <div>Không có đơn nào trùng lịch.</div>
+      {% endfor %}
+
+      <h3 class="cach-tren">Xử lý (UC-1.4)</h3>
+      {% if don.trang_thai == 'cho_xu_ly' %}
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% include '_form.html' %}
+          <div class="hang-nut">
+            <button class="btn" type="submit" name="hanh_dong" value="xac_nhan"
+                    {% if con_trong <= 0 %}disabled{% endif %}>Xác nhận lịch thuê</button>
+            <button class="btn btn-vien" type="submit" name="hanh_dong" value="dieu_chinh">Yêu cầu khách điều chỉnh</button>
+            <button class="btn btn-do" type="submit" name="hanh_dong" value="huy">Khách không tiếp tục thuê</button>
+          </div>
+        </form>
+      {% else %}
+        <div class="alert">Yêu cầu đã được xử lý: {{ don.get_trang_thai_display }}.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base_app.html' %}
+{% block title %}Phản hồi {{ dg.don.ma }}{% endblock %}
+
+{% block content %}
+  <p class="duong-dan"><a href="{% url 'ql_phan_hoi' %}">Phản hồi &amp; thống kê</a> / {{ dg.don.ma }}</p>
+  <div class="dau-trang">
+    <div>
+      <h1>Phản hồi của {{ dg.don.khach_hang.ho_ten }}</h1>
+      <p>Đơn <a href="{% url 'ql_chi_tiet_don' dg.don.pk %}">{{ dg.don.ma }}</a> · {{ dg.don.ten_thiet_bi }} · {{ dg.don.goi_thue.ten }} · gửi lúc {{ dg.ngay_tao|date:'H:i d/m/Y' }}</p>
+    </div>
+    <span class="tag tag-{{ dg.trang_thai }}">{{ dg.get_trang_thai_display }}</span>
+  </div>
+
+  <div class="phan-hoi-chi-tiet">
+    <article class="the">
+      <p class="sao" aria-label="{{ dg.so_sao }} trên 5 sao">{{ dg.cac_sao }}</p>
+      <blockquote>{{ dg.noi_dung|linebreaksbr }}</blockquote>
+      {% if dg.anh %}<a href="{{ dg.anh.url }}" target="_blank" rel="noopener"><img class="anh-feedback" src="{{ dg.anh.url }}" alt="Ảnh feedback khách gửi cho đơn {{ dg.don.ma }}"></a>{% endif %}
+
+      {# UC-4.3: duyệt để hiện công khai hoặc ẩn đi #}
+      <form method="post" action="{% url 'ql_doi_trang_thai_phan_hoi' dg.pk %}" class="hang-nut cach-tren">{% csrf_token %}
+        <input type="hidden" name="tiep" value="chi_tiet">
+        <button class="btn" name="hanh_dong" value="duyet" {% if dg.trang_thai == 'da_duyet' %}disabled{% endif %}>Duyệt, hiện công khai</button>
+        <button class="btn btn-vien" name="hanh_dong" value="an" {% if dg.trang_thai == 'da_an' %}disabled{% endif %} data-confirm="Ẩn phản hồi này khỏi trang công khai?">Ẩn phản hồi</button>
+      </form>
+    </article>
+
+    {# UC-4.5: trả lời, câu trả lời hiện cho khách trong mục Đánh giá của tôi #}
+    <section class="the">
+      <h3>{% if dg.tra_loi %}Sửa câu trả lời{% else %}Trả lời khách hàng{% endif %}</h3>
+      {% if dg.tra_loi %}<div class="tra-loi cach-duoi"><strong>Đang hiển thị:</strong> {{ dg.tra_loi }}</div>{% endif %}
+      <form method="post" novalidate>{% csrf_token %}
+        {% include '_form.html' %}
+        <div class="hang-nut"><button class="btn" data-confirm="Gửi câu trả lời cho khách hàng?">Gửi trả lời</button><a class="btn btn-nhat" href="{% url 'ql_phan_hoi' %}">Hủy</a></div>
+      </form>
+    </section>
+  </div>
+{% endblock %}

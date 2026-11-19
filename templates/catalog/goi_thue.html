@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load dinh_dang %}
+{% block title %}Gói thuê và bảng giá{% endblock %}
+
+{% block content %}
+  <h1>Gói thuê &amp; bảng giá</h1>
+
+  {% if ds_goi %}
+    <div class="luoi luoi-4">
+      {% for goi in ds_goi %}
+        <div class="the-goi">
+          <h3>{{ goi.ten }}</h3>
+          <div>Tối đa {{ goi.so_gio_toi_da }} giờ</div>
+          <p>{{ goi.mo_ta }}</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <h2 class="cach-tren">Bảng giá thuê</h2>
+    <p>Với gói tùy chỉnh, bạn chọn thời gian nhận và trả bất kỳ; hệ thống tự tìm tổ hợp các gói cố định có giá thấp nhất đủ thời lượng. Giá chi tiết hiện trước khi gửi yêu cầu.</p>
+    <div class="cuon-ngang">
+      <table class="bang">
+        <tr>
+          <th>Máy</th>
+          {% for goi in ds_goi_gia %}<th>{{ goi.ten }}</th>{% endfor %}
+          <th>Tiền cọc</th>
+        </tr>
+        {% for dong in bang_gia %}
+          <tr>
+            <td><a href="{% url 'chi_tiet_may_anh' dong.thiet_bi.ma %}">{{ dong.thiet_bi.ten }}</a></td>
+            {% for o in dong.ds_o %}
+              <td>{% if o.gia != None %}{{ o.gia|tien }}{% else %}—{% endif %}</td>
+            {% endfor %}
+            <td>{{ dong.thiet_bi.tien_coc|tien }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% else %}
+    <div class="trong">Danh sách gói thuê đang trống.</div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,6 @@
+{# Một ô nhập: nhãn, ô nhập và lỗi. Biến: field #}
+<div class="field {% if field.errors %}co-loi{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% for loi in field.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+</div>
