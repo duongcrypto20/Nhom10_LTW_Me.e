@@ -87,3 +87,40 @@ class DuLieuMauTests(TestCase):
             self.client.logout()
             response = self.client.post(reverse('dang_nhap'), {'email': email, 'mat_khau': '123456'})
             self.assertRedirects(response, reverse(trang))
+
+
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class BaoMatVaThongBaoLoiTests(TestCase):
+    """Chống CSRF và thông báo lỗi tiếng Việt khi nhập sai."""
+
+    def test_form_post_thieu_ma_csrf_bi_chan(self):
+        from django.test import Client
+        client = Client(enforce_csrf_checks=True)
+        response = client.post(reverse('dang_nhap'), {'email': 'a@b.com', 'mat_khau': '123456'})
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, 'Không gửi được biểu mẫu', status_code=403)
+
+    def test_form_post_co_ma_csrf_van_gui_duoc(self):
+        from django.test import Client
+        client = Client(enforce_csrf_checks=True)
+        trang = client.get(reverse('dang_nhap'))
+        ma_csrf = trang.cookies['csrftoken'].value
+        response = client.post(reverse('dang_nhap'), {
+            'email': 'khong-co@demo.com', 'mat_khau': '123456', 'csrfmiddlewaretoken': ma_csrf,
+        })
+        self.assertEqual(response.status_code, 200)
+
+    def test_dang_ky_sai_hien_loi_tung_o_va_tom_tat(self):
+        response = self.client.post(reverse('dang_ky'), {
+            'ho_ten': '', 'email': 'sai-email', 'so_dien_thoai': '12', 'mat_khau': '1', 'nhap_lai': '2',
+        })
+        loi = response.context['form'].errors
+        self.assertEqual(loi['ho_ten'], ['Vui lòng nhập Họ tên.'])
+        self.assertIn('không đúng định dạng', loi['email'][0])
+        self.assertIn('ít nhất 6 ký tự', loi['mat_khau'][0])
+        self.assertContains(response, 'Thông tin chưa hợp lệ')
+
+    def test_dang_nhap_sai_mat_khau_bao_loi(self):
+        User.objects.create_user('a@demo.com', email='a@demo.com', password='dung-mat-khau', ho_ten='A')
+        response = self.client.post(reverse('dang_nhap'), {'email': 'a@demo.com', 'mat_khau': 'sai'})
+        self.assertContains(response, 'Email hoặc mật khẩu không chính xác.')

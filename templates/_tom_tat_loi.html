@@ -1,0 +1,23 @@
+{# Tóm tắt lỗi ở đầu form: lỗi chung (sai mật khẩu, hết máy...) và danh sách ô cần sửa. Biến: form #}
+{% if form.errors %}
+  <div class="alert alert-danger" role="alert">
+    {% for loi in form.non_field_errors %}
+      <p>{{ loi }}</p>
+    {% endfor %}
+
+    {% with so_o_loi=form.errors|length %}
+      {% if form.non_field_errors %}
+        {% if so_o_loi > 1 %}<p>Ngoài ra còn ô nhập bị lỗi, vui lòng xem bên dưới.</p>{% endif %}
+      {% else %}
+        <p><strong>Thông tin chưa hợp lệ.</strong> Vui lòng sửa các ô được đánh dấu đỏ:</p>
+        <ul>
+          {% for field in form %}
+            {% if field.errors %}
+              <li><a href="#{{ field.id_for_label }}">{{ field.label }}</a>: {{ field.errors|first }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+{% endif %}

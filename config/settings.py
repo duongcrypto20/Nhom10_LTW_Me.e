@@ -29,6 +29,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # Chống CSRF: mọi form POST phải có {% csrf_token %}, thiếu hoặc sai mã thì bị chặn (403)
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -98,3 +99,19 @@ THANH_TOAN = {
     'chu_tai_khoan': os.environ.get('MEE_BANK_HOLDER', 'NGO QUYNH DUONG'),
     'anh_qr': os.environ.get('MEE_BANK_QR_IMAGE', 'img/qr-coc-lich.jpg'),
 }
+
+# ---------------------------------------------------------------------------
+# Bảo mật: chống CSRF, bảo vệ cookie đăng nhập, chống nhúng trang (clickjacking)
+# ---------------------------------------------------------------------------
+# Trang báo lỗi tiếng Việt khi request POST thiếu hoặc sai mã CSRF
+CSRF_FAILURE_VIEW = 'config.views.loi_csrf'
+# Cookie không được gửi kèm form POST do trang web khác gửi tới (chỉ gửi khi bấm link thường)
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+# JavaScript trên trang không đọc được cookie đăng nhập
+SESSION_COOKIE_HTTPONLY = True
+# Không cho trang web khác nhúng website vào khung iframe
+X_FRAME_OPTIONS = 'DENY'
+# Khi chạy thật bằng HTTPS (DEBUG = False) thì cookie chỉ gửi qua HTTPS
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG

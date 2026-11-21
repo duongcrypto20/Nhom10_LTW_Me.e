@@ -8,6 +8,8 @@ Các form của app feedback.
 """
 from django import forms
 
+from config.form_co_ban import FormCoBan, ModelFormCoBan
+
 from catalog.models import GoiThue, ThietBi
 from rentals.models import DonThue
 
@@ -25,7 +27,7 @@ def don_cho_danh_gia(user):
     )
 
 
-class DanhGiaForm(forms.ModelForm):
+class DanhGiaForm(ModelFormCoBan):
     """UC-4.1: gửi phản hồi gồm số sao, nội dung và ảnh (không bắt buộc)."""
 
     class Meta:
@@ -86,7 +88,7 @@ class VietDanhGiaForm(DanhGiaForm):
         self.fields['don'].empty_label = 'Chọn đơn bạn muốn đánh giá'
 
 
-class TraLoiForm(forms.ModelForm):
+class TraLoiForm(ModelFormCoBan):
     """UC-4.5: nhân viên trả lời phản hồi."""
 
     class Meta:
@@ -101,7 +103,7 @@ class TraLoiForm(forms.ModelForm):
         return tra_loi
 
 
-class LocPhanHoiForm(forms.Form):
+class LocPhanHoiForm(FormCoBan):
     """UC-4.4: các điều kiện lọc và thống kê phản hồi."""
 
     thiet_bi = forms.ModelChoiceField(

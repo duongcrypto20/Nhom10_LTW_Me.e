@@ -9,6 +9,8 @@ Các form của app rentals.
     XuLySuCoForm    : cập nhật kết quả xử lý sự cố
 """
 from django import forms
+
+from config.form_co_ban import FormCoBan, ModelFormCoBan
 from django.db.models import Q
 from django.utils import timezone
 
@@ -28,7 +30,7 @@ def o_chon_gio():
 # 1. KHÁCH ĐẶT THUÊ
 # ===========================================================================
 
-class DatThueForm(forms.Form):
+class DatThueForm(FormCoBan):
     """UC-1.1: chọn số lượng, gói thuê và thời gian thuê cho một dòng máy."""
 
     field_order = ['so_luong', 'goi_thue', 'gio_nhan', 'gio_tra', 'ma_giam_gia', 'ghi_chu']
@@ -100,7 +102,7 @@ class DatThueForm(forms.Form):
 # 2. NHÂN VIÊN XỬ LÝ ĐƠN
 # ===========================================================================
 
-class XuLyYeuCauForm(forms.Form):
+class XuLyYeuCauForm(FormCoBan):
     """UC-1.4: lý do khi yêu cầu khách điều chỉnh hoặc khi hủy đơn."""
 
     ly_do = forms.CharField(
@@ -114,7 +116,7 @@ class XuLyYeuCauForm(forms.Form):
 # 3. TIỀN CỌC: THU KHI NHẬN MÁY, HOÀN KHI TRẢ MÁY
 # ===========================================================================
 
-class ThuCocForm(forms.Form):
+class ThuCocForm(FormCoBan):
     """Thu tiền thuê và phần cọc máy còn lại khi khách đến nhận máy."""
 
     phuong_thuc = forms.ChoiceField(
@@ -126,7 +128,7 @@ class ThuCocForm(forms.Form):
     )
 
 
-class HoanCocForm(forms.Form):
+class HoanCocForm(FormCoBan):
     """Hoàn cọc khi khách trả máy. Phụ thu trả trễ do hệ thống tự tính."""
 
     hinh_thuc_tra = forms.ChoiceField(
@@ -233,7 +235,7 @@ class NhieuAnhField(forms.ImageField):
         return ket_qua
 
 
-class GhiNhanSuCoForm(forms.Form):
+class GhiNhanSuCoForm(FormCoBan):
     """Nhân viên ghi nhận sự cố cho một máy của đơn thuê."""
 
     may = forms.ModelChoiceField(
@@ -274,7 +276,7 @@ class GhiNhanSuCoForm(forms.Form):
         return mo_ta
 
 
-class XuLySuCoForm(forms.ModelForm):
+class XuLySuCoForm(ModelFormCoBan):
     """Cập nhật trạng thái và kết quả xử lý sự cố."""
 
     class Meta:

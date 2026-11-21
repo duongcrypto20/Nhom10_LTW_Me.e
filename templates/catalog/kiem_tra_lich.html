@@ -14,7 +14,7 @@
     {# Bước 1: chọn dòng máy, ngày giờ nhận và trả #}
     <form class="form-lich khu-vuc" method="get" action="{% url 'kiem_tra_lich' %}" aria-labelledby="chon-lich" novalidate>
       <h2 id="chon-lich">Chọn máy và thời gian</h2>
-      {% for loi in form.non_field_errors %}<div class="alert alert-danger">{{ loi }}</div>{% endfor %}
+      {% include '_tom_tat_loi.html' %}
       {% include '_o_nhap.html' with field=form.thiet_bi %}
       <div class="hang-ngay-gio">
         {% include '_o_nhap.html' with field=form.ngay_nhan %}

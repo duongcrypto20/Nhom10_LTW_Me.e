@@ -57,7 +57,7 @@
       {% if form_viet.fields.don.queryset.exists or form_viet.errors %}
         <form method="post" action="{% url 'ds_danh_gia' %}" enctype="multipart/form-data" class="form-viet" novalidate>
           {% csrf_token %}
-          {% for loi in form_viet.non_field_errors %}<div class="alert alert-danger">{{ loi }}</div>{% endfor %}
+          {% include '_tom_tat_loi.html' with form=form_viet %}
 
           <div class="field {% if form_viet.don.errors %}co-loi{% endif %}">
             <label for="{{ form_viet.don.id_for_label }}">{{ form_viet.don.label }}</label>

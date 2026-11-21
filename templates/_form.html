@@ -1,7 +1,5 @@
 {# Hiển thị các ô nhập của một form kèm thông báo lỗi. Được include vào các trang có form. #}
-{% for loi in form.non_field_errors %}
-  <div class="alert alert-danger" role="alert">{{ loi }}</div>
-{% endfor %}
+{% include '_tom_tat_loi.html' %}
 
 {% for field in form %}
   {% include '_o_nhap.html' %}

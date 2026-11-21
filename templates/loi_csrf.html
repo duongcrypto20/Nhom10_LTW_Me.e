@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Phiên làm việc đã hết hạn{% endblock %}
+
+{% block content %}
+  {# Trang hiện khi form gửi lên thiếu hoặc sai mã CSRF (xem config/views.py) #}
+  <div class="trong">
+    <div class="so-lon" aria-hidden="true">403</div>
+    <h1>Không gửi được biểu mẫu</h1>
+    <p>Phiên làm việc của trang đã hết hạn hoặc yêu cầu không đến từ website me.e_digitalcam,
+       nên hệ thống đã chặn lại để bảo vệ tài khoản của bạn.</p>
+    <p>Vui lòng quay lại trang trước, tải lại trang (F5) rồi gửi lại. Nếu vẫn lỗi, hãy bật cookie cho trình duyệt.</p>
+    <a class="btn" href="/">Về trang chủ</a>
+  </div>
+{% endblock %}

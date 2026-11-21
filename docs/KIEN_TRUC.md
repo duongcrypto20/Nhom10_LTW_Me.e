@@ -74,3 +74,14 @@ Các hàm thay đổi dữ liệu đều dùng `transaction.atomic`: một bư�
 .\.venv\Scripts\python.exe -X utf8 manage.py test --noinput
 .\.venv\Scripts\python.exe -X utf8 manage.py makemigrations --check --dry-run
 ```
+
+## Bảo mật và thông báo lỗi
+
+- **Chống CSRF:** `CsrfViewMiddleware` bật trong `config/settings.py`; mọi form POST có `{% csrf_token %}`.
+  Request thiếu / sai mã bị chặn và hiện trang `loi_csrf.html` (view `config/views.py`).
+  Cookie dùng `SameSite=Lax`, cookie đăng nhập `HttpOnly`, chặn nhúng trang bằng `X_FRAME_OPTIONS = 'DENY'`.
+- **Thao tác thay đổi dữ liệu** chỉ nhận POST (`@require_POST`), có kiểm tra quyền theo vai trò.
+- **Thông báo lỗi khi nhập sai:** mọi form kế thừa `FormCoBan` / `ModelFormCoBan` (`config/form_co_ban.py`),
+  thông báo có tên ô, ví dụ "Vui lòng nhập Họ tên.", "Email không đúng định dạng...".
+  Đầu form có khung tóm tắt các ô bị lỗi (`templates/_tom_tat_loi.html`), lỗi từng ô hiện ngay dưới ô (`_o_nhap.html`).
+- Lỗi nghiệp vụ (hết máy, sai trạng thái đơn, mã giảm giá hết lượt...) báo bằng `ValidationError` trong `services.py`.

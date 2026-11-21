@@ -12,6 +12,8 @@ Các form của app catalog.
 from datetime import datetime
 
 from django import forms
+
+from config.form_co_ban import FormCoBan, ModelFormCoBan
 from django.core.validators import validate_slug
 from django.utils import timezone
 
@@ -30,7 +32,7 @@ def o_chon_gio():
 # 1. THIẾT BỊ VÀ MÁY
 # ===========================================================================
 
-class ThietBiForm(forms.ModelForm):
+class ThietBiForm(ModelFormCoBan):
     """Form thêm mới và cập nhật thiết bị (UC-2.1, UC-2.2)."""
 
     class Meta:
@@ -66,7 +68,7 @@ class ThietBiForm(forms.ModelForm):
         return thiet_bi
 
 
-class MayForm(forms.ModelForm):
+class MayForm(ModelFormCoBan):
     """Form thêm một máy vật lý theo số sê-ri."""
 
     class Meta:
@@ -85,7 +87,7 @@ class MayForm(forms.ModelForm):
 # 2. GÓI THUÊ VÀ MÃ GIẢM GIÁ
 # ===========================================================================
 
-class GoiThueForm(forms.ModelForm):
+class GoiThueForm(ModelFormCoBan):
     """Form thêm mới và cập nhật gói thuê (UC-3.1, UC-3.3)."""
 
     class Meta:
@@ -105,7 +107,7 @@ class GoiThueForm(forms.ModelForm):
         return du_lieu
 
 
-class MaGiamGiaForm(forms.ModelForm):
+class MaGiamGiaForm(ModelFormCoBan):
     """Form thêm / sửa mã giảm giá. Mã đã có đơn dùng thì không cho đổi tên mã."""
 
     class Meta:
@@ -139,7 +141,7 @@ class MaGiamGiaForm(forms.ModelForm):
         return du_lieu
 
 
-class LoaiThietBiForm(forms.ModelForm):
+class LoaiThietBiForm(ModelFormCoBan):
     """Form thêm danh mục thiết bị."""
 
     class Meta:
@@ -151,7 +153,7 @@ class LoaiThietBiForm(forms.ModelForm):
 # 3. KIỂM TRA MÁY TRỐNG
 # ===========================================================================
 
-class KiemTraMayTrongForm(forms.Form):
+class KiemTraMayTrongForm(FormCoBan):
     """Kiểm tra nhanh số máy trống theo giờ nhận, giờ trả và số lượng."""
 
     gio_nhan = forms.DateTimeField(label='Giờ nhận máy', widget=o_chon_gio(), input_formats=[DINH_DANG_GIO])
@@ -173,7 +175,7 @@ class KiemTraMayTrongForm(forms.Form):
         return du_lieu
 
 
-class KiemTraLichForm(forms.Form):
+class KiemTraLichForm(FormCoBan):
     """Trang Kiểm tra máy trống: chọn dòng máy, ngày giờ nhận và ngày giờ trả."""
 
     thiet_bi = forms.ModelChoiceField(

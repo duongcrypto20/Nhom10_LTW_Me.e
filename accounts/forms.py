@@ -9,6 +9,8 @@ import re
 
 from django import forms
 
+from config.form_co_ban import FormCoBan, ModelFormCoBan
+
 from .models import User
 
 
@@ -20,7 +22,7 @@ def chuan_hoa_so_dien_thoai(so):
     return so
 
 
-class DangKyForm(forms.Form):
+class DangKyForm(FormCoBan):
     """UC-6.1: đăng ký tài khoản khách hàng. Email dùng làm tên đăng nhập."""
 
     ho_ten = forms.CharField(label='Họ tên', max_length=100)
@@ -54,7 +56,7 @@ class DangKyForm(forms.Form):
         return du_lieu
 
 
-class DangNhapForm(forms.Form):
+class DangNhapForm(FormCoBan):
     """UC-6.2: đăng nhập bằng email và mật khẩu."""
 
     email = forms.EmailField(
@@ -67,7 +69,7 @@ class DangNhapForm(forms.Form):
     )
 
 
-class TaiKhoanForm(forms.ModelForm):
+class TaiKhoanForm(ModelFormCoBan):
     """UC-6.3: cập nhật họ tên, số điện thoại, CCCD, ảnh đại diện."""
 
     class Meta:
