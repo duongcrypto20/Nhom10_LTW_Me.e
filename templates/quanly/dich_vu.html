@@ -3,7 +3,7 @@
 
 {% block content %}
   <div class="dau-trang">
-    <div><h1>Dịch vụ / gói thuê</h1><p>Quản lý thời lượng, trạng thái cung cấp và giá theo dòng máy</p></div>
+    <div><h1>Dịch vụ / gói thuê</h1><p>Quản lý gói thuê, trạng thái cung cấp và giá theo dòng máy</p></div>
     {# UC-3.1: chỉ chủ cửa hàng được thêm gói thuê #}
     {% if user.la_chu_cua_hang %}
       <a class="btn" href="{% url 'ql_them_goi' %}">Thêm gói thuê</a>
@@ -13,12 +13,11 @@
   {% if ds_goi %}
     <section class="khu-vuc" aria-label="Danh sách gói thuê">
     <div class="cuon-ngang"><table class="bang">
-      <thead><tr><th scope="col">Gói</th><th scope="col">Thời lượng tối đa</th><th scope="col">Mô tả</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
+      <thead><tr><th scope="col">Gói</th><th scope="col">Mô tả</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
       <tbody>
       {% for goi in ds_goi %}
         <tr>
           <td><strong>{{ goi.ten }}</strong></td>
-          <td>{{ goi.so_gio_toi_da }} giờ</td>
           <td>{{ goi.mo_ta }}</td>
           <td>
             {% if goi.dang_cung_cap %}<span class="tag tag-ok">Đang cung cấp</span>

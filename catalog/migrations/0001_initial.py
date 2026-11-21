@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('ten', models.CharField(max_length=50, unique=True, verbose_name='Tên gói')),
-                ('so_gio_toi_da', models.PositiveIntegerField(verbose_name='Thời lượng tối đa (giờ)')),
+                ('so_gio_toi_da', models.PositiveIntegerField(verbose_name='Số giờ của gói')),
                 ('mo_ta', models.CharField(blank=True, max_length=255, verbose_name='Mô tả')),
                 ('dang_cung_cap', models.BooleanField(default=True, verbose_name='Đang cung cấp')),
                 ('tuy_chinh', models.BooleanField(default=False, verbose_name='Cho phép tùy chỉnh thời gian và tự tính giá')),

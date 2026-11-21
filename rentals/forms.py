@@ -87,11 +87,11 @@ class DatThueForm(forms.Form):
             # BR01: giờ trả phải sau giờ nhận
             if gio_tra <= gio_nhan:
                 self.add_error('gio_tra', 'Giờ trả dự kiến phải sau giờ nhận máy.')
-            # BR03: không vượt quá thời lượng tối đa của gói
+            # BR03: thời gian thuê không dài hơn số giờ của gói
             elif goi and (gio_tra - gio_nhan).total_seconds() > goi.so_gio_toi_da * 3600:
                 self.add_error(
                     'gio_tra',
-                    f'Thời gian thuê vượt quá thời lượng của gói (tối đa {goi.so_gio_toi_da} giờ).',
+                    f'Thời gian thuê dài hơn gói {goi.ten}. Vui lòng chọn gói dài hơn hoặc gói Tùy chỉnh.',
                 )
         return du_lieu
 

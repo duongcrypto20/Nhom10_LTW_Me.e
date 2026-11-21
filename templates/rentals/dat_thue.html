@@ -36,7 +36,7 @@
       <table class="thong-tin">
         <tbody>
         {% for gia in thiet_bi.cac_gia.all %}
-          <tr><th scope="row">{{ gia.goi_thue.ten }} <small class="chu-phu">Tối đa {{ gia.goi_thue.so_gio_toi_da }} giờ</small></th><td class="cot-tien">{{ gia.gia|tien }}</td></tr>
+          <tr><th scope="row">{{ gia.goi_thue.ten }}</th><td class="cot-tien">{{ gia.gia|tien }}</td></tr>
         {% endfor %}
         <tr><th scope="row">Tiền cọc</th><td class="cot-tien"><strong>{{ thiet_bi.tien_coc|tien }}</strong></td></tr>
         </tbody>

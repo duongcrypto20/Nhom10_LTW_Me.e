@@ -135,7 +135,7 @@ class GoiThue(models.Model):
     """Gói thuê theo thời lượng. Gói tùy chỉnh cho khách tự chọn giờ, hệ thống tự tính giá."""
 
     ten = models.CharField('Tên gói', max_length=50, unique=True)
-    so_gio_toi_da = models.PositiveIntegerField('Thời lượng tối đa (giờ)')
+    so_gio_toi_da = models.PositiveIntegerField('Số giờ của gói')
     mo_ta = models.CharField('Mô tả', max_length=255, blank=True)
     dang_cung_cap = models.BooleanField('Đang cung cấp', default=True)
     tuy_chinh = models.BooleanField('Cho phép tùy chỉnh thời gian và tự tính giá', default=False)
