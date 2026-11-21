@@ -428,3 +428,25 @@ class SuCoTests(CoSoTest):
     def test_khach_khong_vao_duoc_trang_su_co(self):
         self.client.force_login(self.khach)
         self.assertEqual(self.client.get(reverse('ql_su_co')).status_code, 403)
+
+
+class BaoCaoTests(CoSoTest):
+    """Trang báo cáo doanh thu có dữ liệu biểu đồ."""
+
+    def test_du_lieu_bieu_do_theo_ngay_va_theo_may(self):
+        don = self.tao_don()
+        self.giao_may(don)
+        self.client.force_login(self.chu)
+        response = self.client.get(reverse('ql_bao_cao'))
+
+        bieu_do = response.context['bieu_do']
+        self.assertFalse(bieu_do['theo_thang'])
+        self.assertEqual(sum(bieu_do['doanh_thu']), 120_000)
+        self.assertEqual(bieu_do['ten_may'], ['Canon M50'])
+        self.assertContains(response, 'id="du-lieu-bieu-do"')
+
+    def test_khoang_dai_thi_gom_theo_thang(self):
+        self.client.force_login(self.chu)
+        response = self.client.get(reverse('ql_bao_cao'), {'tu': '2026-01-01', 'den': '2026-12-31'})
+        self.assertTrue(response.context['bieu_do']['theo_thang'])
+        self.assertEqual(len(response.context['bieu_do']['moc_thoi_gian']), 12)

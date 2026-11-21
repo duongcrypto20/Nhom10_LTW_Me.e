@@ -27,7 +27,7 @@ Mở http://127.0.0.1:8000/
 
 | Email | Vai trò | Có sẵn |
 |---|---|---|
-| chu@demo.com | Chủ cửa hàng (vào được cả /admin/) | Báo cáo doanh thu, phân quyền |
+| chu@demo.com | Chủ cửa hàng (vào được cả /admin/) | Báo cáo doanh thu có biểu đồ cột / đường / tròn, phân quyền |
 | nv@demo.com | Nhân viên | Yêu cầu thuê, tiền cọc, sự cố máy, phản hồi |
 | khach@demo.com | Khách hàng | 1 đơn hoàn tất, 1 đơn đang thuê, 1 đơn đã hủy |
 | ngoc@demo.com | Khách hàng | 1 đơn trả trễ, 1 đơn đã cọc chờ nhận máy |

@@ -9,7 +9,7 @@ Các màn hình của app rentals.
 """
 import math
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -678,6 +678,40 @@ def doc_khoang_ngay(request):
     return tu, den
 
 
+def du_lieu_bieu_do(ds_don_da_giao, tu, den, theo_may):
+    """
+    Dữ liệu cho 2 biểu đồ ở trang báo cáo (vẽ bằng Chart.js trong template).
+
+    1. Doanh thu theo thời gian: khoảng ngày ngắn (tối đa 62 ngày) thì mỗi cột là 1 ngày,
+       dài hơn thì mỗi cột là 1 tháng. Ngày / tháng không có đơn vẫn hiện cột 0đ.
+    2. Tiền thuê theo dòng máy.
+    """
+    theo_thang = (den - tu).days > 62
+
+    # Bước 1: tạo sẵn các mốc thời gian với doanh thu 0
+    doanh_thu_theo_moc = {}
+    ngay = tu
+    while ngay <= den:
+        moc = ngay.strftime('%m/%Y') if theo_thang else ngay.strftime('%d/%m')
+        doanh_thu_theo_moc.setdefault(moc, 0)
+        ngay += timedelta(days=1)
+
+    # Bước 2: cộng doanh thu của từng đơn vào mốc ngày giao máy
+    for don in ds_don_da_giao:
+        ngay_giao = timezone.localtime(don.giao_thuc_te).date()
+        moc = ngay_giao.strftime('%m/%Y') if theo_thang else ngay_giao.strftime('%d/%m')
+        if moc in doanh_thu_theo_moc:
+            doanh_thu_theo_moc[moc] += don.doanh_thu
+
+    return {
+        'theo_thang': theo_thang,
+        'moc_thoi_gian': list(doanh_thu_theo_moc.keys()),
+        'doanh_thu': list(doanh_thu_theo_moc.values()),
+        'ten_may': [muc['ten'] for muc in theo_may],
+        'tien_thue_may': [muc['tien_thue'] for muc in theo_may],
+    }
+
+
 @chu_cua_hang_required
 def ql_bao_cao(request):
     """Báo cáo doanh thu cho chủ cửa hàng, tính theo các đơn đã giao máy trong khoảng ngày."""
@@ -701,16 +735,18 @@ def ql_bao_cao(request):
             muc = theo_may.setdefault(ten, {'ten': ten, 'so_luot': 0, 'tien_thue': 0})
             muc['so_luot'] += dong.so_luong
             muc['tien_thue'] += dong.thanh_tien
+    theo_may = sorted(theo_may.values(), key=lambda muc: -muc['tien_thue'])
 
     return render(request, 'quanly/bao_cao.html', {
         'tu': tu,
         'den': den,
         'ds_don': ds,
+        'bieu_do': du_lieu_bieu_do(ds, tu, den, theo_may),
         'tong_tien_thue': sum(don.tien_thue for don in ds),
         'tong_giam_gia': sum(don.giam_gia for don in ds),
         'tong_phat_sinh': sum(don.phu_thu_tra_tre + don.khau_tru_den_bu for don in ds),
         'tong_doanh_thu': sum(don.doanh_thu for don in ds),
-        'theo_may': sorted(theo_may.values(), key=lambda muc: -muc['tien_thue']),
+        'theo_may': theo_may,
     })
 
 

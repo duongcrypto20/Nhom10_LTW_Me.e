@@ -1124,3 +1124,17 @@ a.lich-o.dang-xem { box-shadow: inset 0 0 0 2px var(--muc); border-radius: var(-
   .topnav, .thanh-tren, .sidebar, .nut-menu, .thanh-app, .footer { display: none !important; }
   .layout-app .main { margin-left: 0; }
 }
+
+/* ---------- Biểu đồ ở trang Báo cáo doanh thu ---------- */
+.luoi-bieu-do { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--k-4); }
+.khung-bieu-do { position: relative; height: 280px; }
+@media (max-width: 640px) {
+  .luoi-bieu-do { grid-template-columns: 1fr; }
+  .khung-bieu-do { height: 240px; }
+}
+/* Nút chọn loại biểu đồ dùng chung kiểu với thanh lọc .loc */
+.trang-noi-dung .loc button {
+  min-height: 40px; padding: 8px 12px; border-radius: 8px; font: inherit; font-size: 14px;
+  background: transparent; border: 1px solid var(--vien); color: var(--chu-phu); cursor: pointer;
+}
+.trang-noi-dung .loc button.chon { background: var(--kem); color: var(--dong-dam); border-color: var(--be); font-weight: 600; }

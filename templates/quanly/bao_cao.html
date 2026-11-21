@@ -10,12 +10,14 @@
     </div>
   </div>
 
+  {# ----- Chọn khoảng ngày ----- #}
   <form method="get" class="thanh-loc" novalidate>
     <div class="field"><label for="tu">Từ ngày</label><input id="tu" type="date" name="tu" value="{{ tu|date:'Y-m-d' }}"></div>
     <div class="field"><label for="den">Đến ngày</label><input id="den" type="date" name="den" value="{{ den|date:'Y-m-d' }}"></div>
     <button type="submit" class="btn">Xem báo cáo</button>
   </form>
 
+  {# ----- Số liệu tổng ----- #}
   <dl class="thong-ke">
     <div><dt>Doanh thu</dt><dd>{{ tong_doanh_thu|tien }}</dd></div>
     <div><dt>Tiền thuê trước giảm</dt><dd>{{ tong_tien_thue|tien }}</dd></div>
@@ -24,11 +26,40 @@
   </dl>
 
   {% if ds_don %}
-    <div>
-      <div class="cuon-ngang cach-duoi">
-        <table class="bang">
-          <thead><tr><th scope="col">Đơn</th><th scope="col">Ngày giao</th><th scope="col">Thiết bị</th><th scope="col" class="cot-tien">Tiền thuê</th><th scope="col" class="cot-tien">Giảm</th><th scope="col" class="cot-tien">Phát sinh</th><th scope="col" class="cot-tien">Doanh thu</th></tr></thead>
-          <tbody>
+    {# ----- Biểu đồ: chọn loại cột / đường / tròn ----- #}
+    <nav class="loc" aria-label="Loại biểu đồ" id="chon-loai-bieu-do">
+      <button type="button" class="chon" data-loai="bar" aria-pressed="true">Biểu đồ cột</button>
+      <button type="button" data-loai="line" aria-pressed="false">Biểu đồ đường</button>
+      <button type="button" data-loai="pie" aria-pressed="false">Biểu đồ tròn</button>
+    </nav>
+
+    <div class="luoi-bieu-do cach-duoi">
+      <section class="khu-vuc">
+        <h2>Doanh thu theo {% if bieu_do.theo_thang %}tháng{% else %}ngày{% endif %}</h2>
+        <div class="khung-bieu-do"><canvas id="bieu-do-doanh-thu" role="img" aria-label="Biểu đồ doanh thu theo thời gian"></canvas></div>
+      </section>
+      <section class="khu-vuc">
+        <h2>Tiền thuê theo dòng máy</h2>
+        <div class="khung-bieu-do"><canvas id="bieu-do-theo-may" role="img" aria-label="Biểu đồ tiền thuê theo dòng máy"></canvas></div>
+      </section>
+    </div>
+    {{ bieu_do|json_script:'du-lieu-bieu-do' }}
+
+    {# ----- Bảng chi tiết từng đơn ----- #}
+    <div class="cuon-ngang cach-duoi">
+      <table class="bang">
+        <thead>
+          <tr>
+            <th scope="col">Đơn</th>
+            <th scope="col">Ngày giao</th>
+            <th scope="col">Thiết bị</th>
+            <th scope="col" class="cot-tien">Tiền thuê</th>
+            <th scope="col" class="cot-tien">Giảm</th>
+            <th scope="col" class="cot-tien">Phát sinh</th>
+            <th scope="col" class="cot-tien">Doanh thu</th>
+          </tr>
+        </thead>
+        <tbody>
           {% for don in ds_don %}
             <tr>
               <td><a href="{% url 'ql_chi_tiet_don' don.pk %}">{{ don.ma }}</a><small>{{ don.khach_hang.ho_ten }}</small></td>
@@ -40,18 +71,119 @@
               <td class="cot-tien"><strong>{{ don.doanh_thu|tien }}</strong></td>
             </tr>
           {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ----- Bảng tổng theo dòng máy ----- #}
+    <section class="khu-vuc">
+      <h2>Theo dòng máy</h2>
+      <div class="cuon-ngang">
+        <table class="bang">
+          <thead><tr><th scope="col">Dòng máy</th><th scope="col">Lượt thuê</th><th scope="col" class="cot-tien">Tiền thuê</th></tr></thead>
+          <tbody>
+            {% for may in theo_may %}
+              <tr><td>{{ may.ten }}</td><td>{{ may.so_luot }}</td><td class="cot-tien">{{ may.tien_thue|tien }}</td></tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
-      <section class="khu-vuc">
-        <h2>Theo dòng máy</h2>
-        <div class="cuon-ngang"><table class="bang">
-          <thead><tr><th scope="col">Dòng máy</th><th scope="col">Lượt thuê</th><th scope="col" class="cot-tien">Tiền thuê</th></tr></thead>
-          <tbody>{% for may in theo_may %}<tr><td>{{ may.ten }}</td><td>{{ may.so_luot }}</td><td class="cot-tien">{{ may.tien_thue|tien }}</td></tr>{% endfor %}</tbody>
-        </table></div>
-      </section>
-    </div>
+    </section>
   {% else %}
     <div class="trong">Không có đơn nào được giao máy trong khoảng thời gian đã chọn.</div>
+  {% endif %}
+{% endblock %}
+
+{% block script %}
+  {% if ds_don %}
+    {# Thư viện Chart.js để vẽ biểu đồ #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+      // Dữ liệu do view tính sẵn (hàm du_lieu_bieu_do trong rentals/views.py)
+      var duLieu = JSON.parse(document.getElementById('du-lieu-bieu-do').textContent);
+
+      // Hiển thị số tiền kiểu Việt Nam: 160000 -> 160.000đ
+      function dinhDangTien(so) {
+        return Number(so).toLocaleString('vi-VN') + 'đ';
+      }
+
+      // Bảng màu theo tông nâu đồng của giao diện (biểu đồ tròn cần nhiều màu)
+      var MAU_CHINH = '#8e4f2a';
+      var CAC_MAU = ['#8e4f2a', '#e2b48f', '#6f3d20', '#c98b5e', '#3f6b5c', '#9fb8a8',
+                     '#b5543c', '#d9c3a5', '#5b4a3c', '#a07850', '#7d8c6a', '#e8d5bf'];
+
+      // Tạo cấu hình Chart.js cho một biểu đồ theo loại đang chọn (bar / line / pie)
+      function taoCauHinh(loai, nhan, giaTri) {
+        var laTron = loai === 'pie';
+
+        // Biểu đồ tròn: bỏ các mốc 0đ để chú thích gọn, chỉ còn ngày / máy có doanh thu
+        if (laTron) {
+          var nhanMoi = [];
+          var giaTriMoi = [];
+          for (var i = 0; i < giaTri.length; i++) {
+            if (giaTri[i] > 0) {
+              nhanMoi.push(nhan[i]);
+              giaTriMoi.push(giaTri[i]);
+            }
+          }
+          nhan = nhanMoi;
+          giaTri = giaTriMoi;
+        }
+
+        var tapDuLieu = {
+          data: giaTri,
+          backgroundColor: laTron ? CAC_MAU : MAU_CHINH,
+          borderColor: laTron ? '#fffdf9' : MAU_CHINH,
+          borderWidth: 2,
+          borderRadius: loai === 'bar' ? 4 : 0,
+          tension: 0.3,     // đường cong nhẹ cho biểu đồ đường
+          fill: false
+        };
+        var tuyChon = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            // Biểu đồ tròn cần chú thích để biết màu nào là mục nào
+            legend: { display: laTron, position: 'bottom' },
+            tooltip: { callbacks: { label: function (muc) { return ' ' + dinhDangTien(muc.raw); } } }
+          }
+        };
+        if (!laTron) {
+          tuyChon.scales = {
+            y: { beginAtZero: true, ticks: { callback: function (so) { return dinhDangTien(so); } } }
+          };
+        }
+        return { type: loai, data: { labels: nhan, datasets: [tapDuLieu] }, options: tuyChon };
+      }
+
+      // Vẽ lại cả hai biểu đồ (xóa biểu đồ cũ trước khi vẽ loại mới)
+      var bieuDoDoanhThu = null;
+      var bieuDoTheoMay = null;
+      function veBieuDo(loai) {
+        if (bieuDoDoanhThu) { bieuDoDoanhThu.destroy(); }
+        if (bieuDoTheoMay) { bieuDoTheoMay.destroy(); }
+        bieuDoDoanhThu = new Chart(document.getElementById('bieu-do-doanh-thu'),
+          taoCauHinh(loai, duLieu.moc_thoi_gian, duLieu.doanh_thu));
+        bieuDoTheoMay = new Chart(document.getElementById('bieu-do-theo-may'),
+          taoCauHinh(loai, duLieu.ten_may, duLieu.tien_thue_may));
+      }
+
+      // Nút chọn loại biểu đồ
+      var cacNut = document.querySelectorAll('#chon-loai-bieu-do button');
+      cacNut.forEach(function (nut) {
+        nut.addEventListener('click', function () {
+          cacNut.forEach(function (n) {
+            n.classList.remove('chon');
+            n.setAttribute('aria-pressed', 'false');
+          });
+          nut.classList.add('chon');
+          nut.setAttribute('aria-pressed', 'true');
+          veBieuDo(nut.dataset.loai);
+        });
+      });
+
+      // Mặc định vẽ biểu đồ cột
+      veBieuDo('bar');
+    </script>
   {% endif %}
 {% endblock %}
