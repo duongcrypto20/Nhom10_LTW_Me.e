@@ -2,62 +2,65 @@
 {% block title %}Phản hồi{% endblock %}
 
 {% block content %}
-  <div class="dau-trang"><div><h1>Phản hồi &amp; thống kê</h1><p>Lọc theo thiết bị, gói, số sao, thời gian để thống kê. Bấm Xem để duyệt, ẩn hoặc trả lời.</p></div></div>
+  <div class="dau-trang"><div><h1>Phản hồi và thống kê</h1><p>Lọc theo thiết bị, gói, số sao, thời gian để thống kê. Bấm Xem để duyệt, ẩn hoặc trả lời.</p></div></div>
   {% include 'feedback/_loc.html' %}
 
   {# UC-4.4: thống kê phản hồi #}
-  <div class="luoi luoi-4 cach-duoi">
-    <div class="the the-so"><strong>{{ thong_ke.tong }}</strong>phản hồi</div>
-    <div class="the the-so"><strong>{{ thong_ke.trung_binh }}★</strong>điểm trung bình</div>
-    <div class="the the-so"><strong>{{ so_cho_xu_ly }}</strong>chờ xử lý</div>
-    <div class="the the-so"><strong>{{ so_da_tra_loi }}</strong>đã trả lời</div>
-  </div>
+  <dl class="thong-ke">
+    <div><dt>Phản hồi</dt><dd>{{ thong_ke.tong }}</dd></div>
+    <div><dt>Điểm trung bình</dt><dd>{{ thong_ke.trung_binh }}<small>/ 5 sao</small></dd></div>
+    <div><dt>Chờ xử lý</dt><dd>{{ so_cho_xu_ly }}</dd></div>
+    <div><dt>Đã trả lời</dt><dd>{{ so_da_tra_loi }}</dd></div>
+  </dl>
 
   {% if ds_danh_gia %}
     <div class="luoi luoi-2 cach-duoi">
-      <div class="the">
-        <h3>Theo số sao</h3>
+      <section class="khu-vuc">
+        <h2>Theo số sao</h2>
         {% for dong in thong_ke.theo_sao %}
           <div class="thanh-sao">
-            {{ dong.sao }} ★
-            <div class="nen"><div class="dat" style="width:{{ dong.phan_tram }}%"></div></div>
+            <span>{{ dong.sao }} sao</span>
+            <meter min="0" max="100" value="{{ dong.phan_tram }}" aria-label="Tỷ lệ phản hồi {{ dong.sao }} sao">{{ dong.phan_tram }}%</meter>
             {{ dong.so_luong }}
           </div>
         {% endfor %}
-      </div>
-      <div class="the">
-        <h3>Theo dòng máy</h3>
-        <table class="thong-tin">
-          {% for dong in theo_thiet_bi %}<tr><td>{{ dong.thiet_bi__ten }} · {{ dong.so_luong }} phản hồi</td><td>{{ dong.diem|floatformat:1 }} ★</td></tr>{% endfor %}
-        </table>
-      </div>
+      </section>
+      <section class="khu-vuc">
+        <h2>Theo dòng máy</h2>
+        <div class="cuon-ngang"><table class="bang">
+          <thead><tr><th scope="col">Dòng máy</th><th scope="col">Phản hồi</th><th scope="col">Điểm</th></tr></thead>
+          <tbody>{% for dong in theo_thiet_bi %}<tr><td>{{ dong.thiet_bi__ten }}</td><td>{{ dong.so_luong }}</td><td>{{ dong.diem|floatformat:1 }} / 5</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
     </div>
 
     {# UC-4.3: duyệt/ẩn phản hồi; UC-4.5: trả lời #}
     <div class="cuon-ngang">
       <table class="bang">
-        <tr><th>Khách</th><th>Máy</th><th>Đánh giá</th><th>Nội dung</th><th>Trạng thái</th><th></th></tr>
+        <thead><tr><th scope="col">Khách</th><th scope="col">Máy</th><th scope="col">Đánh giá</th><th scope="col">Nội dung</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
+        <tbody>
         {% for dg in ds_danh_gia %}
           <tr>
             <td>{{ dg.don.khach_hang.ho_ten }}</td>
             <td>{{ dg.don.ten_thiet_bi }}</td>
-            <td><span class="sao">{{ dg.cac_sao }}</span></td>
+            <td><span class="sao">{{ dg.so_sao }}/5 sao</span></td>
             <td>{{ dg.noi_dung }}
               {% if dg.anh %}<a href="{{ dg.anh.url }}" target="_blank" rel="noopener"><img class="anh-feedback" src="{{ dg.anh.url }}" alt="Ảnh feedback chờ kiểm tra"></a>{% endif %}
               {% if dg.tra_loi %}<small><strong>Đã trả lời:</strong> {{ dg.tra_loi }}</small>{% endif %}</td>
             <td><span class="tag tag-{{ dg.trang_thai }}">{{ dg.get_trang_thai_display }}</span></td>
             <td class="nhom-nut-bang">
-              <a class="btn btn-nho" href="{% url 'ql_chi_tiet_phan_hoi' dg.pk %}">Xem &amp; xử lý</a>
+              <a class="btn btn-nho" href="{% url 'ql_chi_tiet_phan_hoi' dg.pk %}">Xem và xử lý</a>
               {% if dg.trang_thai == 'cho_xu_ly' %}<form class="inline" method="post" action="{% url 'ql_doi_trang_thai_phan_hoi' dg.pk %}">{% csrf_token %}
-                <button class="btn btn-vien btn-nho" name="hanh_dong" value="duyet">Duyệt nhanh</button></form>{% endif %}
+                <button type="submit" class="btn btn-vien btn-nho" name="hanh_dong" value="duyet">Duyệt nhanh</button></form>{% endif %}
             </td>
           </tr>
         {% endfor %}
+        </tbody>
       </table>
     </div>
   {% else %}
     <div class="trong">Không có dữ liệu phản hồi để thống kê.</div>
   {% endif %}
-  {% if theo_goi %}<h2 class="cach-tren">Theo gói thuê</h2><div class="cuon-ngang"><table class="bang"><tr><th>Gói thuê</th><th>Số phản hồi</th><th>Điểm trung bình</th></tr>{% for dong in theo_goi %}<tr><td>{{ dong.don__goi_thue__ten }}</td><td>{{ dong.so_luong }}</td><td>{{ dong.diem|floatformat:1 }}</td></tr>{% endfor %}</table></div>{% endif %}
+  {% if theo_goi %}<section class="khu-vuc"><h2>Theo gói thuê</h2><div class="cuon-ngang"><table class="bang"><thead><tr><th scope="col">Gói thuê</th><th scope="col">Số phản hồi</th><th scope="col">Điểm trung bình</th></tr></thead><tbody>{% for dong in theo_goi %}<tr><td>{{ dong.don__goi_thue__ten }}</td><td>{{ dong.so_luong }}</td><td>{{ dong.diem|floatformat:1 }}</td></tr>{% endfor %}</tbody></table></div></section>{% endif %}
   {% include '_pagination.html' with page_obj=ds_danh_gia %}
 {% endblock %}

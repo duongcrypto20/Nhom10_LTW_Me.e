@@ -1,129 +1,291 @@
-"""Các thay đổi đơn, lịch, máy và tiền luôn được lưu trong cùng giao dịch DB."""
-import uuid
+"""
+Nghiệp vụ của đơn thuê và tiền cọc.
+
+Mỗi hàm ở đây là một bước trong quy trình TO-BE:
+
+    1. Khách đặt thuê       : kiem_tra_ban_nhap(), luu_yeu_cau()
+    2. Nhân viên xử lý đơn  : xac_nhan_lich(), huy_yeu_cau(), phan_bo_lai()
+    3. Khách cọc lịch online: dat_coc_online()
+    4. Khách nhận máy       : thu_coc_khi_nhan_may()
+    5. Khách trả máy        : hoan_coc_khi_tra_may()
+
+Hàm nào thay đổi đơn, máy và tiền cùng lúc đều chạy trong transaction.atomic:
+nếu một bước bị lỗi thì toàn bộ thay đổi được hủy, không có chuyện thu tiền mà máy chưa giữ.
+"""
 from datetime import datetime
-from django.core.exceptions import ValidationError
+
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
+
 from catalog.models import GiaThue, GoiThue, MaGiamGia, May, ThietBi
 from catalog.pricing import bao_gia
-from .models import AnhSuCo, ChiTietDonThue, DonThue, GiaoDich, KiemTraThietBi, PhanBoMay, SuCo
-from .utils import cac_may_trong, gui_thong_bao, tinh_phi_tra_tre
 from catalog.templatetags.dinh_dang import tien
 
+from .models import ChiTietDonThue, DonThue, GiaoDich, PhanBoMay
+from .utils import cac_may_trong, gui_thong_bao, tinh_phi_tra_tre
+
+
+# ===========================================================================
+# HÀM DÙNG CHUNG
+# ===========================================================================
 
 def khoa_don(pk):
-    # UPDATE also obtains SQLite's write lock; FOR UPDATE covers PostgreSQL.
+    """
+    Đọc đơn và khóa lại để hai người không xử lý cùng một đơn một lúc.
+
+    SQLite không hỗ trợ select_for_update, nên cập nhật "giả" một trường để
+    giữ khóa ghi tới hết transaction. Với PostgreSQL thì select_for_update là đủ.
+    """
     DonThue.objects.filter(pk=pk).update(trang_thai=F('trang_thai'))
     return DonThue.objects.select_for_update().get(pk=pk)
 
 
-def kiem_tra_ban_nhap(tam, voucher_da_dung=''):
+def ghi_giao_dich(don, loai, so_tien, phuong_thuc, nguoi_ghi=None):
+    """Ghi một dòng vào sổ giao dịch tiền của đơn."""
+    return GiaoDich.objects.create(
+        don=don,
+        loai=loai,
+        so_tien=so_tien,
+        phuong_thuc=phuong_thuc,
+        nguoi_xac_nhan=nguoi_ghi,
+    )
+
+
+def bao_cho_nhan_vien(noi_dung, don, tieu_de):
+    """Gửi thông báo cho tất cả nhân viên và chủ cửa hàng đang hoạt động."""
+    User = get_user_model()
+    ds_nhan_vien = User.objects.filter(
+        vai_tro__in=[User.NHAN_VIEN, User.CHU_CUA_HANG],
+        is_active=True,
+    )
+    for nhan_vien in ds_nhan_vien:
+        gui_thong_bao(nhan_vien, noi_dung, don, tieu_de=tieu_de)
+
+
+# ===========================================================================
+# 1. KHÁCH ĐẶT THUÊ (UC-1.1, UC-1.2)
+# ===========================================================================
+
+def doc_goi_va_thoi_gian(tam):
+    """Đọc gói thuê, giờ nhận, giờ trả trong bản nháp và kiểm tra hợp lệ."""
+    goi = GoiThue.objects.get(pk=tam['goi_thue_id'], dang_cung_cap=True)
+    gio_nhan = datetime.fromisoformat(tam['gio_nhan'])
+    gio_tra = datetime.fromisoformat(tam['gio_tra'])
+
+    if timezone.is_naive(gio_nhan) or timezone.is_naive(gio_tra):
+        raise ValueError('Thiếu múi giờ')
+
+    so_giay = (gio_tra - gio_nhan).total_seconds()
+    if gio_nhan <= timezone.now() or not 0 < so_giay <= goi.so_gio_toi_da * 3600:
+        raise ValidationError('Giờ nhận đã qua hoặc thời lượng không phù hợp với gói. Vui lòng chọn lại.')
+    return goi, gio_nhan, gio_tra
+
+
+def lap_cac_dong(tam, goi, gio_nhan, gio_tra):
+    """Tính giá từng dòng máy trong bản nháp và kiểm tra còn đủ máy trống."""
+    cac_dong = []
+    da_chon = set()
+
+    for muc in tam['cac_muc']:
+        thiet_bi = ThietBi.objects.get(pk=muc['thiet_bi_id'], ngung_cung_cap=False)
+        so_luong = int(muc['so_luong'])
+
+        # Mỗi dòng máy chỉ xuất hiện một lần, số lượng từ 1 đến 20
+        if thiet_bi.pk in da_chon or not 1 <= so_luong <= 20:
+            raise ValidationError('Số lượng thiết bị không hợp lệ.')
+        da_chon.add(thiet_bi.pk)
+
+        # Giá luôn tính lại từ database, không tin giá do trình duyệt gửi lên
+        don_gia, cach_tinh = bao_gia(thiet_bi, goi, gio_nhan, gio_tra)
+
+        if cac_may_trong(thiet_bi, gio_nhan, gio_tra).count() < so_luong:
+            raise ValidationError(f'{thiet_bi.ten}: không đủ máy trống trong thời gian đã chọn.')
+
+        cac_dong.append({
+            'thiet_bi': thiet_bi,
+            'so_luong': so_luong,
+            'don_gia': don_gia,
+            'thanh_tien': so_luong * don_gia,
+            'cach_tinh_gia': cach_tinh,
+        })
+
+    if not cac_dong:
+        raise ValidationError('Vui lòng chọn ít nhất một thiết bị.')
+    return cac_dong
+
+
+def tim_ma_giam_gia(tam, ma_da_dung=''):
+    """Tìm mã giảm giá khách nhập. Mã đã dùng cho chính đơn này thì vẫn được giữ."""
+    ma = tam.get('ma_giam_gia', '').upper().strip()
+    if not ma:
+        return None
+
+    voucher = MaGiamGia.objects.filter(ma=ma).first()
+    if not voucher or (ma != ma_da_dung and not voucher.co_hieu_luc()):
+        raise ValidationError('Mã giảm giá hết hạn, hết lượt hoặc đã ngừng áp dụng.')
+    return voucher
+
+
+def kiem_tra_ban_nhap(tam, ma_da_dung=''):
+    """
+    Kiểm tra bản nháp đặt thuê (lưu trong session) và lập báo giá.
+
+    Trả về dict gồm: gói thuê, giờ nhận, giờ trả, các dòng máy,
+    tổng tiền thuê, tổng tiền cọc, mã giảm giá và số tiền được giảm.
+    """
     try:
-        goi = GoiThue.objects.get(pk=tam['goi_thue_id'], dang_cung_cap=True)
-        nhan, tra = datetime.fromisoformat(tam['gio_nhan']), datetime.fromisoformat(tam['gio_tra'])
-        if timezone.is_naive(nhan) or timezone.is_naive(tra):
-            raise ValueError
-        if nhan <= timezone.now() or not 0 < (tra - nhan).total_seconds() <= goi.so_gio_toi_da * 3600:
-            raise ValidationError('Giờ nhận đã qua hoặc thời lượng không phù hợp với gói. Vui lòng chọn lại.')
-        dong, da_co = [], set()
-        for item in tam['cac_muc']:
-            tb = ThietBi.objects.get(pk=item['thiet_bi_id'], ngung_cung_cap=False)
-            sl = int(item['so_luong'])
-            if tb.pk in da_co or not 1 <= sl <= 20:
-                raise ValidationError('Số lượng thiết bị không hợp lệ.')
-            da_co.add(tb.pk)
-            gia, cach_tinh = bao_gia(tb, goi, nhan, tra)
-            if cac_may_trong(tb, nhan, tra).count() < sl:
-                raise ValidationError(f'{tb.ten}: không đủ máy trống trong thời gian đã chọn.')
-            dong.append((tb, sl, gia))
-        if not dong:
-            raise ValidationError('Vui lòng chọn ít nhất một thiết bị.')
-        tong = sum(sl * gia for tb, sl, gia in dong)
-        coc = sum(tb.tien_coc * sl for tb, sl, gia in dong)
-        voucher = None
-        ma = tam.get('ma_giam_gia', '').upper().strip()
-        if ma:
-            voucher = MaGiamGia.objects.select_for_update().filter(ma=ma).first()
-            if not voucher or (ma != voucher_da_dung and not voucher.co_hieu_luc()):
-                raise ValidationError('Mã giảm giá hết hạn, hết lượt hoặc đã ngừng áp dụng.')
-        return goi, nhan, tra, dong, tong, coc, voucher, voucher.tinh_giam(tong) if voucher else 0
-    except (KeyError, TypeError, ValueError, ThietBi.DoesNotExist, GoiThue.DoesNotExist, GiaThue.DoesNotExist):
+        goi, gio_nhan, gio_tra = doc_goi_va_thoi_gian(tam)
+        cac_dong = lap_cac_dong(tam, goi, gio_nhan, gio_tra)
+        voucher = tim_ma_giam_gia(tam, ma_da_dung)
+    except (KeyError, TypeError, ValueError,
+            ThietBi.DoesNotExist, GoiThue.DoesNotExist, GiaThue.DoesNotExist):
         raise ValidationError('Thiết bị, gói thuê hoặc bảng giá đã thay đổi. Vui lòng chọn lại.')
+
+    tien_thue = sum(dong['thanh_tien'] for dong in cac_dong)
+    tien_coc = sum(dong['thiet_bi'].tien_coc * dong['so_luong'] for dong in cac_dong)
+    giam_gia = voucher.tinh_giam(tien_thue) if voucher else 0
+
+    return {
+        'goi_thue': goi,
+        'gio_nhan': gio_nhan,
+        'gio_tra': gio_tra,
+        'cac_dong': cac_dong,
+        'tien_thue': tien_thue,
+        'tien_coc': tien_coc,
+        'voucher': voucher,
+        'giam_gia': giam_gia,
+    }
 
 
 @transaction.atomic
 def luu_yeu_cau(user, tam, don_pk=None):
-    get_user_model().objects.filter(pk=user.pk).update(last_login=F('last_login'))
-    get_user_model().objects.select_for_update().get(pk=user.pk)
+    """
+    Lưu đơn thuê từ bản nháp.
+
+    don_pk = None : tạo đơn mới.
+    don_pk có giá trị: khách sửa lại đơn đang ở trạng thái "Cần điều chỉnh".
+    """
+    # Bước 1: chống bấm gửi hai lần: cùng mã gửi thì trả về đơn đã tạo
     if not don_pk and tam.get('ma_gui'):
         da_gui = DonThue.objects.filter(ma_gui=tam['ma_gui'], khach_hang=user).first()
         if da_gui:
             return da_gui
+
+    # Bước 2: nếu sửa đơn thì chỉ cho sửa đơn của mình đang cần điều chỉnh
     don = khoa_don(don_pk) if don_pk else None
     if don and (don.khach_hang_id != user.pk or don.trang_thai != DonThue.CAN_DIEU_CHINH):
         raise ValidationError('Không thể điều chỉnh đơn này.')
+
+    # Bước 3: tính lại giá và kiểm tra máy trống
     ma_cu = don.ma_giam_gia if don else ''
-    goi, nhan, tra, dong, tong, coc, voucher, giam = kiem_tra_ban_nhap(tam, ma_cu)
+    bao_gia_don = kiem_tra_ban_nhap(tam, ma_cu)
+    voucher = bao_gia_don['voucher']
+
+    # Bước 4: trừ lượt mã giảm giá mới, trả lượt cho mã cũ nếu khách đổi mã
     if voucher and voucher.ma != ma_cu:
-        if not MaGiamGia.objects.filter(pk=voucher.pk, so_luot__gt=0).update(so_luot=F('so_luot') - 1):
+        da_tru = MaGiamGia.objects.filter(pk=voucher.pk, so_luot__gt=0).update(so_luot=F('so_luot') - 1)
+        if not da_tru:
             raise ValidationError('Mã giảm giá vừa hết lượt. Vui lòng chọn lại.')
     if ma_cu and ma_cu != (voucher.ma if voucher else ''):
         MaGiamGia.objects.filter(ma=ma_cu).update(so_luot=F('so_luot') + 1)
-    don = don or DonThue(khach_hang=user)
-    if not don_pk:
-        don.ma_gui = tam.get('ma_gui')
-    don.thiet_bi, don.goi_thue = dong[0][0], goi
-    don.gio_nhan, don.gio_tra = nhan, tra
-    don.tien_thue, don.giam_gia, don.tien_coc = tong, giam, coc
+
+    # Bước 5: lưu thông tin đơn
+    if don is None:
+        don = DonThue(khach_hang=user, ma_gui=tam.get('ma_gui'))
+    don.thiet_bi = bao_gia_don['cac_dong'][0]['thiet_bi']
+    don.goi_thue = bao_gia_don['goi_thue']
+    don.gio_nhan = bao_gia_don['gio_nhan']
+    don.gio_tra = bao_gia_don['gio_tra']
+    don.tien_thue = bao_gia_don['tien_thue']
+    don.giam_gia = bao_gia_don['giam_gia']
+    don.tien_coc = bao_gia_don['tien_coc']
     don.ma_giam_gia = voucher.ma if voucher else ''
-    don.trang_thai, don.ly_do, don.may = DonThue.CHO_XU_LY, '', None
     don.ghi_chu = tam.get('ghi_chu', '')
+    don.trang_thai = DonThue.CHO_XU_LY
+    don.ly_do = ''
     don.save()
+
+    # Bước 6: lưu lại các dòng máy (xóa dòng cũ nếu là sửa đơn)
     don.cac_chi_tiet.all().delete()
-    ChiTietDonThue.objects.bulk_create([ChiTietDonThue(don=don, thiet_bi=tb, so_luong=sl,
-        don_gia=gia, tien_coc_don_vi=tb.tien_coc,
-        cach_tinh_gia=bao_gia(tb, goi, nhan, tra)[1]) for tb, sl, gia in dong])
-    gui_thong_bao(user, f'Đã tạo đơn {don.ma}. Cọc lịch {tien(don.tien_coc_giu_lich)} để giữ máy; '
-                  'khoản này được tính vào tiền cọc máy.', don)
+    for dong in bao_gia_don['cac_dong']:
+        ChiTietDonThue.objects.create(
+            don=don,
+            thiet_bi=dong['thiet_bi'],
+            so_luong=dong['so_luong'],
+            don_gia=dong['don_gia'],
+            tien_coc_don_vi=dong['thiet_bi'].tien_coc,
+            cach_tinh_gia=dong['cach_tinh_gia'],
+        )
+
+    gui_thong_bao(
+        user,
+        f'Đã tạo đơn {don.ma}. Cọc lịch {tien(don.tien_coc_giu_lich)} để giữ máy; '
+        'khoản này được tính vào tiền cọc máy.',
+        don,
+    )
     return don
 
 
+# ===========================================================================
+# 2. NHÂN VIÊN XỬ LÝ ĐƠN (UC-1.4)
+# ===========================================================================
+
 def phan_bo_may(don):
-    """Chọn máy trống cho từng dòng thiết bị của đơn và giữ máy (gọi bên trong giao dịch DB)."""
+    """
+    Chọn máy trống (số sê-ri) cho từng dòng của đơn và giữ máy.
+
+    Hàm này được gọi bên trong một transaction (xác nhận lịch hoặc đặt cọc).
+    """
     if don.gio_nhan <= timezone.now():
         raise ValidationError('Giờ nhận máy đã qua. Vui lòng chọn lại thời gian thuê.')
-    phan_bo = []
+
+    ds_phan_bo = []
     for dong in don.cac_chi_tiet.select_related('thiet_bi'):
         if dong.thiet_bi.ngung_cung_cap:
             raise ValidationError(f'{dong.thiet_bi.ten} đã ngừng cung cấp.')
-        ThietBi.objects.select_for_update().get(pk=dong.thiet_bi_id)
-        may = list(cac_may_trong(dong.thiet_bi, don.gio_nhan, don.gio_tra, don).select_for_update()[:dong.so_luong])
-        if len(may) != dong.so_luong:
+
+        may_trong = list(cac_may_trong(dong.thiet_bi, don.gio_nhan, don.gio_tra, don)[:dong.so_luong])
+        if len(may_trong) != dong.so_luong:
             raise ValidationError(f'{dong.thiet_bi.ten}: không còn đủ máy trống trong thời gian đã chọn.')
-        phan_bo.extend(PhanBoMay(chi_tiet=dong, may=m) for m in may)
-    if not phan_bo:
+
+        for may in may_trong:
+            ds_phan_bo.append(PhanBoMay(chi_tiet=dong, may=may))
+
+    if not ds_phan_bo:
         raise ValidationError('Đơn chưa có chi tiết thiết bị.')
-    PhanBoMay.objects.bulk_create(phan_bo)
-    don.may, don.trang_thai = phan_bo[0].may, DonThue.DA_XAC_NHAN
-    don.save(update_fields=['may', 'trang_thai'])
+
+    PhanBoMay.objects.bulk_create(ds_phan_bo)
+    don.trang_thai = DonThue.DA_XAC_NHAN
+    don.save(update_fields=['trang_thai'])
 
 
 @transaction.atomic
 def xac_nhan_lich(pk):
-    """Nhân viên xác nhận đơn khách chưa cọc online (khách sẽ cọc tại cửa hàng khi nhận máy)."""
+    """Nhân viên xác nhận đơn khách chưa cọc online: giữ máy, khách cọc tại quầy khi nhận máy."""
     don = khoa_don(pk)
     if don.trang_thai != DonThue.CHO_XU_LY:
         raise ValidationError('Yêu cầu đã được xử lý trước đó.')
+
     phan_bo_may(don)
-    gui_thong_bao(don.khach_hang, f'{don.ma} đã được xác nhận. Bạn có thể cọc lịch online {tien(don.tien_coc_giu_lich)}; '
-                  'phần cọc máy còn lại thu khi nhận máy.', don)
+    gui_thong_bao(
+        don.khach_hang,
+        f'{don.ma} đã được xác nhận. Bạn có thể cọc lịch online {tien(don.tien_coc_giu_lich)}; '
+        'phần cọc máy còn lại thu khi nhận máy.',
+        don,
+    )
     return don
 
 
 @transaction.atomic
 def huy_yeu_cau(pk, ly_do, khach_hang=None, dieu_chinh=False):
+    """
+    Hủy đơn, hoặc yêu cầu khách điều chỉnh (dieu_chinh=True).
+
+    khach_hang: truyền vào khi chính khách tự hủy, để kiểm tra đúng chủ đơn.
+    """
     don = khoa_don(pk)
     if khach_hang and don.khach_hang_id != khach_hang.pk:
         raise ValidationError('Không có quyền xử lý đơn thuê này.')
@@ -131,196 +293,241 @@ def huy_yeu_cau(pk, ly_do, khach_hang=None, dieu_chinh=False):
         raise ValidationError('Đơn đã được xử lý, không thể thực hiện thao tác này.')
     if dieu_chinh and not ly_do.strip():
         raise ValidationError('Vui lòng nhập lý do hoặc gợi ý cho khách.')
+
+    # Hủy hẳn thì trả lại lượt mã giảm giá
     if not dieu_chinh and don.ma_giam_gia:
         MaGiamGia.objects.filter(ma=don.ma_giam_gia).update(so_luot=F('so_luot') + 1)
+
+    # Bỏ các máy đang giữ để máy trở lại lịch trống
+    PhanBoMay.objects.filter(chi_tiet__don=don).delete()
+
     don.trang_thai = DonThue.CAN_DIEU_CHINH if dieu_chinh else DonThue.DA_HUY
     don.ly_do = ly_do
     don.save(update_fields=['trang_thai', 'ly_do'])
     gui_thong_bao(don.khach_hang, f'{don.ma}: {don.get_trang_thai_display()}. {ly_do}', don)
 
 
-def ghi_kiem_tra(don, user, loai, du_lieu):
-    may_ids = set(PhanBoMay.objects.filter(chi_tiet__don=don).values_list('may_id', flat=True))
-    if not may_ids or {d['may'].pk for d in du_lieu} != may_ids or len(du_lieu) != len(may_ids):
-        raise ValidationError('Cần kiểm tra đầy đủ từng máy thuộc đơn thuê.')
-    for d in du_lieu:
-        if not d.get('ben_ngoai', '').strip() or not d.get('hoat_dong', '').strip():
-            raise ValidationError('Cần ghi đủ tình trạng bên ngoài và hoạt động của từng máy.')
-        if loai == 'giao' and d.get('co_hu_hong'):
-            raise ValidationError('Không thể giao máy có hư hỏng. Cần xử lý thiết bị trước.')
-        KiemTraThietBi.objects.create(don=don, nhan_vien=user, loai=loai,
-            **{key: d.get(key, False if key == 'co_hu_hong' else '')
-               for key in ('may', 'ben_ngoai', 'hoat_dong', 'thau_kinh', 'phu_kien', 'co_hu_hong')})
+@transaction.atomic
+def phan_bo_lai(pk):
+    """Đổi sang máy khác cùng dòng cho đơn đã xác nhận (ví dụ máy đang giữ bị hỏng)."""
+    don = khoa_don(pk)
+    if don.trang_thai != DonThue.DA_XAC_NHAN:
+        raise ValidationError('Chỉ đổi máy cho đơn đã xác nhận và chưa giao.')
+
+    ds_moi = []
+    for dong in don.cac_chi_tiet.select_related('thiet_bi'):
+        may_trong = list(cac_may_trong(dong.thiet_bi, don.gio_nhan, don.gio_tra, don)[:dong.so_luong])
+        if len(may_trong) != dong.so_luong:
+            raise ValidationError(f'{dong.thiet_bi.ten}: chưa đủ máy thay thế. Phân bổ cũ được giữ nguyên.')
+        for may in may_trong:
+            ds_moi.append(PhanBoMay(chi_tiet=dong, may=may))
+
+    PhanBoMay.objects.filter(chi_tiet__don=don).delete()
+    PhanBoMay.objects.bulk_create(ds_moi)
+    gui_thong_bao(
+        don.khach_hang,
+        f'{don.ma}: cửa hàng đã đổi số sê-ri máy được giữ. Dòng máy và giá thuê giữ nguyên.',
+        don,
+    )
 
 
-def ghi_giao_dich(don, loai, so_tien, phuong_thuc, user):
-    return GiaoDich.objects.create(don=don, loai=loai, so_tien=so_tien, phuong_thuc=phuong_thuc,
-                                  nguoi_xac_nhan=user, trang_thai='thanh_cong')
+# ===========================================================================
+# 3. KHÁCH CỌC LỊCH ONLINE (TO-BE bước 6)
+# ===========================================================================
+
+def kiem_tra_may_da_giu(don):
+    """
+    Kiểm tra các máy đang giữ cho đơn: đủ số lượng, đúng dòng máy và vẫn dùng được.
+
+    Trả về danh sách PhanBoMay của đơn.
+    """
+    cac_phan_bo = list(PhanBoMay.objects.filter(chi_tiet__don=don).select_related('may', 'chi_tiet'))
+    if not cac_phan_bo:
+        raise ValidationError('Đơn chưa được giữ máy. Vui lòng kiểm tra lại lịch.')
+
+    for dong in don.cac_chi_tiet.select_related('thiet_bi'):
+        if dong.thiet_bi.ngung_cung_cap:
+            raise ValidationError(f'{dong.thiet_bi.ten} đã ngừng cung cấp.')
+
+        may_cua_dong = [pb for pb in cac_phan_bo if pb.chi_tiet_id == dong.pk]
+        if len(may_cua_dong) != dong.so_luong:
+            raise ValidationError('Số máy đang giữ chưa khớp số lượng đặt thuê. Vui lòng đổi máy.')
+
+        # Máy có thể vừa hỏng hoặc bị một đơn trả trễ giữ lại
+        ma_may_trong = set(
+            cac_may_trong(dong.thiet_bi, don.gio_nhan, don.gio_tra, don).values_list('pk', flat=True)
+        )
+        for phan_bo in may_cua_dong:
+            if phan_bo.may_id not in ma_may_trong:
+                raise ValidationError(
+                    f'Máy {phan_bo.may.so_seri} không còn sẵn sàng. Vui lòng đổi máy khác trước.'
+                )
+    return cac_phan_bo
 
 
 @transaction.atomic
 def dat_coc_online(pk, khach_hang):
-    """Bước 6 (TO-BE): khách cọc online để giữ máy và lịch, hệ thống báo cọc thành công.
+    """
+    Khách cọc lịch 50.000đ online để giữ máy.
 
-    Website dùng cổng thanh toán mô phỏng: khi khách xác nhận thanh toán, hệ thống ghi giao dịch
-    thành công ngay. Muốn dùng cổng thật (VNPay, MoMo) chỉ cần gọi hàm này khi cổng báo về thành công.
+    Cổng thanh toán là mô phỏng: khách bấm thanh toán thì ghi nhận thành công ngay.
+    Muốn dùng cổng thật (VNPay, MoMo) thì gọi hàm này khi cổng báo thanh toán thành công.
     """
     don = khoa_don(pk)
+
+    # Kiểm tra điều kiện được cọc
     if don.khach_hang_id != khach_hang.pk:
         raise ValidationError('Không có quyền đặt cọc cho đơn thuê này.')
     if not don.cho_dat_coc:
         raise ValidationError('Đơn không ở trạng thái chờ đặt cọc.')
-    if don.gio_tra <= timezone.now():
-        raise ValidationError('Đơn đã qua thời gian thuê, không thể đặt cọc.')
+    if don.gio_nhan <= timezone.now():
+        raise ValidationError('Giờ nhận máy đã qua. Vui lòng liên hệ cửa hàng trước khi cọc.')
+
+    # Đơn mới: giữ máy ngay khi cọc. Đơn đã được giữ: kiểm tra lại máy còn dùng được
     if don.trang_thai == DonThue.CHO_XU_LY:
-        # Đơn mới đặt: kiểm tra lại máy trống và giữ máy ngay khi cọc. Lỗi thì không ghi giao dịch nào.
         phan_bo_may(don)
+    else:
+        kiem_tra_may_da_giu(don)
+
+    # Ghi nhận tiền cọc lịch
     so_tien = min(don.tien_coc_giu_lich, don.tien_coc_con_lai)
-    gd = GiaoDich.objects.create(don=don, loai='dat_coc', so_tien=so_tien, phuong_thuc='online',
-        trang_thai='thanh_cong', ma_tham_chieu=f'COC{don.ma}-{uuid.uuid4().hex[:6].upper()}',
-        ghi_chu='Cọc lịch giữ máy, được tính vào tiền cọc máy.')
-    don.trang_thai_coc, don.hinh_thuc_coc = DonThue.DA_THU, 'online'
+    giao_dich = ghi_giao_dich(don, GiaoDich.DAT_COC, so_tien, 'online')
+    don.trang_thai_coc = DonThue.DA_THU
+    don.hinh_thuc_coc = 'online'
     don.save(update_fields=['trang_thai_coc', 'hinh_thuc_coc'])
-    gui_thong_bao(don.khach_hang, f'{don.ma}: cọc lịch thành công {tien(so_tien)}. '
-                  f'Đã giữ máy; cọc máy còn lại {tien(don.tien_coc_con_lai)} thu khi nhận máy.', don, tieu_de='Đặt cọc thành công')
-    for nv in get_user_model().objects.filter(vai_tro__in=['nhan_vien', 'chu_cua_hang'], is_active=True):
-        gui_thong_bao(nv, f'{don.ma}: khách đã cọc lịch {tien(so_tien)}, hệ thống đã giữ máy. '
-                      f'Cần thu thêm cọc máy {tien(don.tien_coc_con_lai)} khi nhận máy.', don, tieu_de='Khách đã đặt cọc')
-    return gd
+
+    # Báo cho khách và nhân viên
+    con_lai = tien(don.tien_coc_con_lai)
+    gui_thong_bao(
+        don.khach_hang,
+        f'{don.ma}: cọc lịch thành công {tien(so_tien)}. Đã giữ máy; '
+        f'cọc máy còn lại {con_lai} thu khi nhận máy.',
+        don,
+        tieu_de='Đặt cọc thành công',
+    )
+    bao_cho_nhan_vien(
+        f'{don.ma}: khách đã cọc lịch {tien(so_tien)}, hệ thống đã giữ máy. '
+        f'Thu thêm cọc máy {con_lai} khi khách nhận máy.',
+        don,
+        tieu_de='Khách đã đặt cọc',
+    )
+    return giao_dich
 
 
-def tom_tat_kiem_tra(kiem_tra):
-    return '; '.join(f"{d['may'].so_seri}: {d.get('ben_ngoai', '').strip()}" for d in kiem_tra)
-
+# ===========================================================================
+# 4. KHÁCH NHẬN MÁY: THU COC VÀ TIỀN THUÊ
+# ===========================================================================
 
 @transaction.atomic
-def giao_may(pk, user, data, kiem_tra=None):
-    """Khách nhận máy: thu tiền thuê và phần cọc máy còn thiếu sau cọc lịch.
-
-    kiem_tra (biên bản kiểm tra từng máy) không bắt buộc: trang Tiền cọc chỉ cần một lần xác nhận.
+def thu_coc_khi_nhan_may(pk, nhan_vien, phuong_thuc, gio_giao=None):
     """
+    Khách đến nhận máy: nhân viên thu tiền thuê và phần cọc máy còn thiếu.
+
+    Sau bước này: đơn chuyển sang "Đang thuê", các máy chuyển sang "Đang thuê".
+    """
+    # Giờ giao làm tròn xuống tới phút, khớp với ô nhập giờ trả (không có giây)
+    gio_giao = gio_giao or timezone.now().replace(second=0, microsecond=0)
     don = khoa_don(pk)
+
     if don.trang_thai != DonThue.DA_XAC_NHAN:
-        raise ValidationError('Đơn đã giao hoặc không ở trạng thái cho phép giao máy.')
-    if not data.get('da_doi_chieu') or not data.get('da_thu_tien_thue'):
-        raise ValidationError('Cần đối chiếu CCCD, thông tin đơn, số sê-ri và xác nhận đã thu tiền thuê trước khi giao máy.')
-    coc_con_lai = don.tien_coc_con_lai
-    if coc_con_lai and not data.get('da_thu_coc'):
-        raise ValidationError(f'Cần thu đủ phần cọc máy còn lại {tien(coc_con_lai)} trước khi giao máy.')
-    if data['giao_thuc_te'] > timezone.now() or data['giao_thuc_te'] >= don.gio_tra:
+        raise ValidationError('Đơn đã giao hoặc không ở trạng thái chờ nhận máy.')
+    if gio_giao > timezone.now() or gio_giao >= don.gio_tra:
         raise ValidationError('Giờ giao phải không ở tương lai và phải trước hạn trả máy.')
-    allocations = list(PhanBoMay.objects.filter(chi_tiet__don=don).select_related('may'))
-    for p in allocations:
-        if p.may.tinh_trang != May.SAN_SANG:
-            raise ValidationError(f'{p.may.so_seri} chưa sẵn sàng để giao.')
-        if PhanBoMay.objects.filter(may=p.may, chi_tiet__don__trang_thai=DonThue.DANG_THUE).exclude(chi_tiet__don=don).exists():
-            raise ValidationError(f'{p.may.so_seri} đang được khách khác thuê.')
-    if kiem_tra:
-        ghi_kiem_tra(don, user, 'giao', kiem_tra)
-    phuong_thuc = data.get('phuong_thuc') or 'tien_mat'
+
+    # Kiểm tra từng máy đã giữ còn sẵn sàng
+    cac_phan_bo = list(PhanBoMay.objects.filter(chi_tiet__don=don).select_related('may'))
+    if not cac_phan_bo:
+        raise ValidationError('Đơn chưa được giữ máy. Vui lòng đổi máy trước khi giao.')
+    for phan_bo in cac_phan_bo:
+        if phan_bo.may.tinh_trang != May.SAN_SANG:
+            raise ValidationError(f'Máy {phan_bo.may.so_seri} chưa sẵn sàng để giao.')
+
+    # Ghi tiền: phần cọc còn thiếu và tiền thuê
+    coc_con_lai = don.tien_coc_con_lai
     if coc_con_lai:
-        ghi_giao_dich(don, 'dat_coc', coc_con_lai, phuong_thuc, user)
+        ghi_giao_dich(don, GiaoDich.DAT_COC, coc_con_lai, phuong_thuc, nhan_vien)
+    ghi_giao_dich(don, GiaoDich.THANH_TOAN, don.tong_thanh_toan, phuong_thuc, nhan_vien)
+
+    # Cập nhật đơn và máy
     if don.trang_thai_coc == DonThue.CHUA_THU:
-        don.trang_thai_coc, don.hinh_thuc_coc = DonThue.DA_THU, phuong_thuc
-    ghi_giao_dich(don, 'thanh_toan', don.tong_thanh_toan, phuong_thuc, user)
-    don.giao_thuc_te, don.tinh_trang_khi_giao = data['giao_thuc_te'], tom_tat_kiem_tra(kiem_tra or [])
+        don.hinh_thuc_coc = phuong_thuc
+    don.trang_thai_coc = DonThue.DA_THU
+    don.giao_thuc_te = gio_giao
     don.trang_thai = DonThue.DANG_THUE
     don.save()
-    May.objects.filter(pk__in=[p.may_id for p in allocations]).update(tinh_trang=May.DANG_THUE)
-    gui_thong_bao(don.khach_hang, f'{don.ma}: đã bàn giao thiết bị. Nhớ trả máy trước {timezone.localtime(don.gio_tra):%H:%M %d/%m}.', don)
+    May.objects.filter(pk__in=[pb.may_id for pb in cac_phan_bo]).update(tinh_trang=May.DANG_THUE)
 
+    han_tra = timezone.localtime(don.gio_tra)
+    gui_thong_bao(don.khach_hang, f'{don.ma}: đã nhận máy. Nhớ trả máy trước {han_tra:%H:%M %d/%m}.', don)
+
+
+# ===========================================================================
+# 5. KHÁCH TRẢ MÁY: HOÀN CỌC
+# ===========================================================================
 
 @transaction.atomic
-def nhan_tra(pk, user, data, kiem_tra=None, anh_su_co=()):
-    """Quản lý tiền cọc: khách trả máy thì hoàn cọc.
+def hoan_coc_khi_tra_may(pk, nhan_vien, tra_thuc_te, hinh_thuc_tra, phuong_thuc,
+                         may_hu_hong=(), mo_ta_hu_hong='', khau_tru_den_bu=0):
+    """
+    Khách trả máy: tính phụ thu trả trễ, khấu trừ đền bù (nếu máy hỏng) và hoàn cọc.
 
-    Phụ thu trả trễ do hệ thống tự tính theo quy định; đền bù chỉ khấu trừ khi có máy hư hỏng.
-    Trang Tiền cọc gửi danh sách máy hư hỏng (data['may_hu_hong']) và ảnh tình trạng máy (anh_su_co)
-    thay cho biên bản kiểm tra từng máy.
+    Tiền hoàn = tiền cọc - phụ thu trả trễ - khấu trừ đền bù (không âm).
+    Nếu phụ thu + đền bù lớn hơn tiền cọc thì thu thêm phần chênh lệch.
+    Máy bình thường về "Sẵn sàng", máy hư hỏng chuyển sang "Bảo trì".
     """
     don = khoa_don(pk)
-    co_bien_ban = kiem_tra is not None
-    if not co_bien_ban:
-        hu_hong_ids = {m.pk for m in data.get('may_hu_hong') or []}
-        kiem_tra = [{'may': p.may, 'ben_ngoai': 'Hư hỏng' if p.may_id in hu_hong_ids else 'Bình thường',
-                     'hoat_dong': '', 'co_hu_hong': p.may_id in hu_hong_ids}
-                    for p in PhanBoMay.objects.filter(chi_tiet__don=don).select_related('may')]
+
+    # Kiểm tra điều kiện
     if don.trang_thai != DonThue.DANG_THUE or don.trang_thai_coc != DonThue.DA_THU:
-        raise ValidationError('Đơn không cho phép nhận trả hoặc tiền cọc chưa được xác nhận.')
-    if data['tra_thuc_te'] > timezone.now() or (don.giao_thuc_te and data['tra_thuc_te'] < don.giao_thuc_te):
-        raise ValidationError('Giờ nhận trả phải sau giờ giao và không ở tương lai.')
-    hu_hong = [d for d in kiem_tra if d.get('co_hu_hong')]
-    khau_tru = data.get('khau_tru_den_bu') or 0
-    if khau_tru and not hu_hong:
-        raise ValidationError('Cần đánh dấu máy hư hỏng trước khi khấu trừ đền bù.')
-    if hu_hong and not data.get('mo_ta_su_co', '').strip():
-        raise ValidationError('Vui lòng mô tả sự cố của máy.')
-    if not data.get('da_xu_ly_tien'):
-        raise ValidationError('Cần xác nhận đã nhận đủ máy và đã hoàn cọc / thu thêm đúng số tiền hệ thống tính.')
-    if co_bien_ban:
-        ghi_kiem_tra(don, user, 'tra', kiem_tra)
-    don.phu_thu_tra_tre = tinh_phi_tra_tre(don.gio_tra, data['tra_thuc_te'])
-    don.khau_tru_den_bu = khau_tru
-    don.hoan_lai = max(don.tien_coc - don.phu_thu_tra_tre - khau_tru, 0)
-    don.trang_thai_coc = DonThue.DA_HOAN if don.hoan_lai == don.tien_coc else DonThue.HOAN_MOT_PHAN
-    if don.hoan_lai == 0 and don.tien_coc > 0:
+        raise ValidationError('Chỉ hoàn cọc cho đơn đang thuê và đã thu cọc.')
+    if tra_thuc_te > timezone.now() or (don.giao_thuc_te and tra_thuc_te < don.giao_thuc_te):
+        raise ValidationError('Giờ trả phải sau giờ giao và không ở tương lai.')
+    if khau_tru_den_bu and not may_hu_hong:
+        raise ValidationError('Cần chọn máy hư hỏng trước khi khấu trừ đền bù.')
+    if may_hu_hong and not mo_ta_hu_hong.strip():
+        raise ValidationError('Vui lòng mô tả tình trạng hư hỏng của máy.')
+
+    # Tính tiền
+    don.phu_thu_tra_tre = tinh_phi_tra_tre(don.gio_tra, tra_thuc_te)
+    don.khau_tru_den_bu = khau_tru_den_bu
+    don.hoan_lai = max(don.tien_coc - don.phu_thu_tra_tre - khau_tru_den_bu, 0)
+
+    if don.hoan_lai == don.tien_coc:
+        don.trang_thai_coc = DonThue.DA_HOAN
+    elif don.hoan_lai == 0:
         don.trang_thai_coc = DonThue.KHAU_TRU_TOAN_BO
-    don.tra_thuc_te, don.hinh_thuc_tra = data['tra_thuc_te'], data['hinh_thuc_tra']
-    don.tinh_trang_khi_tra, don.trang_thai = tom_tat_kiem_tra(kiem_tra), DonThue.HOAN_TAT
-    don.save()
-    for d in kiem_tra:
-        may = d['may']
-        may.tinh_trang = May.BAO_TRI if d.get('co_hu_hong') else May.SAN_SANG
-        if d.get('co_hu_hong') and data.get('loai_su_co') == 'mat_may':
-            may.tinh_trang = May.MAT_MAY
+    else:
+        don.trang_thai_coc = DonThue.HOAN_MOT_PHAN
+
+    # Cập nhật tình trạng từng máy
+    ma_may_hong = {may.pk for may in may_hu_hong}
+    ghi_chu_may = []
+    for phan_bo in PhanBoMay.objects.filter(chi_tiet__don=don).select_related('may'):
+        may = phan_bo.may
+        if may.pk in ma_may_hong:
+            may.tinh_trang = May.BAO_TRI
+            ghi_chu_may.append(f'{may.so_seri}: hư hỏng')
+        else:
+            may.tinh_trang = May.SAN_SANG
+            ghi_chu_may.append(f'{may.so_seri}: bình thường')
         may.save(update_fields=['tinh_trang'])
-        if d.get('co_hu_hong'):
-            su_co = SuCo.objects.create(don=don, may=may, mo_ta=data['mo_ta_su_co'],
-                chi_phi=khau_tru if d is hu_hong[0] else 0, nhan_vien=user,
-                loai=data.get('loai_su_co') or 'hu_hong')
-            for anh in anh_su_co:
-                AnhSuCo.objects.create(su_co=su_co, anh=anh)
-    method = data.get('phuong_thuc_hoan') or 'tien_mat'
+
+    # Lưu đơn
+    don.tra_thuc_te = tra_thuc_te
+    don.hinh_thuc_tra = hinh_thuc_tra
+    don.tinh_trang_khi_tra = '; '.join(ghi_chu_may)
+    if mo_ta_hu_hong.strip():
+        don.tinh_trang_khi_tra += f'. Mô tả: {mo_ta_hu_hong.strip()}'
+    don.trang_thai = DonThue.HOAN_TAT
+    don.save()
+
+    # Ghi tiền hoàn cọc và tiền thu thêm (nếu có)
     if don.hoan_lai:
-        ghi_giao_dich(don, 'hoan_coc', don.hoan_lai, method, user)
+        ghi_giao_dich(don, GiaoDich.HOAN_COC, don.hoan_lai, phuong_thuc, nhan_vien)
     if don.can_thu_them:
-        ghi_giao_dich(don, 'phu_thu', don.can_thu_them, method, user)
+        ghi_giao_dich(don, GiaoDich.PHU_THU, don.can_thu_them, phuong_thuc, nhan_vien)
+
     loi_nhan = f'{don.ma} đã hoàn tất. Hoàn cọc {tien(don.hoan_lai)}'
     if don.phu_thu_tra_tre:
         loi_nhan += f', phụ thu trả trễ {tien(don.phu_thu_tra_tre)}'
     gui_thong_bao(don.khach_hang, loi_nhan + '. Mời bạn gửi đánh giá cho đơn thuê.', don)
-
-
-@transaction.atomic
-def bao_su_co(pk, user, may, loai, mo_ta, anh_su_co):
-    """Ghi nhận máy gặp sự cố trong lúc thuê, lưu kèm ảnh tình trạng máy và báo cho khách."""
-    don = khoa_don(pk)
-    if don.trang_thai not in (DonThue.DA_XAC_NHAN, DonThue.DANG_THUE, DonThue.HOAN_TAT):
-        raise ValidationError('Chỉ ghi nhận sự cố cho đơn đã xác nhận, đang thuê hoặc vừa hoàn tất.')
-    if not PhanBoMay.objects.filter(chi_tiet__don=don, may=may).exists():
-        raise ValidationError('Máy này không thuộc đơn thuê.')
-    su_co = SuCo.objects.create(don=don, may=may, loai=loai, mo_ta=mo_ta.strip(), nhan_vien=user)
-    for anh in anh_su_co:
-        AnhSuCo.objects.create(su_co=su_co, anh=anh)
-    gui_thong_bao(don.khach_hang, f'{don.ma}: cửa hàng đã ghi nhận sự cố của máy {may.so_seri}.', don, tieu_de='Sự cố thiết bị')
-    return su_co
-
-
-@transaction.atomic
-def phan_bo_lai(pk):
-    don = khoa_don(pk)
-    if don.trang_thai != DonThue.DA_XAC_NHAN:
-        raise ValidationError('Chỉ đổi máy cho đơn đã xác nhận và chưa giao.')
-    moi = []
-    for dong in don.cac_chi_tiet.select_related('thiet_bi'):
-        may = list(cac_may_trong(dong.thiet_bi, don.gio_nhan, don.gio_tra, don).select_for_update()[:dong.so_luong])
-        if len(may) != dong.so_luong:
-            raise ValidationError(f'{dong.thiet_bi.ten}: chưa đủ máy thay thế. Phân bổ cũ được giữ nguyên.')
-        moi.extend(PhanBoMay(chi_tiet=dong, may=m) for m in may)
-    if not moi:
-        raise ValidationError('Đơn chưa có chi tiết thiết bị.')
-    PhanBoMay.objects.filter(chi_tiet__don=don).delete()
-    PhanBoMay.objects.bulk_create(moi)
-    don.may = moi[0].may
-    don.save(update_fields=['may'])
-    gui_thong_bao(don.khach_hang, f'{don.ma}: cửa hàng đã cập nhật số sê-ri máy được phân bổ. Thiết bị và giá thuê giữ nguyên.', don)

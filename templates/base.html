@@ -9,13 +9,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=giao-dien-7">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=giao-dien-8">
+  {% if request.resolver_match.url_name != 'trang_chu' %}
+    <link rel="stylesheet" href="{% static 'css/noi-dung.css' %}?v=coc-nen-4">
+  {% endif %}
 </head>
 {# Bố cục TRANG CÔNG KHAI #}
-<body class="layout-public">
+<body class="layout-public{% if request.resolver_match.url_name != 'trang_chu' %} trang-noi-dung{% endif %}">
 
   <div class="thanh-tren">
-    <span>Máy được vệ sinh &amp; kiểm tra trước khi giao</span>
+    <span>Máy được vệ sinh {% if request.resolver_match.url_name == 'trang_chu' %}&amp;{% else %}và{% endif %} kiểm tra trước khi giao</span>
     <span>Zalo: {{ cua_hang.zalo }}</span>
     <span>{{ cua_hang.dia_chi }}</span>
   </div>
@@ -93,5 +96,8 @@
   </footer>
 
   <script src="{% static 'js/menu.js' %}?v=giao-dien-7"></script>
+  {% if request.resolver_match.url_name != 'trang_chu' %}
+    <script src="{% static 'js/noi-dung.js' %}?v=bo-cuc-1"></script>
+  {% endif %}
 </body>
 </html>

@@ -2,17 +2,19 @@
 {% block title %}Dịch vụ và giá{% endblock %}
 
 {% block content %}
-  <div class="dau-muc">
-    <h1>Dịch vụ / gói thuê</h1>
+  <div class="dau-trang">
+    <div><h1>Dịch vụ / gói thuê</h1><p>Quản lý thời lượng, trạng thái cung cấp và giá theo dòng máy</p></div>
     {# UC-3.1: chỉ chủ cửa hàng được thêm gói thuê #}
     {% if user.la_chu_cua_hang %}
-      <a class="btn" href="{% url 'ql_them_goi' %}">+ Thêm gói thuê</a>
+      <a class="btn" href="{% url 'ql_them_goi' %}">Thêm gói thuê</a>
     {% endif %}
   </div>
 
   {% if ds_goi %}
-    <table class="bang cach-duoi">
-      <tr><th>Gói</th><th>Thời lượng tối đa</th><th>Mô tả</th><th>Trạng thái</th><th></th></tr>
+    <section class="khu-vuc" aria-label="Danh sách gói thuê">
+    <div class="cuon-ngang"><table class="bang">
+      <thead><tr><th scope="col">Gói</th><th scope="col">Thời lượng tối đa</th><th scope="col">Mô tả</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
+      <tbody>
       {% for goi in ds_goi %}
         <tr>
           <td><strong>{{ goi.ten }}</strong></td>
@@ -25,28 +27,33 @@
           <td><a class="btn btn-vien btn-nho" href="{% url 'ql_sua_goi' goi.pk %}">Cập nhật</a></td>
         </tr>
       {% endfor %}
-    </table>
+      </tbody>
+    </table></div>
+    </section>
 
-    <h2>Quản lý giá thuê (đồng)</h2>
+    <section class="khu-vuc" aria-labelledby="gia-thue">
+    <h2 id="gia-thue">Quản lý giá thuê (đồng)</h2>
     <p>Gói tùy chỉnh tự chọn tổ hợp giá thấp nhất từ các gói cố định bên dưới; không nhập một giá cố định cho mọi thời lượng.</p>
-    <p class="phu">Giá mới chỉ có hiệu lực sau khi lưu thành công. Để trống nếu thiết bị không áp dụng gói đó.</p>
+    <p class="chu-phu">Giá mới chỉ có hiệu lực sau khi lưu thành công. Để trống nếu thiết bị không áp dụng gói đó.</p>
     <form method="post">
       {% csrf_token %}
       <div class="cuon-ngang">
         <table class="bang">
-          <tr>
-            <th>Máy</th>
-            {% for goi in ds_goi_gia %}<th>{{ goi.ten }}</th>{% endfor %}
-          </tr>
+          <thead><tr>
+            <th scope="col">Máy</th>
+            {% for goi in ds_goi_gia %}<th scope="col" class="cot-tien">{{ goi.ten }}</th>{% endfor %}
+          </tr></thead>
+          <tbody>
           {% for dong in bang_gia %}
             <tr>
               <td>{{ dong.thiet_bi.ten }}</td>
               {% for o in dong.ds_o %}
-                <td><input type="number" min="0" step="1000" name="gia_{{ dong.thiet_bi.id }}_{{ o.goi.id }}"
+                <td class="cot-tien"><input type="number" min="0" step="1000" name="gia_{{ dong.thiet_bi.id }}_{{ o.goi.id }}"
                            aria-label="Giá {{ dong.thiet_bi.ten }} gói {{ o.goi.ten }}" value="{{ o.gia|default_if_none:'' }}"></td>
               {% endfor %}
             </tr>
           {% endfor %}
+          </tbody>
         </table>
       </div>
       <div class="hang-nut">
@@ -54,6 +61,7 @@
         <a class="btn btn-nhat" href="{% url 'ql_dich_vu' %}">Hủy thay đổi</a>
       </div>
     </form>
+    </section>
   {% else %}
     <div class="trong">Danh sách gói thuê đang trống.</div>
   {% endif %}

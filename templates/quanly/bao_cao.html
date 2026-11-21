@@ -10,43 +10,46 @@
     </div>
   </div>
 
-  <form method="get" class="loc-ngay" novalidate>
+  <form method="get" class="thanh-loc" novalidate>
     <div class="field"><label for="tu">Từ ngày</label><input id="tu" type="date" name="tu" value="{{ tu|date:'Y-m-d' }}"></div>
     <div class="field"><label for="den">Đến ngày</label><input id="den" type="date" name="den" value="{{ den|date:'Y-m-d' }}"></div>
-    <button class="btn">Xem báo cáo</button>
+    <button type="submit" class="btn">Xem báo cáo</button>
   </form>
 
-  <div class="luoi luoi-4 cach-duoi">
-    <div class="the the-so nhan">Doanh thu<strong>{{ tong_doanh_thu|tien }}</strong></div>
-    <div class="the the-so">Tiền thuê trước giảm<strong>{{ tong_tien_thue|tien }}</strong></div>
-    <div class="the the-so">Đã giảm giá<strong>{{ tong_giam_gia|tien }}</strong></div>
-    <div class="the the-so">Phụ thu và đền bù<strong>{{ tong_phat_sinh|tien }}</strong></div>
-  </div>
+  <dl class="thong-ke">
+    <div><dt>Doanh thu</dt><dd>{{ tong_doanh_thu|tien }}</dd></div>
+    <div><dt>Tiền thuê trước giảm</dt><dd>{{ tong_tien_thue|tien }}</dd></div>
+    <div><dt>Đã giảm giá</dt><dd>{{ tong_giam_gia|tien }}</dd></div>
+    <div><dt>Phụ thu và đền bù</dt><dd>{{ tong_phat_sinh|tien }}</dd></div>
+  </dl>
 
   {% if ds_don %}
     <div>
       <div class="cuon-ngang cach-duoi">
         <table class="bang">
-          <tr><th>Đơn</th><th>Ngày giao</th><th>Thiết bị</th><th>Tiền thuê</th><th>Giảm</th><th>Phát sinh</th><th>Doanh thu</th></tr>
+          <thead><tr><th scope="col">Đơn</th><th scope="col">Ngày giao</th><th scope="col">Thiết bị</th><th scope="col" class="cot-tien">Tiền thuê</th><th scope="col" class="cot-tien">Giảm</th><th scope="col" class="cot-tien">Phát sinh</th><th scope="col" class="cot-tien">Doanh thu</th></tr></thead>
+          <tbody>
           {% for don in ds_don %}
             <tr>
               <td><a href="{% url 'ql_chi_tiet_don' don.pk %}">{{ don.ma }}</a><small>{{ don.khach_hang.ho_ten }}</small></td>
               <td>{{ don.giao_thuc_te|date:'d/m/Y' }}</td>
               <td>{{ don.ten_thiet_bi }}</td>
-              <td>{{ don.tien_thue|tien }}</td>
-              <td>{% if don.giam_gia %}−{{ don.giam_gia|tien }}{% else %}—{% endif %}</td>
-              <td>{{ don.phu_thu_tra_tre|add:don.khau_tru_den_bu|tien }}</td>
-              <td><strong>{{ don.doanh_thu|tien }}</strong></td>
+              <td class="cot-tien">{{ don.tien_thue|tien }}</td>
+              <td class="cot-tien">{% if don.giam_gia %}-{{ don.giam_gia|tien }}{% else %}0đ{% endif %}</td>
+              <td class="cot-tien">{{ don.phu_thu_tra_tre|add:don.khau_tru_den_bu|tien }}</td>
+              <td class="cot-tien"><strong>{{ don.doanh_thu|tien }}</strong></td>
             </tr>
           {% endfor %}
+          </tbody>
         </table>
       </div>
-      <div class="the">
-        <h3>Theo dòng máy</h3>
-        <table class="thong-tin">
-          {% for may in theo_may %}<tr><td>{{ may.ten }} · {{ may.so_luot }} lượt</td><td>{{ may.tien_thue|tien }}</td></tr>{% endfor %}
-        </table>
-      </div>
+      <section class="khu-vuc">
+        <h2>Theo dòng máy</h2>
+        <div class="cuon-ngang"><table class="bang">
+          <thead><tr><th scope="col">Dòng máy</th><th scope="col">Lượt thuê</th><th scope="col" class="cot-tien">Tiền thuê</th></tr></thead>
+          <tbody>{% for may in theo_may %}<tr><td>{{ may.ten }}</td><td>{{ may.so_luot }}</td><td class="cot-tien">{{ may.tien_thue|tien }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </section>
     </div>
   {% else %}
     <div class="trong">Không có đơn nào được giao máy trong khoảng thời gian đã chọn.</div>

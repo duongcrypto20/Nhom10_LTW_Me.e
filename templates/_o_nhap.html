@@ -1,6 +1,24 @@
-{# Một ô nhập: nhãn, ô nhập và lỗi. Biến: field #}
-<div class="field {% if field.errors %}co-loi{% endif %}">
-  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+{# Một ô nhập Django: dùng chung nhãn, trợ giúp và lỗi gắn với đúng id của trường. #}
+{% if field.is_hidden %}
   {{ field }}
-  {% for loi in field.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
+{% else %}
+<div class="field {% if field.errors %}co-loi{% endif %}">
+  {% if field.widget_type == 'radioselect' or field.widget_type == 'checkboxselectmultiple' %}
+    <fieldset class="nhom-lua-chon">
+      <legend>{{ field.label }}</legend>
+      {{ field }}
+    </fieldset>
+  {% elif field.widget_type == 'checkbox' %}
+    <label class="check" for="{{ field.id_for_label }}">{{ field }} <span>{{ field.label }}</span></label>
+  {% else %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+  {% endif %}
+  {% if field.help_text %}<small class="tro-giup" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+  {% if field.errors %}
+    <div class="loi" id="{{ field.auto_id }}_error" role="alert">
+      {% for loi in field.errors %}{{ loi }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+    </div>
+  {% endif %}
 </div>
+{% endif %}

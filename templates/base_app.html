@@ -9,10 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=giao-dien-7">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=giao-dien-8">
+  <link rel="stylesheet" href="{% static 'css/noi-dung.css' %}?v=coc-nen-4">
 </head>
 {# Bố cục TRANG CHỨC NĂNG sau khi đăng nhập #}
-<body class="layout-app">
+<body class="layout-app trang-noi-dung">
   <input type="checkbox" id="mo-menu">
   <label for="mo-menu" class="nut-menu" role="button" tabindex="0" aria-controls="menu-app" aria-expanded="false">Menu</label>
 
@@ -40,16 +41,20 @@
       </form>
     </div>
   </aside>
+  <label for="mo-menu" class="nen-menu" aria-hidden="true"></label>
 
   <div class="main">
     <div class="thanh-app">
-      <span>Xin chào, <strong>{{ user.ho_ten }}</strong></span>
-      <a href="{% url 'trang_chu' %}">Về trang chủ</a>
+      <div class="thanh-app-nguoi">
+        <span>{{ user.get_vai_tro_display }}</span>
+        <strong>{{ user.ho_ten }}</strong>
+      </div>
+      <a href="{% url 'trang_chu' %}">Trang chủ</a>
     </div>
 
     <main class="noi-dung">
       {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        <div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>
       {% endfor %}
 
       {% block content %}{% endblock %}
@@ -57,5 +62,6 @@
   </div>
 
   <script src="{% static 'js/menu.js' %}?v=giao-dien-7"></script>
+  <script src="{% static 'js/noi-dung.js' %}?v=bo-cuc-1"></script>
 </body>
 </html>

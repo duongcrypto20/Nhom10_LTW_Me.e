@@ -21,7 +21,7 @@ INSTALLED_APPS = [
     # Các app của dự án
     'accounts',   # tài khoản và phân quyền (UC-6)
     'catalog',    # thiết bị, gói thuê, giá thuê (UC-2, UC-3)
-    'rentals',    # đặt thuê, giao nhận, tiền cọc (UC-1, UC-5)
+    'rentals',    # đặt thuê và tiền cọc (UC-1, tiền cọc gộp từ UC-5)
     'feedback',   # phản hồi, đánh giá (UC-4)
 ]
 
@@ -91,9 +91,10 @@ CUA_HANG = {
     'zalo': '0917 999 277 / 0834 020 466',
 }
 
-# Chỉ hiển thị QR khi cửa hàng đã cung cấp thông tin thật qua biến môi trường.
+# Thông tin trong ảnh ngân hàng được cung cấp; có thể đổi bằng biến môi trường.
 THANH_TOAN = {
-    'ngan_hang': os.environ.get('MEE_BANK_ID', ''),
-    'so_tai_khoan': os.environ.get('MEE_BANK_ACCOUNT', ''),
-    'chu_tai_khoan': os.environ.get('MEE_BANK_HOLDER', ''),
+    'ngan_hang': os.environ.get('MEE_BANK_ID', 'MB'),
+    'so_tai_khoan': os.environ.get('MEE_BANK_ACCOUNT', '0357594008'),
+    'chu_tai_khoan': os.environ.get('MEE_BANK_HOLDER', 'NGO QUYNH DUONG'),
+    'anh_qr': os.environ.get('MEE_BANK_QR_IMAGE', 'img/qr-coc-lich.jpg'),
 }

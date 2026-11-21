@@ -1,11 +1,19 @@
+"""Trang admin của app rentals: chỉ để xem, mọi thao tác nghiệp vụ làm trên website."""
 from django.contrib import admin
 
-from .models import AnhSuCo, BaoTri, ChiTietDonThue, DonThue, GiaoDich, KiemTraThietBi, PhanBoMay, SuCo, ThongBao
+from .models import ChiTietDonThue, DonThue, GiaoDich, PhanBoMay, ThongBao
 
-class SoTheoDoiAdmin(admin.ModelAdmin):
-    """Tra cứu ở admin; ghi nghiệp vụ qua các màn hình có kiểm tra và giao dịch DB."""
+
+class ChiXemAdmin(admin.ModelAdmin):
+    """
+    Admin chỉ đọc.
+
+    Đơn thuê và tiền cọc phải đi qua các màn hình có kiểm tra (services.py),
+    nên không cho thêm, sửa, xóa trực tiếp ở admin.
+    """
+
     def get_readonly_fields(self, request, obj=None):
-        return [f.name for f in self.model._meta.fields]
+        return [field.name for field in self.model._meta.fields]
 
     def has_add_permission(self, request):
         return False
@@ -14,5 +22,18 @@ class SoTheoDoiAdmin(admin.ModelAdmin):
         return False
 
 
-for model in (DonThue, ChiTietDonThue, PhanBoMay, GiaoDich, KiemTraThietBi, SuCo, AnhSuCo, BaoTri, ThongBao):
-    admin.site.register(model, SoTheoDoiAdmin)
+@admin.register(DonThue)
+class DonThueAdmin(ChiXemAdmin):
+    list_display = ('ma', 'khach_hang', 'thiet_bi', 'gio_nhan', 'trang_thai', 'trang_thai_coc')
+    list_filter = ('trang_thai', 'trang_thai_coc')
+
+
+@admin.register(GiaoDich)
+class GiaoDichAdmin(ChiXemAdmin):
+    list_display = ('don', 'loai', 'so_tien', 'phuong_thuc', 'ngay_tao')
+    list_filter = ('loai', 'phuong_thuc')
+
+
+admin.site.register(ChiTietDonThue, ChiXemAdmin)
+admin.site.register(PhanBoMay, ChiXemAdmin)
+admin.site.register(ThongBao, ChiXemAdmin)

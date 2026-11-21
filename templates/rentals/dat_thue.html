@@ -4,18 +4,19 @@
 
 {% block content %}
   {% if don_dang_sua %}
-    <h1>Điều chỉnh yêu cầu {{ don_dang_sua.ma }}</h1>
+    <header class="dau-trang"><div><h1>Điều chỉnh yêu cầu {{ don_dang_sua.ma }}</h1></div></header>
     <div class="alert alert-danger">Lý do cần điều chỉnh: {{ don_dang_sua.ly_do }}</div>
   {% else %}
     {% include 'rentals/_buoc_dat.html' with buoc=1 %}
-    <h1>Chọn gói &amp; thời gian thuê</h1>
+    <header class="dau-trang"><div><h1>Chọn gói và thời gian thuê</h1></div></header>
   {% endif %}
 
-  <div class="cot-65">
-    <div class="hop-form">
+  <div class="bo-cuc-form">
+    <section class="khu-vuc" aria-labelledby="thong-tin-thue">
+      <h2 id="thong-tin-thue">Thông tin thuê</h2>
       <div class="field">
-        <label>Thiết bị</label>
-        <input type="text" value="{{ thiet_bi.ten }}" disabled>
+        <label for="thiet-bi-thue">Thiết bị</label>
+        <input id="thiet-bi-thue" type="text" value="{{ thiet_bi.ten }}" disabled>
       </div>
       <form method="post" novalidate>
         {% csrf_token %}
@@ -25,17 +26,22 @@
           <a class="btn btn-nhat" href="{% url 'chi_tiet_may_anh' thiet_bi.ma %}">Hủy</a>
         </div>
       </form>
-    </div>
+    </section>
 
-    <div class="the">
-      <h3>Bảng giá {{ thiet_bi.ten }}</h3>
+    <aside class="khu-vuc" aria-labelledby="bang-gia-thue">
+      <div class="tom-tat-may">
+        {% if thiet_bi.anh %}<img src="{{ thiet_bi.anh.url }}" alt="" width="64" height="64">{% endif %}
+        <h2 id="bang-gia-thue">Bảng giá {{ thiet_bi.ten }}</h2>
+      </div>
       <table class="thong-tin">
+        <tbody>
         {% for gia in thiet_bi.cac_gia.all %}
-          <tr><td>{{ gia.goi_thue.ten }} (tối đa {{ gia.goi_thue.so_gio_toi_da }} giờ)</td><td>{{ gia.gia|tien }}</td></tr>
+          <tr><th scope="row">{{ gia.goi_thue.ten }} <small class="chu-phu">Tối đa {{ gia.goi_thue.so_gio_toi_da }} giờ</small></th><td class="cot-tien">{{ gia.gia|tien }}</td></tr>
         {% endfor %}
-        <tr><td>Tiền cọc</td><td><strong>{{ thiet_bi.tien_coc|tien }}</strong></td></tr>
+        <tr><th scope="row">Tiền cọc</th><td class="cot-tien"><strong>{{ thiet_bi.tien_coc|tien }}</strong></td></tr>
+        </tbody>
       </table>
       <p class="chu-nho">Thuê 1 ngày tính 23 giờ (nhận 10h trả 9h hôm sau). Thuê 1 buổi: ca sáng 8h-14h, ca chiều tối 15h-21h. Trả trễ từ phút 15 phụ thu 50.000đ mỗi giờ. <a href="{% url 'quy_dinh' %}">Xem quy định</a></p>
-    </div>
+    </aside>
   </div>
 {% endblock %}

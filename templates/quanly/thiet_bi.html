@@ -3,30 +3,31 @@
 {% block title %}Thiết bị{% endblock %}
 
 {% block content %}
-  <div class="dau-muc">
-    <h1>Thiết bị</h1>
+  <div class="dau-trang">
+    <div><h1>Thiết bị</h1><p>Theo dõi số máy sẵn sàng, đang thuê và giá trị đền bù</p></div>
     {# UC-2.1: chỉ chủ cửa hàng được thêm thiết bị #}
     {% if user.la_chu_cua_hang %}
-      <a class="btn" href="{% url 'ql_them_thiet_bi' %}">+ Thêm thiết bị</a>
+      <a class="btn" href="{% url 'ql_them_thiet_bi' %}">Thêm thiết bị</a>
     {% endif %}
   </div>
 
-  <form class="tim-kiem" method="get">
-    <input type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã hoặc tên thiết bị">
+  <form class="thanh-loc" method="get">
+    <div class="field"><label for="q-thiet-bi">Mã hoặc tên thiết bị</label><input id="q-thiet-bi" type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm thiết bị"></div>
     <button class="btn" type="submit">Tìm</button>
   </form>
 
   {% if ds_thiet_bi %}
     <div class="cuon-ngang">
       <table class="bang">
-        <tr><th>Mã</th><th>Thiết bị</th><th>Loại</th><th>Số chiếc</th><th>Giá trị đền bù</th><th>Tình trạng</th><th></th></tr>
+        <thead><tr><th scope="col">Mã</th><th scope="col">Thiết bị</th><th scope="col">Loại</th><th scope="col">Số chiếc</th><th scope="col" class="cot-tien">Giá trị đền bù</th><th scope="col">Tình trạng</th><th scope="col">Thao tác</th></tr></thead>
+        <tbody>
         {% for tb in ds_thiet_bi %}
           <tr>
             <td>{{ tb.ma }}</td>
-            <td><strong>{{ tb.ten }}</strong><small>{{ tb.thong_so }}</small></td>
+            <td><strong>{{ tb.ten }}</strong><small>{{ tb.thong_so|bo_ky_tu_trang_tri }}</small></td>
             <td>{{ tb.get_loai_display }}</td>
             <td>{{ tb.so_may_san_sang }}/{{ tb.so_may }} sẵn sàng<small>{{ tb.so_may_dang_thue }} đang thuê</small></td>
-            <td>{% if tb.gia_tri_den_bu %}{{ tb.gia_tri_den_bu|tien }}{% else %}Chưa cập nhật{% endif %}</td>
+            <td class="cot-tien">{% if tb.gia_tri_den_bu %}{{ tb.gia_tri_den_bu|tien }}{% else %}Chưa cập nhật{% endif %}</td>
             <td>
               {% if tb.ngung_cung_cap %}
                 <span class="tag">Ngừng cung cấp</span>
@@ -39,6 +40,7 @@
             <td><a class="btn btn-vien btn-nho" href="{% url 'ql_sua_thiet_bi' tb.pk %}">Cập nhật</a></td>
           </tr>
         {% endfor %}
+        </tbody>
       </table>
     </div>
   {% else %}

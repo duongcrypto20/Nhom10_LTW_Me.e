@@ -2,17 +2,21 @@
 {% block title %}Thông báo{% endblock %}
 
 {% block content %}
-  <h1>Thông báo</h1>
-  <form method="post">{% csrf_token %}<button class="btn btn-vien">Đánh dấu tất cả đã đọc</button></form>
+  <header class="dau-trang">
+    <div><h1>Thông báo</h1></div>
+    <form method="post">{% csrf_token %}<button class="btn btn-vien" type="submit">Đánh dấu tất cả đã đọc</button></form>
+  </header>
+  <section class="khu-vuc" aria-label="Danh sách thông báo">
   {% for tb in ds_thong_bao %}
-    <div class="the cach-duoi">
+    <article class="dong-thong-bao">
       {% if not tb.da_doc %}<span class="tag tag-cho_xu_ly">Mới</span>{% endif %}
-      {{ tb.noi_dung }}
+      <p>{{ tb.noi_dung }}</p>
       {% if tb.don %}<p><a href="{% if user.la_khach_hang %}{% url 'chi_tiet_don' tb.don.pk %}{% else %}{% url 'ql_chi_tiet_don' tb.don.pk %}{% endif %}">Xem đơn {{ tb.don.ma }}</a></p>{% endif %}
-      <small class="chu-phu">{{ tb.ngay_tao|date:'H:i d/m/Y' }}</small>
-    </div>
+      <small class="chu-phu"><time datetime="{{ tb.ngay_tao|date:'c' }}">{{ tb.ngay_tao|date:'H:i d/m/Y' }}</time></small>
+    </article>
   {% empty %}
     <div class="trong">Bạn chưa có thông báo nào.</div>
   {% endfor %}
+  </section>
   {% include '_pagination.html' with page_obj=ds_thong_bao %}
 {% endblock %}

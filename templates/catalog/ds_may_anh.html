@@ -1,26 +1,32 @@
-{% extends 'base.html' %}
+{% extends 'base_chuc_nang.html' %}
 {% block title %}Máy ảnh{% endblock %}
 
 {% block content %}
-  <h1>Máy ảnh cho thuê</h1>
-  <div class="dai-kiem-tra">
-    <p><strong>Cần máy vào ngày cụ thể?</strong> Chọn dòng máy, ngày giờ nhận và trả để xem lịch máy trống.</p>
+  <header class="dau-trang">
+    <div>
+      <h1>Máy ảnh cho thuê</h1>
+      <p><strong>Cần máy vào ngày cụ thể?</strong> Chọn dòng máy, ngày giờ nhận và trả để xem lịch máy trống.</p>
+    </div>
     <a class="btn" href="{% url 'kiem_tra_lich' %}">Kiểm tra máy trống</a>
-  </div>
+  </header>
 
-  <form class="tim-kiem" method="get">
-    <input type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên máy hoặc hãng">
+  <form class="thanh-loc" method="get">
+    <div class="field">
+      <label for="tim-may">Tìm máy ảnh</label>
+      <input id="tim-may" type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên máy hoặc hãng">
+    </div>
     <input type="hidden" name="loai" value="{{ loai_chon }}">
-    <button class="btn" type="submit">Tìm</button>
+    <button class="btn btn-vien" type="submit">Tìm</button>
   </form>
 
-  <div class="loc">
-    <a href="{% querystring loai='' %}" class="{% if not loai_chon %}chon{% endif %}">Tất cả</a>
+  <nav class="loc" aria-label="Lọc theo loại máy ảnh">
+    <a href="{% querystring loai='' %}" class="{% if not loai_chon %}chon{% endif %}"{% if not loai_chon %} aria-current="page"{% endif %}>Tất cả</a>
     {% for ma, ten in ds_loai %}
-      <a href="{% querystring loai=ma %}" class="{% if loai_chon == ma %}chon{% endif %}">{{ ten }}</a>
+      <a href="{% querystring loai=ma %}" class="{% if loai_chon == ma %}chon{% endif %}"{% if loai_chon == ma %} aria-current="page"{% endif %}>{{ ten }}</a>
     {% endfor %}
-  </div>
+  </nav>
 
+  <section class="khu-vuc" aria-label="Danh sách máy ảnh cho thuê">
   {% if ds_thiet_bi %}
     <div class="luoi luoi-4">
       {% for tb in ds_thiet_bi %}
@@ -30,4 +36,5 @@
   {% else %}
     <div class="trong">Chưa có thiết bị phù hợp trong danh sách.</div>
   {% endif %}
+  </section>
 {% endblock %}

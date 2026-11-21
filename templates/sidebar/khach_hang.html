@@ -2,16 +2,17 @@
 <nav>
   <div class="nhom">Của tôi</div>
   <a href="{% url 'trang_cua_toi' %}">Tổng quan</a>
-  <a href="{% url 'don_cua_toi' %}">Đơn thuê &amp; đặt cọc</a>
+  <a href="{% url 'don_cua_toi' %}">Đơn thuê và đặt cọc</a>
   <a href="{% url 'phan_hoi_cua_toi' %}">Đánh giá của tôi</a>
   <a href="{% url 'thong_bao' %}">Thông báo
     {% if so_thong_bao_chua_doc %}<span class="dem">{{ so_thong_bao_chua_doc }}</span>{% endif %}
   </a>
 
   <div class="nhom">Thuê máy</div>
-  <a href="{% url 'ds_may_anh' %}">Chọn máy &amp; đặt thuê</a>
+  <a href="{% url 'ds_may_anh' %}">Chọn máy và đặt thuê</a>
   <a href="{% url 'kiem_tra_lich' %}">Kiểm tra máy trống</a>
-  <a href="{% url 'goi_thue' %}">Gói thuê &amp; bảng giá</a>
+  <a href="{% url 'goi_thue' %}">Gói thuê và bảng giá</a>
+  <a href="{% url 'ds_danh_gia' %}">Ảnh và đánh giá</a>
   <a href="{% url 'quy_dinh' %}">Quy định thuê máy</a>
 
   <div class="nhom">Tài khoản</div>

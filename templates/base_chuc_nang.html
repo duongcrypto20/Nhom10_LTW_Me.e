@@ -1,0 +1,2 @@
+{% extends user.is_authenticated|yesno:"base_app.html,base.html" %}
+{# Đã đăng nhập: giữ menu dọc theo vai trò. Chưa đăng nhập: dùng menu công khai. #}

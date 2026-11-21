@@ -2,8 +2,8 @@
 <section class="lich" aria-labelledby="lich-tieu-de">
   <div class="lich-dau">
     <div>
-      <h3 id="lich-tieu-de">Tháng {{ lich.thang }}, {{ lich.nam }}</h3>
-      <p class="lich-phu">{{ lich.thiet_bi.ten }} · {{ lich.so_may }} máy</p>
+      <h2 id="lich-tieu-de">Tháng {{ lich.thang }}, {{ lich.nam }}</h2>
+      <p class="lich-phu">{{ lich.thiet_bi.ten }}<br>{{ lich.so_may }} máy</p>
     </div>
     <div class="lich-dieu-huong">
       <a class="nut-tron" href="{% querystring thang=lich.thang_truoc ngay=None %}#lich-tieu-de" aria-label="Xem tháng trước">
@@ -15,21 +15,27 @@
     </div>
   </div>
 
-  <div class="lich-luoi" role="grid">
-    <div class="lich-thu" role="columnheader">T2</div><div class="lich-thu" role="columnheader">T3</div><div class="lich-thu" role="columnheader">T4</div><div class="lich-thu" role="columnheader">T5</div><div class="lich-thu" role="columnheader">T6</div><div class="lich-thu" role="columnheader">T7</div><div class="lich-thu" role="columnheader">CN</div>
-    {% for tuan in lich.cac_tuan %}{% for o in tuan %}
-      {% if not o %}<div class="lich-o o-rong" aria-hidden="true"></div>
+  <table class="lich-luoi" aria-labelledby="lich-tieu-de">
+    <thead><tr>
+      <th scope="col" class="lich-thu">T2</th><th scope="col" class="lich-thu">T3</th><th scope="col" class="lich-thu">T4</th><th scope="col" class="lich-thu">T5</th><th scope="col" class="lich-thu">T6</th><th scope="col" class="lich-thu">T7</th><th scope="col" class="lich-thu">CN</th>
+    </tr></thead>
+    <tbody>
+    {% for tuan in lich.cac_tuan %}<tr>{% for o in tuan %}
+      {% if not o %}<td class="lich-o o-rong"></td>
       {% else %}
-        {% if quan_ly %}<a href="{% querystring ngay=o.ngay|date:'Y-m-d' %}#ngay-chi-tiet"{% else %}<div{% endif %}
+        <td
           class="lich-o tt-{{ o.trang_thai }}{% if o.qua_khu %} qua-khu{% endif %}{% if o.hom_nay %} hom-nay{% endif %}{% if o.chon %} chon{% endif %}{% if ngay_xem and ngay_xem.ngay == o.ngay %} dang-xem{% endif %}"
-          role="gridcell" aria-label="Ngày {{ o.ngay|date:'d/m' }}{% if o.qua_khu and not quan_ly %}: đã qua{% else %}: {{ o.nhan }}, {{ o.trong|length }} trống, {{ o.dang_thue|length }} đang thuê, {{ o.bao_tri|length }} bảo trì{% endif %}{% if o.chon %}, ngày bạn chọn{% endif %}">
+          aria-label="Ngày {{ o.ngay|date:'d/m' }}{% if o.qua_khu and not quan_ly %}: đã qua{% else %}: {{ o.nhan }}, {{ o.trong|length }} trống, {{ o.dang_thue|length }} đang thuê, {{ o.bao_tri|length }} bảo trì{% endif %}{% if o.chon %}, ngày bạn chọn{% endif %}">
+          {% if quan_ly %}<a class="lich-noi-dung" href="{% querystring ngay=o.ngay|date:'Y-m-d' %}#ngay-chi-tiet">{% else %}<div class="lich-noi-dung">{% endif %}
           <b>{{ o.ngay.day }}</b>
           {% if not o.qua_khu or quan_ly %}<span class="lich-tt">{{ o.nhan }}</span>{% endif %}
-          {% if quan_ly %}<span class="lich-dem">{{ o.trong|length }} trống · {{ o.dang_thue|length }} thuê{% if o.bao_tri %} · {{ o.bao_tri|length }} bảo trì{% endif %}</span>{% endif %}
-        {% if quan_ly %}</a>{% else %}</div>{% endif %}
+          {% if quan_ly %}<span class="lich-dem">{{ o.trong|length }} trống<br>{{ o.dang_thue|length }} thuê{% if o.bao_tri %}<br>{{ o.bao_tri|length }} bảo trì{% endif %}</span>{% endif %}
+          {% if quan_ly %}</a>{% else %}</div>{% endif %}
+        </td>
       {% endif %}
-    {% endfor %}{% endfor %}
-  </div>
+    {% endfor %}</tr>{% endfor %}
+    </tbody>
+  </table>
 
   <p class="lich-chu-thich">
     <span><i class="o-mau mau-trong"></i>Trống</span>

@@ -1,41 +1,50 @@
-{% extends 'base.html' %}
+{% extends 'base_chuc_nang.html' %}
 {% load dinh_dang %}
 {% block title %}Gói thuê và bảng giá{% endblock %}
 
 {% block content %}
-  <h1>Gói thuê &amp; bảng giá</h1>
+  <header class="dau-trang"><div><h1>Gói thuê và bảng giá</h1></div></header>
 
   {% if ds_goi %}
-    <div class="luoi luoi-4">
-      {% for goi in ds_goi %}
-        <div class="the-goi">
-          <h3>{{ goi.ten }}</h3>
-          <div>Tối đa {{ goi.so_gio_toi_da }} giờ</div>
-          <p>{{ goi.mo_ta }}</p>
-        </div>
-      {% endfor %}
-    </div>
+    <section class="khu-vuc" aria-labelledby="cac-goi-thue">
+      <h2 id="cac-goi-thue">Các gói thuê</h2>
+      <div class="cuon-ngang"><table class="bang bang-goi-thue">
+        <thead><tr><th scope="col">Gói thuê</th><th scope="col">Mô tả</th></tr></thead>
+        <tbody>
+          {% for goi in ds_goi %}
+            <tr>
+              <th scope="row">{{ goi.ten }}</th>
+              <td>{{ goi.mo_ta }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    </section>
 
-    <h2 class="cach-tren">Bảng giá thuê</h2>
+    <section class="khu-vuc" aria-labelledby="bang-gia-thue">
+    <h2 id="bang-gia-thue">Bảng giá thuê</h2>
     <p>Với gói tùy chỉnh, bạn chọn thời gian nhận và trả bất kỳ; hệ thống tự tìm tổ hợp các gói cố định có giá thấp nhất đủ thời lượng. Giá chi tiết hiện trước khi gửi yêu cầu.</p>
     <div class="cuon-ngang">
       <table class="bang">
-        <tr>
-          <th>Máy</th>
-          {% for goi in ds_goi_gia %}<th>{{ goi.ten }}</th>{% endfor %}
-          <th>Tiền cọc</th>
-        </tr>
+        <thead><tr>
+          <th scope="col">Máy</th>
+          {% for goi in ds_goi_gia %}<th scope="col" class="cot-tien">{{ goi.ten }}</th>{% endfor %}
+          <th scope="col" class="cot-tien">Tiền cọc</th>
+        </tr></thead>
+        <tbody>
         {% for dong in bang_gia %}
           <tr>
-            <td><a href="{% url 'chi_tiet_may_anh' dong.thiet_bi.ma %}">{{ dong.thiet_bi.ten }}</a></td>
+            <th scope="row"><a href="{% url 'chi_tiet_may_anh' dong.thiet_bi.ma %}">{{ dong.thiet_bi.ten }}</a></th>
             {% for o in dong.ds_o %}
-              <td>{% if o.gia != None %}{{ o.gia|tien }}{% else %}—{% endif %}</td>
+              <td class="cot-tien">{% if o.gia != None %}{{ o.gia|tien }}{% else %}Chưa có giá{% endif %}</td>
             {% endfor %}
-            <td>{{ dong.thiet_bi.tien_coc|tien }}</td>
+            <td class="cot-tien">{{ dong.thiet_bi.tien_coc|tien }}</td>
           </tr>
         {% endfor %}
+        </tbody>
       </table>
     </div>
+    </section>
   {% else %}
     <div class="trong">Danh sách gói thuê đang trống.</div>
   {% endif %}

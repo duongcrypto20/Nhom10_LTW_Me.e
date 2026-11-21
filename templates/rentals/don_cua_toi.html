@@ -3,42 +3,48 @@
 {% block title %}Đơn thuê của tôi{% endblock %}
 
 {% block content %}
-  <div class="dau-trang">
-    <div><h1>Đơn thuê của tôi</h1><p>Đơn được cửa hàng xác nhận sẽ có nút đặt cọc online để giữ máy.</p></div>
+  <header class="dau-trang">
+    <div><h1>Đơn thuê của tôi</h1><p>Đặt cọc lịch 50.000đ ngay sau khi tạo đơn để giữ máy. Khoản này được tính vào tổng tiền cọc máy.</p></div>
     <a class="btn" href="{% url 'ds_may_anh' %}">Thuê thêm máy</a>
-  </div>
+  </header>
 
-  <form class="tim-kiem" method="get">
-    <label class="sr-only" for="q-don">Tìm đơn</label>
-    <input id="q-don" type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã đơn, ví dụ DH1001">
-    <button class="btn" type="submit">Tìm</button>
+  <form class="thanh-loc" method="get">
+    {% if trang_thai_chon %}<input type="hidden" name="trang_thai" value="{{ trang_thai_chon }}">{% endif %}
+    <div class="field">
+      <label for="q-don">Tìm đơn thuê</label>
+      <input id="q-don" type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo mã đơn, ví dụ DH1001">
+    </div>
+    <button class="btn btn-vien" type="submit">Tìm</button>
   </form>
 
-  <div class="loc">
-    <a href="{% url 'don_cua_toi' %}" class="{% if not trang_thai_chon %}chon{% endif %}">Tất cả</a>
+  <nav class="loc" aria-label="Lọc đơn theo trạng thái">
+    <a href="{% url 'don_cua_toi' %}{% if tu_khoa %}?q={{ tu_khoa|urlencode }}{% endif %}" class="{% if not trang_thai_chon %}chon{% endif %}"{% if not trang_thai_chon %} aria-current="page"{% endif %}>Tất cả</a>
     {% for ma, ten in ds_trang_thai %}
-      <a href="?trang_thai={{ ma }}" class="{% if trang_thai_chon == ma %}chon{% endif %}">{{ ten }}</a>
+      <a href="?trang_thai={{ ma }}{% if tu_khoa %}&amp;q={{ tu_khoa|urlencode }}{% endif %}" class="{% if trang_thai_chon == ma %}chon{% endif %}"{% if trang_thai_chon == ma %} aria-current="page"{% endif %}>{{ ten }}</a>
     {% endfor %}
-  </div>
+  </nav>
 
   {% if ds_don %}
-    <div class="luoi luoi-3">
-      {% for don in ds_don %}
-        <div class="the">
-          <div class="dau-muc">
-            <strong>{{ don.ma }}</strong>
-            {% if don.cho_dat_coc %}<span class="tag tag-chua_thu">Chờ đặt cọc</span>{% else %}<span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span>{% endif %}
-          </div>
-          <h3>{{ don.ten_thiet_bi }}</h3>
-          <div>Gói {{ don.goi_thue.ten }} · {{ don.tong_thanh_toan|tien }}</div>
-          <div>{{ don.gio_nhan|date:'H:i d/m/Y' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}</div>
-          <div class="hang-nut">
-            {% if don.cho_dat_coc %}<a class="btn btn-nho" href="{% url 'dat_coc' don.pk %}">Cọc lịch {{ don.tien_coc_giu_lich|tien }}</a>{% endif %}
-            <a class="btn btn-vien btn-nho" href="{% url 'chi_tiet_don' don.pk %}">Xem chi tiết</a>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
+    <section class="khu-vuc" aria-label="Danh sách đơn thuê">
+      <div class="cuon-ngang"><table class="bang">
+        <thead><tr><th scope="col">Đơn</th><th scope="col">Thiết bị</th><th scope="col">Nhận / trả máy</th><th scope="col" class="cot-tien">Tiền thuê</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
+        <tbody>
+          {% for don in ds_don %}
+            <tr>
+              <th scope="row">{{ don.ma }}</th>
+              <td>{{ don.ten_thiet_bi }}<small>Gói {{ don.goi_thue.ten }}</small></td>
+              <td>{{ don.gio_nhan|date:'H:i d/m/Y' }}<small>đến {{ don.gio_tra|date:'H:i d/m/Y' }}</small></td>
+              <td class="cot-tien">{{ don.tong_thanh_toan|tien }}</td>
+              <td>{% if don.cho_dat_coc %}<span class="tag tag-chua_thu">Chờ đặt cọc</span>{% else %}<span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span>{% endif %}</td>
+              <td><div class="hang-nut">
+                {% if don.cho_dat_coc %}<a class="btn btn-vien btn-nho" href="{% url 'dat_coc' don.pk %}">Cọc lịch {{ don.tien_coc_giu_lich|tien }}</a>{% endif %}
+                <a class="btn btn-nhat btn-nho" href="{% url 'chi_tiet_don' don.pk %}">Xem chi tiết<span class="sr-only"> {{ don.ma }}</span></a>
+              </div></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    </section>
   {% else %}
     <div class="trong">
       <p>Bạn chưa có yêu cầu thuê nào phù hợp.</p>

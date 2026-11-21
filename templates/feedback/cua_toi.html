@@ -6,14 +6,14 @@
 
 <h2>Đơn chờ bạn đánh giá</h2>
 {% for don in don_cho_phan_hoi %}
-  <div class="dong-thong-bao"><strong>{{ don.ma }}</strong> · {{ don.ten_thiet_bi }} · hoàn tất {{ don.tra_thuc_te|date:'d/m/Y' }}
+  <div class="dong-thong-bao"><strong>{{ don.ma }}</strong>, {{ don.ten_thiet_bi }}, hoàn tất {{ don.tra_thuc_te|date:'d/m/Y' }}
     <div class="hang-nut"><a class="btn btn-nho" href="{% url 'gui_danh_gia' don.pk %}">Viết đánh giá</a></div></div>
 {% empty %}<p class="chu-phu">Chưa có đơn hoàn tất nào chờ đánh giá. <a href="{% url 'don_cua_toi' %}">Xem đơn thuê của tôi</a></p>{% endfor %}
 
 <h2 class="cach-tren">Đánh giá đã gửi</h2>
 {% for dg in ds_phan_hoi %}
   <article class="the cach-duoi">
-    <p><a href="{% url 'chi_tiet_don' dg.don.pk %}"><strong>{{ dg.don.ma }}</strong></a> · <span class="sao" aria-label="{{ dg.so_sao }} trên 5 sao">{{ dg.cac_sao }}</span>
+    <p><a href="{% url 'chi_tiet_don' dg.don.pk %}"><strong>{{ dg.don.ma }}</strong></a>, <span class="sao">{{ dg.so_sao }}/5 sao</span>
       <span class="tag tag-{{ dg.trang_thai }}">{{ dg.get_trang_thai_display }}</span></p>
     <p>{{ dg.noi_dung|linebreaksbr }}</p>
     {% if dg.anh %}<a href="{{ dg.anh.url }}" target="_blank" rel="noopener"><img class="anh-feedback" src="{{ dg.anh.url }}" alt="Ảnh feedback cho đơn {{ dg.don.ma }}"></a>{% endif %}

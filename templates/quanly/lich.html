@@ -19,26 +19,27 @@
     {% include 'rentals/_lich.html' with quan_ly=True %}
 
     {% if ngay_xem %}
-      <section class="the ngay-chi-tiet" id="ngay-chi-tiet" aria-labelledby="tieu-de-ngay">
+      <section class="khu-vuc ngay-chi-tiet" id="ngay-chi-tiet" aria-labelledby="tieu-de-ngay">
         <div class="lich-dau">
-          <h3 id="tieu-de-ngay">Ngày {{ ngay_xem.ngay|date:'d/m/Y' }} · {{ thiet_bi.ten }}</h3>
+          <h2 id="tieu-de-ngay">Ngày {{ ngay_xem.ngay|date:'d/m/Y' }}</h2>
           <a class="btn btn-nhat btn-nho" href="?may={{ thiet_bi.ma }}&amp;thang={{ lich.nam }}-{{ lich.thang|stringformat:'02d' }}">Đóng</a>
         </div>
-        <h3><i class="cham cham-thue"></i> Đang thuê ({{ ngay_xem.dang_thue|length }})</h3>
+        <p class="chu-phu">{{ thiet_bi.ten }}</p>
+        <h3>Đang thuê ({{ ngay_xem.dang_thue|length }})</h3>
         <ul class="ds-may-ngay">
           {% for muc in ngay_xem.dang_thue %}
             <li><span class="tag">{{ muc.may.so_seri }}</span>
-              <a href="{% url 'ql_chi_tiet_don' muc.don.pk %}">{{ muc.don.ma }}</a> · {{ muc.don.khach_hang.ho_ten }}
-              · {{ muc.don.gio_nhan|date:'H:i d/m' }} đến {{ muc.don.gio_tra|date:'H:i d/m' }}
+              <a href="{% url 'ql_chi_tiet_don' muc.don.pk %}">{{ muc.don.ma }}</a> <span>{{ muc.don.khach_hang.ho_ten }}</span>
+              <span>{{ muc.don.gio_nhan|date:'H:i d/m' }} đến {{ muc.don.gio_tra|date:'H:i d/m' }}</span>
               <span class="tag tag-{{ muc.don.trang_thai }}">{{ muc.don.get_trang_thai_display }}</span></li>
           {% empty %}<li class="chu-phu">Không có máy đang thuê trong ngày này.</li>{% endfor %}
         </ul>
-        <h3><i class="cham cham-trong"></i> Còn trống ({{ ngay_xem.trong|length }})</h3>
+        <h3>Còn trống ({{ ngay_xem.trong|length }})</h3>
         <ul class="ds-may-ngay">
           {% for muc in ngay_xem.trong %}<li><span class="tag tag-ok">{{ muc.may.so_seri }}</span> Sẵn sàng cho thuê ngày này</li>
           {% empty %}<li class="chu-phu">Không còn máy trống.</li>{% endfor %}
         </ul>
-        <h3><i class="cham cham-bao-tri"></i> Bảo trì, hư hỏng ({{ ngay_xem.bao_tri|length }})</h3>
+        <h3>Bảo trì, hư hỏng ({{ ngay_xem.bao_tri|length }})</h3>
         <ul class="ds-may-ngay">
           {% for muc in ngay_xem.bao_tri %}<li><span class="tag tag-bao_tri">{{ muc.may.so_seri }}</span> {{ muc.may.get_tinh_trang_display }}</li>
           {% empty %}<li class="chu-phu">Không có máy bảo trì.</li>{% endfor %}

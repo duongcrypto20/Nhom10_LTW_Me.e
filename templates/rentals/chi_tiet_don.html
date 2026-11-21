@@ -4,15 +4,15 @@
 
 {% block content %}
   <p class="duong-dan"><a href="{% url 'don_cua_toi' %}">Đơn thuê của tôi</a> / {{ don.ma }}</p>
-  <h1>Đơn {{ don.ma }}</h1>
+  <header class="dau-trang"><div><h1>Đơn {{ don.ma }}</h1></div></header>
 
-  <div class="cot-65">
+  <div class="bo-cuc-form">
     <div>{% include 'rentals/_thong_tin_don.html' %}</div>
 
     {# Hộp hành động thay đổi theo trạng thái đơn #}
-    <aside class="the hop-hanh-dong">
+    <aside class="khu-vuc hop-hanh-dong" aria-label="Hành động với đơn thuê">
       {% if don.cho_dat_coc %}
-        <h3>Đặt cọc để giữ máy</h3>
+        <h2>Đặt cọc để giữ máy</h2>
         {% if don.trang_thai == 'cho_xu_ly' %}
           <p>Đơn đã được tạo nhưng máy chưa được giữ. Cọc lịch online để giữ máy; khoản này được tính vào tiền cọc máy.</p>
         {% else %}
@@ -25,7 +25,7 @@
         </form>
 
       {% elif don.trang_thai == 'can_dieu_chinh' %}
-        <h3>Cần điều chỉnh</h3>
+        <h2>Cần điều chỉnh</h2>
         <div class="alert alert-danger">{{ don.ly_do }}</div>
         <div class="hang-nut">
           <a class="btn" href="{% url 'sua_don' don.pk %}">Chọn lại gói hoặc thời gian</a>
@@ -35,26 +35,22 @@
         </div>
 
       {% elif don.trang_thai == 'da_xac_nhan' %}
-        <h3>Đã cọc, chờ nhận máy</h3>
+        <h2>Đã cọc, chờ nhận máy</h2>
         <div class="alert alert-success">Đặt cọc thành công {{ don.tien_coc_da_thu|tien }}. Cửa hàng đã giữ máy cho bạn.</div>
         <p>Nhận máy lúc <strong>{{ don.gio_nhan|date:'H:i d/m/Y' }}</strong> tại {{ cua_hang.dia_chi }}. Mang theo CCCD chính chủ, tiền thuê <strong>{{ don.tong_thanh_toan|tien }}</strong>{% if don.tien_coc_con_lai %} và phần cọc máy còn lại <strong>{{ don.tien_coc_con_lai|tien }}</strong>{% endif %} thanh toán khi nhận máy.</p>
         <p class="chu-nho">Theo quy định, đơn đã cọc không nhận hủy lịch.</p>
 
       {% elif don.trang_thai == 'dang_thue' %}
-        <h3>Đang thuê</h3>
+        <h2>Đang thuê</h2>
         <p>Hạn trả máy: <strong>{{ don.gio_tra|date:'H:i d/m/Y' }}</strong>. Trả trễ từ phút 15 phụ thu 50.000đ mỗi giờ.</p>
-        {% if don.ngay_bao_tra %}<p class="alert">Đã báo: {{ don.get_hinh_thuc_tra_display }}{% if don.ma_van_don_tra %} · {{ don.don_vi_van_chuyen }} · {{ don.ma_van_don_tra }}{% endif %}. Cửa hàng hoàn cọc sau khi nhận và kiểm tra máy.</p>{% endif %}
-        <form method="post" action="{% url 'bao_tra_may' don.pk %}" novalidate>{% csrf_token %}
-          {% include '_form.html' with form=form_tra %}
-          <button class="btn">Báo cách trả máy</button>
-        </form>
+        <p class="chu-nho">Bạn trả máy trực tiếp tại cửa hàng hoặc gửi máy về {{ cua_hang.dia_chi }}. Cửa hàng hoàn cọc sau khi nhận và kiểm tra máy.</p>
 
       {% elif don.trang_thai == 'hoan_tat' %}
-        <h3>Đã hoàn tất</h3>
+        <h2>Đã hoàn tất</h2>
         <p>Tiền cọc hoàn lại</p>
         <p class="so-noi">{{ don.hoan_lai|tien }}</p>
         {% if da_danh_gia %}
-          <p><span class="sao">{{ don.danh_gia.cac_sao }}</span> · {{ don.danh_gia.get_trang_thai_display }}</p>
+          <p><span class="sao">{{ don.danh_gia.so_sao }}/5 sao</span><br>{{ don.danh_gia.get_trang_thai_display }}</p>
           <p>{{ don.danh_gia.noi_dung }}</p>
           {% if don.danh_gia.anh %}<img class="anh-feedback" src="{{ don.danh_gia.anh.url }}" alt="Ảnh feedback bạn đã đăng">{% endif %}
           {% if don.danh_gia.tra_loi %}<div class="tra-loi"><strong>Cửa hàng trả lời:</strong> {{ don.danh_gia.tra_loi }}</div>{% endif %}
@@ -63,7 +59,7 @@
         {% endif %}
 
       {% else %}
-        <h3>Đã hủy</h3>
+        <h2>Đã hủy</h2>
         <p>{{ don.ly_do|default:'Đơn đã bị hủy.' }}</p>
       {% endif %}
     </aside>

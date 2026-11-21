@@ -1,19 +1,38 @@
-from django.db import models
+"""
+Các bảng dữ liệu của app catalog (thiết bị và dịch vụ cho thuê).
 
+    LoaiThietBi : danh mục thiết bị (Mirrorless, Mirrorless cổ điển, Compact)
+    ThietBi     : một dòng máy cho thuê, ví dụ Canon EOS R50 (UC-2)
+    May         : một chiếc máy vật lý của dòng máy, phân biệt bằng số sê-ri
+    GoiThue     : gói thuê theo thời lượng: 6 giờ, 1 ngày, 2 ngày... (UC-3)
+    GiaThue     : giá của một dòng máy theo một gói thuê (UC-3.4)
+    MaGiamGia   : mã giảm giá do chủ cửa hàng thiết lập
+"""
+from django.db import models
+from django.utils import timezone
+
+
+# ===========================================================================
+# 1. THIẾT BỊ
+# ===========================================================================
 
 class LoaiThietBi(models.Model):
-    ma = models.SlugField('Mã danh mục', max_length=30, unique=True, allow_unicode=False)
+    """Danh mục thiết bị."""
+
+    ma = models.SlugField('Mã danh mục', max_length=30, unique=True)
     ten = models.CharField('Tên danh mục', max_length=100, unique=True)
 
     class Meta:
         ordering = ['ten']
+        verbose_name = 'Danh mục thiết bị'
+        verbose_name_plural = 'Danh mục thiết bị'
 
     def __str__(self):
         return self.ten
 
 
 class ThietBi(models.Model):
-    """Một dòng máy ảnh cho thuê, ví dụ Canon EOS M50 (UC-2)."""
+    """Một dòng máy ảnh cho thuê, ví dụ Canon EOS M50."""
 
     LOAI = [
         ('mirrorless', 'Mirrorless'),
@@ -21,24 +40,38 @@ class ThietBi(models.Model):
         ('compact', 'Compact'),
     ]
 
+    # ----- Thông tin chung -----
     ma = models.CharField('Mã thiết bị', max_length=20, unique=True)
     ten = models.CharField('Tên thiết bị', max_length=100)
     hang = models.CharField('Hãng', max_length=50)
     loai = models.CharField('Danh mục', max_length=30, choices=LOAI, default='mirrorless')
-    danh_muc = models.ForeignKey(LoaiThietBi, on_delete=models.PROTECT, null=True, blank=True,
-                                 verbose_name='Danh mục thiết bị', related_name='cac_thiet_bi')
+    danh_muc = models.ForeignKey(
+        LoaiThietBi,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name='Danh mục thiết bị',
+        related_name='cac_thiet_bi',
+    )
+
+    # ----- Mô tả hiển thị cho khách -----
     thong_so = models.CharField('Thông số kỹ thuật', max_length=200, blank=True)
     mo_ta = models.CharField('Mô tả ngắn', max_length=255, blank=True)
     phu_hop = models.CharField('Phù hợp với', max_length=255, blank=True)
     anh = models.ImageField('Ảnh thiết bị', upload_to='thietbi/', blank=True)
-    gia_tri_den_bu = models.PositiveIntegerField('Giá trị đền bù 100% (đồng)', default=0)
-    tien_coc = models.PositiveIntegerField('Tiền cọc (đồng)', default=700000)
-    ngung_cung_cap = models.BooleanField('Ngừng cung cấp thiết bị này', default=False)
     huong_dan = models.TextField('Hướng dẫn sử dụng', blank=True)
     video_huong_dan = models.URLField('Liên kết video hướng dẫn', blank=True)
 
+    # ----- Tiền cọc và đền bù -----
+    tien_coc = models.PositiveIntegerField('Tiền cọc (đồng)', default=700_000)
+    gia_tri_den_bu = models.PositiveIntegerField('Giá trị đền bù 100% (đồng)', default=0)
+
+    ngung_cung_cap = models.BooleanField('Ngừng cung cấp thiết bị này', default=False)
+
     class Meta:
         ordering = ['ten']
+        verbose_name = 'Thiết bị'
+        verbose_name_plural = 'Thiết bị'
 
     def __str__(self):
         return self.ten
@@ -54,8 +87,7 @@ class ThietBi(models.Model):
 
     def gia_thap_nhat(self):
         """Giá rẻ nhất trong các gói đang cung cấp, dùng để hiện 'Từ ...đ'."""
-        gia = self.cac_gia.filter(goi_thue__dang_cung_cap=True).order_by('gia').first()
-        return gia
+        return self.cac_gia.filter(goi_thue__dang_cung_cap=True).order_by('gia').first()
 
     def tinh_trang_hien_thi(self):
         if self.ngung_cung_cap:
@@ -88,12 +120,20 @@ class May(models.Model):
 
     class Meta:
         ordering = ['so_seri']
+        verbose_name = 'Máy'
+        verbose_name_plural = 'Máy'
 
     def __str__(self):
         return self.so_seri
 
 
+# ===========================================================================
+# 2. GÓI THUÊ VÀ GIÁ THUÊ
+# ===========================================================================
+
 class GoiThue(models.Model):
+    """Gói thuê theo thời lượng. Gói tùy chỉnh cho khách tự chọn giờ, hệ thống tự tính giá."""
+
     ten = models.CharField('Tên gói', max_length=50, unique=True)
     so_gio_toi_da = models.PositiveIntegerField('Thời lượng tối đa (giờ)')
     mo_ta = models.CharField('Mô tả', max_length=255, blank=True)
@@ -102,6 +142,8 @@ class GoiThue(models.Model):
 
     class Meta:
         ordering = ['so_gio_toi_da']
+        verbose_name = 'Gói thuê'
+        verbose_name_plural = 'Gói thuê'
 
     def __str__(self):
         return self.ten
@@ -115,15 +157,23 @@ class GiaThue(models.Model):
     gia = models.PositiveIntegerField('Giá thuê (đồng)')
 
     class Meta:
-        unique_together = ('thiet_bi', 'goi_thue')
         ordering = ['goi_thue__so_gio_toi_da']
+        constraints = [
+            models.UniqueConstraint(fields=['thiet_bi', 'goi_thue'], name='mot_gia_moi_goi'),
+        ]
+        verbose_name = 'Giá thuê'
+        verbose_name_plural = 'Giá thuê'
 
     def __str__(self):
         return f'{self.thiet_bi} - {self.goi_thue}: {self.gia}'
 
 
+# ===========================================================================
+# 3. MÃ GIẢM GIÁ
+# ===========================================================================
+
 class MaGiamGia(models.Model):
-    """Mã giảm giá do chủ cửa hàng thiết lập."""
+    """Mã giảm giá do chủ cửa hàng thiết lập: giảm theo phần trăm hoặc số tiền cố định."""
 
     PHAN_TRAM = 'phan_tram'
     SO_TIEN = 'so_tien'
@@ -140,18 +190,29 @@ class MaGiamGia(models.Model):
     ngay_bat_dau = models.DateTimeField('Bắt đầu áp dụng', null=True, blank=True)
     ngay_ket_thuc = models.DateTimeField('Kết thúc áp dụng', null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'Mã giảm giá'
+        verbose_name_plural = 'Mã giảm giá'
+
     def __str__(self):
         return self.ma
 
     def tinh_giam(self, tien_thue):
-        """Trả về số tiền được giảm cho một đơn có tiền thuê cho trước."""
+        """Số tiền được giảm cho một đơn có tiền thuê cho trước (không vượt tiền thuê)."""
         if self.loai == self.PHAN_TRAM:
             return min(tien_thue * self.gia_tri // 100, tien_thue)
         return min(self.gia_tri, tien_thue)
 
     def co_hieu_luc(self, luc=None):
-        from django.utils import timezone
+        """Mã còn dùng được: đang áp dụng, còn lượt và đang trong thời hạn."""
         luc = luc or timezone.now()
-        return (self.dang_ap_dung and self.so_luot > 0
-                and (self.ngay_bat_dau is None or self.ngay_bat_dau <= luc)
-                and (self.ngay_ket_thuc is None or self.ngay_ket_thuc >= luc))
+        con_han = (
+            (self.ngay_bat_dau is None or self.ngay_bat_dau <= luc)
+            and (self.ngay_ket_thuc is None or self.ngay_ket_thuc >= luc)
+        )
+        return self.dang_ap_dung and self.so_luot > 0 and con_han
+
+    def da_co_don_dung(self):
+        """Đã có đơn thuê nào dùng mã này chưa."""
+        from rentals.models import DonThue  # import trong hàm để tránh vòng lặp import
+        return DonThue.objects.filter(ma_giam_gia=self.ma).exists()

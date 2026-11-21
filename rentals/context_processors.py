@@ -1,3 +1,4 @@
+"""Context processor: thêm số thông báo chưa đọc và thông tin cửa hàng vào mọi template."""
 from django.conf import settings
 
 

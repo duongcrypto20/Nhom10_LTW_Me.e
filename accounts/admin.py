@@ -1,3 +1,4 @@
+"""Trang admin cho bảng tài khoản: thêm các trường họ tên, SĐT, CCCD, vai trò."""
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 

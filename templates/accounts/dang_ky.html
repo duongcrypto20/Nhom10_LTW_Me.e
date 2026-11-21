@@ -6,15 +6,15 @@
 {% block content %}
   <div class="trang-dn">
     <div class="trang-dn-khung">
-      <div class="hop-form">
-        <h1>Tạo tài khoản</h1>
+      <section class="hop-form" aria-labelledby="tieu-de-dang-ky">
+        <header class="dau-trang"><div><h1 id="tieu-de-dang-ky">Tạo tài khoản</h1></div></header>
         <form method="post" novalidate>
           {% csrf_token %}
           {% include '_form.html' %}
           <button class="btn btn-lon rong-het" type="submit">Tạo tài khoản</button>
         </form>
         <p>Đã có tài khoản? <a href="{% url 'dang_nhap' %}">Đăng nhập</a></p>
-      </div>
+      </section>
     </div>
   </div>
 {% endblock %}

@@ -2,11 +2,12 @@
 {% block title %}Cập nhật {{ thiet_bi.ten }}{% endblock %}
 
 {% block content %}
-  <p><a href="{% url 'ql_thiet_bi' %}">Thiết bị</a> / {{ thiet_bi.ten }}</p>
-  <h1>Cập nhật {{ thiet_bi.ten }}</h1>
+  <p class="duong-dan"><a href="{% url 'ql_thiet_bi' %}">Thiết bị</a> / {{ thiet_bi.ten }}</p>
+  <div class="dau-trang"><div><h1>Cập nhật {{ thiet_bi.ten }}</h1><p>Thông tin dòng máy và tình trạng từng số sê-ri</p></div></div>
 
-  <div class="hai-cot">
-    <div class="hop-form">
+  <div class="bo-cuc-form">
+    <section class="khu-vuc" aria-labelledby="thong-tin-thiet-bi">
+      <h2 id="thong-tin-thiet-bi">Thông tin thiết bị</h2>
       <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         {% include '_form.html' %}
@@ -15,12 +16,14 @@
           <a class="btn btn-nhat" href="{% url 'ql_thiet_bi' %}">Hủy</a>
         </div>
       </form>
-    </div>
+    </section>
 
-    <div class="the">
-      <h3>Máy vật lý (theo số sê-ri)</h3>
-      <table class="bang">
-        <tr><th>Số sê-ri</th><th>Tình trạng</th><th></th></tr>
+    <section class="khu-vuc" aria-labelledby="may-vat-ly">
+      <h2 id="may-vat-ly">Máy vật lý</h2>
+      <p class="chu-phu">Quản lý từng máy theo số sê-ri</p>
+      <div class="cuon-ngang"><table class="bang">
+        <thead><tr><th scope="col">Số sê-ri</th><th scope="col">Tình trạng</th><th scope="col">Cập nhật</th></tr></thead>
+        <tbody>
         {% for may in thiet_bi.cac_may.all %}
           <tr>
             <td>{{ may.so_seri }}</td>
@@ -28,7 +31,7 @@
             <td>
               <form method="post" action="{% url 'ql_doi_tinh_trang_may' may.pk %}" class="hang-nho">
                 {% csrf_token %}
-                <select name="tinh_trang">
+                <select name="tinh_trang" aria-label="Tình trạng máy {{ may.so_seri }}">
                   {% for ma, ten in ds_tinh_trang %}
                     <option value="{{ ma }}" {% if ma == may.tinh_trang %}selected{% endif %}>{{ ten }}</option>
                   {% endfor %}
@@ -38,20 +41,21 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="3">Thiết bị chưa có máy nào.</td></tr>
+          <tr><td colspan="3" class="trong">Thiết bị chưa có máy nào.</td></tr>
         {% endfor %}
-      </table>
+        </tbody>
+      </table></div>
 
       {% if user.la_chu_cua_hang %}
         <h3 class="cach-tren">Thêm máy</h3>
         <form method="post" action="{% url 'ql_them_may' thiet_bi.pk %}">
           {% csrf_token %}
           {% for field in may_form %}
-            <div class="field"><label>{{ field.label }}</label>{{ field }}</div>
+            <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<p class="loi">{{ error }}</p>{% endfor %}</div>
           {% endfor %}
-          <button class="btn btn-nho" type="submit">+ Thêm máy</button>
+          <button class="btn btn-nho" type="submit">Thêm máy</button>
         </form>
       {% endif %}
-    </div>
+    </section>
   </div>
 {% endblock %}

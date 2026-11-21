@@ -1,8 +1,21 @@
 {% extends 'base_app.html' %}
 {% block title %}Danh mục thiết bị{% endblock %}
 {% block content %}
-<h1>Danh mục thiết bị</h1>
-<div class="cuon-ngang"><table class="bang"><tr><th>Mã danh mục</th><th>Tên danh mục</th><th>Số dòng thiết bị</th></tr>
-{% for item in ds_danh_muc %}<tr><td>{{ item.ma }}</td><td>{{ item.ten }}</td><td>{{ item.cac_thiet_bi.count }}</td></tr>{% empty %}<tr><td colspan="3">Chưa có danh mục.</td></tr>{% endfor %}</table></div>
-<h2 class="cach-tren">Thêm danh mục</h2><form method="post" class="hop-form" novalidate>{% csrf_token %}{% include '_form.html' %}<button class="btn">Lưu danh mục</button></form>
+  <div class="dau-trang"><div><h1>Danh mục thiết bị</h1><p>Phân nhóm các dòng thiết bị trong cửa hàng</p></div></div>
+  <div class="bo-cuc-form">
+    <section class="khu-vuc" aria-labelledby="ds-danh-muc">
+      <h2 id="ds-danh-muc">Danh mục hiện có</h2>
+      <div class="cuon-ngang"><table class="bang">
+        <thead><tr><th scope="col">Mã danh mục</th><th scope="col">Tên danh mục</th><th scope="col">Số dòng thiết bị</th></tr></thead>
+        <tbody>
+        {% for item in ds_danh_muc %}<tr><td>{{ item.ma }}</td><td>{{ item.ten }}</td><td>{{ item.cac_thiet_bi.count }}</td></tr>{% empty %}<tr><td colspan="3" class="trong">Chưa có danh mục.</td></tr>{% endfor %}
+        </tbody>
+      </table></div>
+    </section>
+    <form method="post" class="khu-vuc" novalidate>
+      <h2>Thêm danh mục</h2>
+      {% csrf_token %}{% include '_form.html' %}
+      <button class="btn" type="submit">Lưu danh mục</button>
+    </form>
+  </div>
 {% endblock %}

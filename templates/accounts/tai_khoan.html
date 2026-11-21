@@ -2,14 +2,9 @@
 {% block title %}Tài khoản{% endblock %}
 
 {% block content %}
-  <h1>Thông tin cá nhân</h1>
-  <div class="hop-form">
-    <table class="thong-tin cach-duoi">
-      <tr><td>Email đăng nhập</td><td>{{ user.email }}</td></tr>
-      <tr><td>Vai trò</td><td>{{ user.get_vai_tro_display }}</td></tr>
-    </table>
-    {% if user.anh_dai_dien %}<img class="anh-dai-dien" src="{{ user.anh_dai_dien.url }}" alt="Ảnh đại diện {{ user.ho_ten }}">{% endif %}
-    <form method="post" enctype="multipart/form-data" novalidate>
+  <header class="dau-trang"><div><h1>Thông tin cá nhân</h1></div></header>
+  <div class="bo-cuc-form">
+    <form class="khu-vuc" method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
       {% include '_form.html' %}
       <div class="hang-nut">
@@ -17,5 +12,14 @@
         <a class="btn btn-vien" href="{% url 'doi_mat_khau' %}">Đổi mật khẩu</a>
       </div>
     </form>
+    <aside class="khu-vuc" aria-label="Thông tin đăng nhập">
+      {% if user.anh_dai_dien %}<img class="anh-dai-dien" src="{{ user.anh_dai_dien.url }}" alt="Ảnh đại diện {{ user.ho_ten }}" width="112" height="112">{% endif %}
+      <table class="thong-tin">
+        <tbody>
+          <tr><th scope="row">Email đăng nhập</th><td>{{ user.email }}</td></tr>
+          <tr><th scope="row">Vai trò</th><td>{{ user.get_vai_tro_display }}</td></tr>
+        </tbody>
+      </table>
+    </aside>
   </div>
 {% endblock %}

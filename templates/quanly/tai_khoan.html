@@ -2,23 +2,25 @@
 {% block title %}Tài khoản và phân quyền{% endblock %}
 
 {% block content %}
-  <h1>Tài khoản &amp; phân quyền</h1>
+  <div class="dau-trang"><div><h1>Tài khoản và phân quyền</h1><p>Tra cứu tài khoản, thay đổi vai trò và trạng thái hoạt động</p></div></div>
 
-  <div class="alert alert-warning">
-    <strong>Khách hàng:</strong> đặt thuê, theo dõi đơn, gửi phản hồi.
-    <strong>Nhân viên:</strong> xử lý đơn, giao nhận, thiết bị, dịch vụ, phản hồi.
-    <strong>Chủ cửa hàng:</strong> toàn quyền, gồm phân quyền tài khoản.
-  </div>
+  <details class="khu-vuc">
+    <summary>Quyền của từng vai trò</summary>
+    <p><strong>Khách hàng:</strong> đặt thuê, theo dõi đơn, gửi phản hồi.</p>
+    <p><strong>Nhân viên:</strong> xử lý đơn, tiền cọc, thiết bị, dịch vụ, phản hồi.</p>
+    <p><strong>Chủ cửa hàng:</strong> toàn quyền, gồm phân quyền tài khoản.</p>
+  </details>
 
-  <form class="tim-kiem" method="get">
-    <input type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm theo tên hoặc email">
+  <form class="thanh-loc" method="get">
+    <div class="field"><label for="q-tai-khoan">Tên hoặc email</label><input id="q-tai-khoan" type="search" name="q" value="{{ tu_khoa }}" placeholder="Tìm tài khoản"></div>
     <button class="btn" type="submit">Tìm</button>
   </form>
 
   {% if ds_tai_khoan %}
     <div class="cuon-ngang">
       <table class="bang">
-        <tr><th>Tài khoản</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th></tr>
+        <thead><tr><th scope="col">Tài khoản</th><th scope="col">Email</th><th scope="col">Vai trò</th><th scope="col">Trạng thái</th></tr></thead>
+        <tbody>
         {% for tk in ds_tai_khoan %}
           <tr>
             <td><strong>{{ tk.ho_ten }}</strong></td>
@@ -30,7 +32,7 @@
                 <form method="post" action="{% url 'ql_doi_vai_tro' tk.pk %}" class="hang-nho"
                       onsubmit="return confirm('Đổi vai trò của {{ tk.ho_ten|escapejs }}?')">
                   {% csrf_token %}
-                  <select name="vai_tro">
+                  <select name="vai_tro" aria-label="Vai trò của {{ tk.ho_ten }}">
                     {% for ma, ten in ds_vai_tro %}
                       <option value="{{ ma }}" {% if ma == tk.vai_tro %}selected{% endif %}>{{ ten }}</option>
                     {% endfor %}
@@ -53,6 +55,7 @@
             </td>
           </tr>
         {% endfor %}
+        </tbody>
       </table>
     </div>
   {% else %}

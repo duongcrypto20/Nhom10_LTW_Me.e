@@ -6,27 +6,31 @@
   <p class="duong-dan"><a href="{% url 'ql_tien_coc' %}">Quản lý tiền cọc</a> / {{ don.ma }}</p>
   <div class="dau-trang">
     <div>
-      <h1>{% if don.tien_coc_con_lai %}Thu cọc{% else %}Xác nhận cọc{% endif %} · {{ don.ma }}</h1>
-      <p>{{ don.khach_hang.ho_ten }} · {{ don.khach_hang.so_dien_thoai|default:'chưa có SĐT' }} · CCCD {{ don.khach_hang.cccd|default:'chưa cập nhật' }}<br>
-        {{ don.ten_thiet_bi }} · {{ don.gio_nhan|date:'H:i d/m/Y' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}</p>
+      <h1>{% if don.tien_coc_con_lai %}Thu cọc{% else %}Xác nhận cọc{% endif %} {{ don.ma }}</h1>
+      <p>{{ don.khach_hang.ho_ten }}<br>{{ don.khach_hang.so_dien_thoai|default:'chưa có SĐT' }}<br>CCCD {{ don.khach_hang.cccd|default:'chưa cập nhật' }}</p>
     </div>
   </div>
 
-  <div class="hop-form">
-    <table class="bang-tien">
-      <tr><td>Tiền thuê thu tại quầy</td><td>{{ don.tong_thanh_toan|tien }}</td></tr>
-      <tr><td>Tổng cọc máy</td><td>{{ don.tien_coc|tien }}</td></tr>
-      <tr><td>Tiền cọc đã thu</td><td>{{ don.tien_coc_da_thu|tien }}</td></tr>
-      <tr><td>Cọc máy còn lại cần thu</td><td>{{ don.tien_coc_con_lai|tien }}</td></tr>
-      <tr class="tong"><td>Cần thu bây giờ</td><td>{{ don.tong_thanh_toan|add:don.tien_coc_con_lai|tien }}</td></tr>
-    </table>
-    {% if don.tien_coc_con_lai %}<p class="alert">Thu phần cọc máy còn lại {{ don.tien_coc_con_lai|tien }} và đối chiếu CCCD trước khi đưa máy. Cọc lịch đã được tính vào tổng cọc máy.</p>{% endif %}
-    <form method="post" novalidate>{% csrf_token %}
+  <div class="bo-cuc-form">
+    <form method="post" class="khu-vuc" novalidate>{% csrf_token %}
+      <h2>Xác nhận giao máy</h2>
       {% include '_form.html' %}
       <div class="hang-nut">
-        <button class="btn" data-confirm="Xác nhận đã thu tiền và khách đã nhận máy?">{% if don.tien_coc_con_lai %}Xác nhận thu cọc{% else %}Xác nhận khách nhận máy{% endif %}</button>
+        <button type="submit" class="btn" data-confirm="Xác nhận đã thu tiền và khách đã nhận máy?">{% if don.tien_coc_con_lai %}Xác nhận thu cọc{% else %}Xác nhận khách nhận máy{% endif %}</button>
         <a class="btn btn-nhat" href="{% url 'ql_tien_coc' %}">Quay lại</a>
       </div>
     </form>
+    <aside class="khu-vuc" aria-labelledby="khoan-can-thu">
+      <h2 id="khoan-can-thu">Khoản cần thu</h2>
+      <p>{{ don.ten_thiet_bi }}<br>{{ don.gio_nhan|date:'H:i d/m/Y' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}</p>
+      <table class="bang-tien">
+        <tr><td>Tiền thuê thu tại quầy</td><td class="cot-tien">{{ don.tong_thanh_toan|tien }}</td></tr>
+        <tr><td>Tổng cọc máy</td><td class="cot-tien">{{ don.tien_coc|tien }}</td></tr>
+        <tr><td>Tiền cọc đã thu</td><td class="cot-tien">{{ don.tien_coc_da_thu|tien }}</td></tr>
+        <tr><td>Cọc máy còn lại cần thu</td><td class="cot-tien">{{ don.tien_coc_con_lai|tien }}</td></tr>
+        <tr class="tong"><td>Cần thu bây giờ</td><td class="cot-tien">{{ don.tong_thanh_toan|add:don.tien_coc_con_lai|tien }}</td></tr>
+      </table>
+      {% if don.tien_coc_con_lai %}<p class="alert">Thu phần cọc máy còn lại {{ don.tien_coc_con_lai|tien }} và đối chiếu CCCD trước khi đưa máy. Cọc lịch đã được tính vào tổng cọc máy.</p>{% endif %}
+    </aside>
   </div>
 {% endblock %}

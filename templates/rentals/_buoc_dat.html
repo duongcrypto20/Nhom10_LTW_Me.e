@@ -1,6 +1,6 @@
 {# Thanh bước đặt thuê dùng chung cho 3 trang: chọn máy, xác nhận đơn, đặt cọc. Biến: buoc (1, 2 hoặc 3) #}
 <ol class="buoc-dat" aria-label="Các bước đặt thuê">
-  <li class="{% if buoc > 1 %}xong{% elif buoc == 1 %}dang{% endif %}"{% if buoc == 1 %} aria-current="step"{% endif %}><span>1</span>Chọn gói &amp; thời gian</li>
+  <li class="{% if buoc > 1 %}xong{% elif buoc == 1 %}dang{% endif %}"{% if buoc == 1 %} aria-current="step"{% endif %}><span>1</span>Chọn gói và thời gian</li>
   <li class="{% if buoc > 2 %}xong{% elif buoc == 2 %}dang{% endif %}"{% if buoc == 2 %} aria-current="step"{% endif %}><span>2</span>Xác nhận đơn</li>
   <li class="{% if buoc > 3 %}xong{% elif buoc == 3 %}dang{% endif %}"{% if buoc == 3 %} aria-current="step"{% endif %}><span>3</span>Đặt cọc giữ máy</li>
 </ol>

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_chuc_nang.html' %}
 {% load static %}
 {% block title %}Ảnh và đánh giá{% endblock %}
 
@@ -6,11 +6,11 @@
   {# 1. Đầu trang: điểm trung bình #}
   <div class="dau-trang">
     <div>
-      <h1>Ảnh &amp; đánh giá từ khách hàng</h1>
+      <h1>Ảnh và đánh giá từ khách hàng</h1>
       <p>Ảnh thật khách chụp bằng máy thuê ở me.e và cảm nhận sau mỗi lần thuê.</p>
     </div>
     {% if thong_ke.tong %}
-      <div class="diem-tb"><strong>{{ thong_ke.trung_binh }}</strong><span class="sao">★★★★★</span><small>{{ thong_ke.tong }} đánh giá</small></div>
+      <div class="diem-tb"><strong>{{ thong_ke.trung_binh }}<small>/5</small></strong><small>{{ thong_ke.tong }} đánh giá</small></div>
     {% endif %}
   </div>
 
@@ -26,7 +26,7 @@
   {% if ds_anh %}
     <div class="luoi-anh-fb" id="anh-feedback">
       {% for anh in ds_anh %}
-        <button type="button" class="o-anh" data-anh="{{ anh.url }}" data-chu="{{ anh.nguoi }}{% if anh.ten_may %} · {{ anh.ten_may }}{% endif %}">
+        <button type="button" class="o-anh" data-anh="{{ anh.url }}" data-chu="{{ anh.nguoi }}{% if anh.ten_may %}, {{ anh.ten_may }}{% endif %}">
           <img src="{{ anh.url }}" alt="Ảnh feedback {{ anh.ten_may }}" loading="lazy">
           {% if anh.ten_may %}<span>{{ anh.ten_may }}</span>{% endif %}
         </button>
@@ -36,22 +36,24 @@
     <div class="trong cach-duoi">Chưa có ảnh feedback cho dòng máy này.</div>
   {% endif %}
 
+  {% if ds_anh %}
   <dialog id="xem-anh" class="xem-anh" aria-label="Xem ảnh feedback">
-    <img src="" alt="Ảnh feedback phóng to">
+    <img src="{{ ds_anh.0.url }}" alt="Ảnh feedback phóng to" width="900" height="1200">
     <p class="chu-anh"></p>
-    <button type="button" class="nut-anh dong" data-dong aria-label="Đóng">✕</button>
-    <button type="button" class="nut-anh truoc" data-truoc aria-label="Ảnh trước">‹</button>
-    <button type="button" class="nut-anh sau" data-sau aria-label="Ảnh sau">›</button>
+    <button type="button" class="nut-anh dong" data-dong>Đóng</button>
+    <button type="button" class="nut-anh truoc" data-truoc aria-label="Ảnh trước">Trước</button>
+    <button type="button" class="nut-anh sau" data-sau aria-label="Ảnh sau">Sau</button>
   </dialog>
+  {% endif %}
 
   {# 4. Ô viết đánh giá: bấm vào để mở form #}
   {% if not user.is_authenticated %}
     <a class="o-viet o-viet-link" href="{% url 'dang_nhap' %}?next={% url 'ds_danh_gia' %}%23viet-danh-gia">
-      <span class="gia-o-nhap">Chia sẻ trải nghiệm của bạn… <small>(đăng nhập để viết đánh giá)</small></span>
+      <span class="gia-o-nhap">Chia sẻ trải nghiệm của bạn <small>(đăng nhập để viết đánh giá)</small></span>
     </a>
   {% elif form_viet %}
     <details class="o-viet" id="viet-danh-gia" {% if mo_form %}open{% endif %}>
-      <summary><span class="gia-o-nhap">Chia sẻ trải nghiệm của bạn…</span><span class="btn btn-nho">Viết đánh giá</span></summary>
+      <summary><span class="gia-o-nhap">Chia sẻ trải nghiệm của bạn</span><span class="btn btn-nho">Viết đánh giá</span></summary>
       {% if form_viet.fields.don.queryset.exists or form_viet.errors %}
         <form method="post" action="{% url 'ds_danh_gia' %}" enctype="multipart/form-data" class="form-viet" novalidate>
           {% csrf_token %}
@@ -66,9 +68,9 @@
           <fieldset class="field chon-sao {% if form_viet.so_sao.errors %}co-loi{% endif %}">
             <legend>Bạn chấm mấy sao?</legend>
             <div class="hang-sao">
-              {% for gia_tri in '54321' %}
+              {% for gia_tri in '12345' %}
                 <input type="radio" name="so_sao" id="sao-{{ gia_tri }}" value="{{ gia_tri }}" {% if form_viet.so_sao.value|stringformat:'s' == gia_tri %}checked{% endif %}>
-                <label for="sao-{{ gia_tri }}" title="{{ gia_tri }} sao">★<span class="sr-only">{{ gia_tri }} sao</span></label>
+                <label for="sao-{{ gia_tri }}" title="{{ gia_tri }} sao">{{ gia_tri }}<span class="sr-only"> sao</span></label>
               {% endfor %}
             </div>
             {% for loi in form_viet.so_sao.errors %}<div class="loi">{{ loi }}</div>{% endfor %}
@@ -106,9 +108,9 @@
       {% for dg in cua_toi %}
         <article class="the the-danh-gia cua-toi">
           <div class="dau-dg">
-            <span class="sao">{{ dg.cac_sao }}</span>
+            <span class="sao">{{ dg.so_sao }}/5 sao</span>
             <strong>{{ dg.don.ten_thiet_bi }}</strong>
-            <span class="chu-nho">{{ dg.don.ma }} · {{ dg.ngay_tao|date:'d/m/Y H:i' }}</span>
+            <span class="chu-nho">{{ dg.don.ma }}, {{ dg.ngay_tao|date:'d/m/Y H:i' }}</span>
             <span class="tag tag-{{ dg.trang_thai }}">{{ dg.get_trang_thai_display }}</span>
           </div>
           <p>{{ dg.noi_dung }}</p>
@@ -131,8 +133,8 @@
           <p class="diem-lon">{{ thong_ke.trung_binh }}<small>/5</small></p>
           {% for dong in thong_ke.theo_sao %}
             <div class="thanh-sao">
-              {{ dong.sao }}★
-              <div class="nen"><div class="dat" style="width:{{ dong.phan_tram }}%"></div></div>
+              {{ dong.sao }} sao
+              <meter min="0" max="100" value="{{ dong.phan_tram }}" aria-label="{{ dong.phan_tram }}% đánh giá {{ dong.sao }} sao">{{ dong.phan_tram }}%</meter>
               {{ dong.so_luong }}
             </div>
           {% endfor %}
@@ -141,9 +143,9 @@
           {% for dg in ds_danh_gia %}
             <article class="the the-danh-gia">
               <div class="dau-dg">
-                <span class="sao">{{ dg.cac_sao }}</span>
+                <span class="sao">{{ dg.so_sao }}/5 sao</span>
                 <strong>{{ dg.don.khach_hang.ho_ten }}</strong>
-                <span class="chu-nho">{{ dg.don.ten_thiet_bi }} · {{ dg.ngay_tao|date:'d/m/Y' }}</span>
+                <span class="chu-nho">{{ dg.don.ten_thiet_bi }}, {{ dg.ngay_tao|date:'d/m/Y' }}</span>
               </div>
               <p>{{ dg.noi_dung }}</p>
               {% if dg.anh %}<img src="{{ dg.anh.url }}" alt="Ảnh feedback" class="anh-nho">{% endif %}

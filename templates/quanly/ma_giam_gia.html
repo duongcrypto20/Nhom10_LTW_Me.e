@@ -3,27 +3,29 @@
 {% block title %}Mã giảm giá{% endblock %}
 
 {% block content %}
-  <div class="dau-muc">
-    <h1>Mã giảm giá</h1>
+  <div class="dau-trang">
+    <div><h1>Mã giảm giá</h1><p>Theo dõi giá trị giảm, lượt dùng còn lại và thời hạn áp dụng</p></div>
     {% if user.la_chu_cua_hang %}
-      <a class="btn" href="{% url 'ql_them_ma_giam_gia' %}">+ Thêm mã</a>
+      <a class="btn" href="{% url 'ql_them_ma_giam_gia' %}">Thêm mã</a>
     {% endif %}
   </div>
 
   {% if ds_ma %}
-    <table class="bang">
-      <tr><th>Mã voucher</th><th>Loại giảm</th><th>Giá trị</th><th>Số lượt còn lại</th><th>Hiệu lực</th><th>Thao tác</th></tr>
+    <div class="cuon-ngang"><table class="bang">
+      <thead><tr><th scope="col">Mã voucher</th><th scope="col">Loại giảm</th><th scope="col" class="cot-tien">Giá trị</th><th scope="col">Số lượt còn lại</th><th scope="col">Hiệu lực</th><th scope="col">Thao tác</th></tr></thead>
+      <tbody>
       {% for m in ds_ma %}
         <tr>
           <td><strong>{{ m.ma }}</strong></td>
           <td>{{ m.get_loai_display }}</td>
-          <td>{% if m.loai == 'phan_tram' %}{{ m.gia_tri }}%{% else %}{{ m.gia_tri|tien }}{% endif %}</td>
+          <td class="cot-tien">{% if m.loai == 'phan_tram' %}{{ m.gia_tri }}%{% else %}{{ m.gia_tri|tien }}{% endif %}</td>
           <td>{{ m.so_luot }}</td>
           <td>{% if m.co_hieu_luc %}Đang áp dụng{% else %}Không áp dụng / hết lượt / ngoài thời hạn{% endif %}<small>{{ m.ngay_bat_dau|date:'d/m/Y H:i' }} đến {{ m.ngay_ket_thuc|date:'d/m/Y H:i'|default:'Không giới hạn' }}</small></td>
           <td>{% if user.la_chu_cua_hang %}<a class="btn btn-vien btn-nho" href="{% url 'ql_sua_ma_giam_gia' m.pk %}">Cập nhật</a>{% endif %}</td>
         </tr>
       {% endfor %}
-    </table>
+      </tbody>
+    </table></div>
   {% else %}
     <div class="trong">Chưa có mã giảm giá nào.</div>
   {% endif %}

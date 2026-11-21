@@ -1,10 +1,15 @@
+"""Bảng tài khoản người dùng của app accounts (UC-6)."""
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.functions import Lower
 
 
 class User(AbstractUser):
-    """Tài khoản người dùng, có thêm vai trò để phân quyền (UC-6.4)."""
+    """
+    Tài khoản người dùng, kế thừa User có sẵn của Django và thêm vai trò để phân quyền.
+
+    Tên đăng nhập (username) chính là email.
+    """
 
     KHACH_HANG = 'khach_hang'
     NHAN_VIEN = 'nhan_vien'
@@ -23,12 +28,19 @@ class User(AbstractUser):
 
     class Meta(AbstractUser.Meta):
         constraints = [
-            models.UniqueConstraint(Lower('email'), condition=~models.Q(email=''), name='email_khong_trung'),
-            models.UniqueConstraint(fields=['so_dien_thoai'], condition=~models.Q(so_dien_thoai=''), name='sdt_khong_trung'),
+            # Email và số điện thoại không được trùng giữa các tài khoản
+            models.UniqueConstraint(
+                Lower('email'), condition=~models.Q(email=''), name='email_khong_trung',
+            ),
+            models.UniqueConstraint(
+                fields=['so_dien_thoai'], condition=~models.Q(so_dien_thoai=''), name='sdt_khong_trung',
+            ),
         ]
 
     def __str__(self):
         return self.ho_ten or self.username
+
+    # ----- Kiểm tra vai trò, dùng trong view và template -----
 
     @property
     def la_khach_hang(self):

@@ -3,53 +3,56 @@
 {% block title %}Trang của tôi{% endblock %}
 
 {% block content %}
-  <h1>Tổng quan</h1>
-  <p class="phu">Theo dõi các đơn thuê máy của bạn.</p>
+  <header class="dau-trang">
+    <div><h1>Tổng quan</h1><p class="chu-phu">Theo dõi các đơn thuê máy của bạn</p></div>
+  </header>
 
-  <div class="luoi luoi-4 cach-duoi">
-    <div class="the the-so">Chờ xử lý<strong>{{ so_cho_xu_ly }}</strong></div>
-    <div class="the the-so">Chờ cọc / chờ nhận máy<strong>{{ so_da_xac_nhan }}</strong></div>
-    <div class="the the-so">Đang thuê<strong>{{ so_dang_thue }}</strong></div>
-    <div class="the the-so">Đã hoàn tất<strong>{{ so_hoan_tat }}</strong></div>
-  </div>
+  <dl class="thong-ke">
+    <div><dt>Chờ xử lý</dt><dd>{{ so_cho_xu_ly }}</dd></div>
+    <div><dt>Chờ cọc / chờ nhận máy</dt><dd>{{ so_da_xac_nhan }}</dd></div>
+    <div><dt>Đang thuê</dt><dd>{{ so_dang_thue }}</dd></div>
+    <div><dt>Đã hoàn tất</dt><dd>{{ so_hoan_tat }}</dd></div>
+  </dl>
 
-  <div class="cot-65">
-    <div>
+  <div class="bo-cuc-form">
+    <section class="khu-vuc" aria-labelledby="don-gan-day">
       <div class="dau-muc">
-        <h2>Đơn thuê gần đây</h2>
+        <h2 id="don-gan-day">Đơn thuê gần đây</h2>
         <a class="btn btn-vien btn-nho" href="{% url 'don_cua_toi' %}">Xem tất cả</a>
       </div>
       {% if ds_don_gan_day %}
-        <table class="bang">
-          <tr><th>Đơn</th><th>Thiết bị</th><th>Thời gian</th><th>Trạng thái</th></tr>
+        <div class="cuon-ngang"><table class="bang">
+          <thead><tr><th scope="col">Đơn</th><th scope="col">Thiết bị</th><th scope="col">Thời gian</th><th scope="col">Trạng thái</th></tr></thead>
+          <tbody>
           {% for don in ds_don_gan_day %}
             <tr>
-              <td><a href="{% url 'chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a>
-                <small>{{ don.tong_thanh_toan|tien }}</small></td>
+              <th scope="row"><a href="{% url 'chi_tiet_don' don.pk %}">{{ don.ma }}</a>
+                <small>{{ don.tong_thanh_toan|tien }}</small></th>
               <td>{{ don.ten_thiet_bi }}<small>Gói {{ don.goi_thue.ten }}</small></td>
               <td>{{ don.gio_nhan|date:'H:i d/m' }} đến {{ don.gio_tra|date:'H:i d/m' }}</td>
               <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
             </tr>
           {% endfor %}
-        </table>
+          </tbody>
+        </table></div>
       {% else %}
         <div class="trong">
           <p>Bạn chưa có đơn thuê nào.</p>
-          <a class="btn" href="{% url 'ds_may_anh' %}">Chọn máy &amp; đặt thuê</a>
+          <a class="btn" href="{% url 'ds_may_anh' %}">Chọn máy và đặt thuê</a>
         </div>
       {% endif %}
-    </div>
+    </section>
 
-    <div class="the">
-      <h3>Thông báo mới</h3>
+    <aside class="khu-vuc" aria-labelledby="thong-bao-moi">
+      <h2 id="thong-bao-moi">Thông báo mới</h2>
       {% for tb in ds_thong_bao %}
         <div class="dong-thong-bao">
           {{ tb.noi_dung }}
-          <small class="chu-phu">{{ tb.ngay_tao|date:'H:i d/m/Y' }}</small>
+          <small class="chu-phu"><time datetime="{{ tb.ngay_tao|date:'c' }}">{{ tb.ngay_tao|date:'H:i d/m/Y' }}</time></small>
         </div>
       {% empty %}
-        <p>Chưa có thông báo.</p>
+        <p class="chu-phu">Chưa có thông báo</p>
       {% endfor %}
-    </div>
+    </aside>
   </div>
 {% endblock %}

@@ -6,23 +6,31 @@
   <p class="duong-dan"><a href="{% url 'don_cua_toi' %}">Đơn thuê của tôi</a> / <a href="{% url 'chi_tiet_don' don.pk %}">{{ don.ma }}</a> / Đặt cọc</p>
   {% if don.trang_thai_coc == 'chua_thu' %}{% include 'rentals/_buoc_dat.html' with buoc=3 %}{% else %}{% include 'rentals/_buoc_dat.html' with buoc=4 %}{% endif %}
 
-  <div class="trang-coc">
-    {% if don.trang_thai_coc == 'chua_thu' %}
-      {# Thanh toán cọc: cọc thành công thì hệ thống giữ máy và lịch cho khách #}
-      <section class="hop-coc" aria-labelledby="tieu-de-coc">
+  <header class="dau-trang">
+    <div>
+      {% if don.trang_thai_coc == 'chua_thu' %}
         <h1 id="tieu-de-coc">Thanh toán cọc lịch</h1>
         <p class="chu-phu">Đơn {{ don.ma }} {% if don.trang_thai == 'cho_xu_ly' %}chưa được giữ máy. Máy chỉ được giữ khi cọc thành công.{% else %}đã được cửa hàng giữ máy.{% endif %}</p>
+      {% else %}
+        <h1>Đặt cọc thành công</h1>
+      {% endif %}
+    </div>
+  </header>
 
+  <div class="bo-cuc-form trang-coc">
+    {% if don.trang_thai_coc == 'chua_thu' %}
+      {# Thanh toán cọc: cọc thành công thì hệ thống giữ máy và lịch cho khách #}
+      <section class="khu-vuc hop-coc" aria-labelledby="tieu-de-coc">
         <div class="coc-so-tien">
           <span>Cọc lịch để giữ máy</span>
           <strong>{{ don.tien_coc_giu_lich|tien }}</strong>
-          <small>Được tính vào tiền cọc máy. Phần cọc còn lại thu khi nhận máy.</small>
+          <small>Chỉ thanh toán cọc lịch ở bước này. Khoản này được tính vào tiền cọc máy; tiền thuê và phần cọc còn lại thu khi nhận máy.</small>
         </div>
 
         {% if qr_url %}
           <div class="coc-qr">
             <a class="coc-anh-qr" href="{{ qr_url }}" target="_blank" rel="noopener" aria-label="Mở ảnh QR chuyển khoản cọc lịch ở kích thước đầy đủ">
-              <img src="{{ qr_url }}" alt="Mã QR chuyển khoản cọc lịch đến {{ ngan_hang.chu_tai_khoan }} tại {{ ngan_hang.ngan_hang }}" width="280">
+              <img src="{{ qr_url }}" alt="Mã QR chuyển khoản cọc lịch đến {{ ngan_hang.chu_tai_khoan }} tại {{ ngan_hang.ngan_hang }}" width="946" height="2046">
             </a>
             <dl class="coc-thong-tin">
               <dt>Ngân hàng</dt><dd>{{ ngan_hang.ngan_hang }}</dd>
@@ -43,11 +51,9 @@
         </form>
       </section>
     {% else %}
-      <section class="hop-coc coc-thanh-cong" role="status">
-        <div class="dau-tich" aria-hidden="true">✓</div>
-        <h1>Đặt cọc thành công</h1>
-        <p>Đã nhận {% if giao_dich %}{{ giao_dich.so_tien|tien }}{% else %}{{ don.tien_coc_da_thu|tien }}{% endif %} cho đơn {{ don.ma }}{% if giao_dich %} · mã giao dịch {{ giao_dich.ma_tham_chieu|default:giao_dich.pk }}{% endif %}. Máy và lịch đã được giữ cho bạn.</p>
-        <h3 class="cach-tren">Trước khi đến nhận máy</h3>
+      <section class="khu-vuc hop-coc coc-thanh-cong" role="status">
+        <p>Đã nhận {% if giao_dich %}{{ giao_dich.so_tien|tien }}{% else %}{{ don.tien_coc_da_thu|tien }}{% endif %} cho đơn {{ don.ma }}{% if giao_dich %}, mã giao dịch GD{{ giao_dich.pk }}{% endif %}. Máy và lịch đã được giữ cho bạn.</p>
+        <h2 class="cach-tren">Trước khi đến nhận máy</h2>
         <ol>
           <li>Mang theo CCCD chính chủ người thuê.</li>
           <li>Đến đúng giờ {{ don.gio_nhan|date:'H:i d/m/Y' }} tại {{ cua_hang.dia_chi }}.</li>
@@ -60,26 +66,29 @@
       </section>
     {% endif %}
 
-    <aside class="the tom-tat-don">
+    <aside class="khu-vuc tom-tat-don" aria-label="Tóm tắt đơn thuê">
       <div class="tom-tat-may">
         {% if don.thiet_bi.anh %}<img src="{{ don.thiet_bi.anh.url }}" alt="" width="64" height="64">{% endif %}
         <div>
-          <p class="chu-nho">Đơn {{ don.ma }}</p>
+          <p class="chu-phu">Đơn {{ don.ma }}</p>
           <p class="tom-tat-ten-may">{{ don.ten_thiet_bi }}</p>
         </div>
       </div>
       <table class="thong-tin">
-        <tr><td>Gói thuê</td><td>{{ don.goi_thue.ten }}</td></tr>
-        <tr><td>Nhận máy</td><td>{{ don.gio_nhan|date:'H:i d/m/Y' }}</td></tr>
-        <tr><td>Trả máy</td><td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
-        <tr><td>Tiền thuê</td><td>{{ don.tong_thanh_toan|tien }}<br><small class="chu-nho">trả khi nhận máy</small></td></tr>
-        <tr><td>Tổng cọc máy</td><td>{{ don.tien_coc|tien }}</td></tr>
+        <tbody>
+        <tr><th scope="row">Gói thuê</th><td>{{ don.goi_thue.ten }}</td></tr>
+        <tr><th scope="row">Nhận máy</th><td>{{ don.gio_nhan|date:'H:i d/m/Y' }}</td></tr>
+        <tr><th scope="row">Trả máy</th><td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
+        <tr><th scope="row">Tiền thuê</th><td class="cot-tien">{{ don.tong_thanh_toan|tien }}<br><small class="chu-phu">trả khi nhận máy</small></td></tr>
+        <tr><th scope="row">Tổng cọc máy</th><td class="cot-tien">{{ don.tien_coc|tien }}</td></tr>
         {% if don.trang_thai_coc == 'chua_thu' %}
-          <tr class="dong-coc"><td>Cọc lịch giữ máy</td><td><strong>{{ don.tien_coc_giu_lich|tien }}</strong><br><span class="tag tag-chua_thu">Chưa thu</span></td></tr>
+          <tr class="dong-coc"><th scope="row">Cọc lịch giữ máy</th><td class="cot-tien"><strong>{{ don.tien_coc_giu_lich|tien }}</strong><br><span class="tag tag-chua_thu">Chưa thu</span></td></tr>
         {% else %}
-          <tr class="dong-coc"><td>Tiền cọc đã thu</td><td><strong>{{ don.tien_coc_da_thu|tien }}</strong><br><span class="tag tag-{{ don.trang_thai_coc }}">{{ don.get_trang_thai_coc_display }}</span></td></tr>
-          {% if don.tien_coc_con_lai %}<tr><td>Cọc máy còn lại</td><td>{{ don.tien_coc_con_lai|tien }}<br><small class="chu-nho">thu khi nhận máy</small></td></tr>{% endif %}
+          <tr class="dong-coc"><th scope="row">Tiền cọc đã thu</th><td class="cot-tien"><strong>{{ don.tien_coc_da_thu|tien }}</strong><br><span class="tag tag-{{ don.trang_thai_coc }}">{{ don.get_trang_thai_coc_display }}</span></td></tr>
+          {% if don.tien_coc_con_lai %}<tr><th scope="row">Cọc máy còn lại</th><td class="cot-tien">{{ don.tien_coc_con_lai|tien }}<br><small class="chu-phu">thu khi nhận máy</small></td></tr>{% endif %}
+          {% if don.trang_thai == 'da_xac_nhan' %}<tr class="tom-tat-ket-luan"><th scope="row">Tổng trả khi nhận máy</th><td class="cot-tien">{{ don.tong_thanh_toan|add:don.tien_coc_con_lai|tien }}<br><small class="chu-phu">đã trừ cọc lịch đã đóng</small></td></tr>{% endif %}
         {% endif %}
+        </tbody>
       </table>
     </aside>
   </div>

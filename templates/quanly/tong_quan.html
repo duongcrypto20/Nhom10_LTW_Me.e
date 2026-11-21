@@ -2,20 +2,26 @@
 {% block title %}Tổng quan{% endblock %}
 
 {% block content %}
-  <h1>Khu vực quản lý</h1>
-  <p class="phu">{{ user.get_vai_tro_display }}: {{ user.ho_ten }}</p>
-
-  <div class="luoi luoi-4 cach-duoi">
-    <div class="the the-so">Yêu cầu chờ xử lý<strong>{{ so_cho_xu_ly }}</strong></div>
-    <div class="the the-so">Đơn đang thuê<strong>{{ so_dang_thue }}</strong></div>
-    <div class="the the-so">Giao – nhận sắp tới<strong>{{ so_sap_toi }}</strong></div>
-    <div class="the the-so">Máy sẵn sàng<strong>{{ so_may_san_sang }}/{{ so_may }}</strong></div>
+  <div class="dau-trang">
+    <div>
+      <h1>Khu vực quản lý</h1>
+      <p>Theo dõi yêu cầu thuê, lịch nhận, trả máy và tình trạng máy</p>
+    </div>
   </div>
 
-  <h2>Lịch giao – nhận sắp tới</h2>
+  <dl class="thong-ke">
+    <div><dt>Yêu cầu chờ xử lý</dt><dd>{{ so_cho_xu_ly }}</dd></div>
+    <div><dt>Đơn đang thuê</dt><dd>{{ so_dang_thue }}</dd></div>
+    <div><dt>Nhận, trả máy sắp tới</dt><dd>{{ so_sap_toi }}</dd></div>
+    <div><dt>Máy sẵn sàng</dt><dd>{{ so_may_san_sang }}<small>/ {{ so_may }} máy</small></dd></div>
+  </dl>
+
+  <section class="khu-vuc" aria-labelledby="lich-sap-toi">
+  <h2 id="lich-sap-toi">Lịch nhận, trả máy sắp tới</h2>
   {% if ds_sap_toi %}
-    <table class="bang cach-duoi">
-      <tr><th>Thời điểm</th><th>Công việc</th><th>Đơn thuê</th><th>Thiết bị</th></tr>
+    <div class="cuon-ngang"><table class="bang">
+      <thead><tr><th scope="col">Thời điểm</th><th scope="col">Công việc</th><th scope="col">Đơn thuê</th><th scope="col">Thiết bị</th></tr></thead>
+      <tbody>
       {% for don in ds_sap_toi %}
         <tr>
           {% if don.trang_thai == 'da_xac_nhan' %}
@@ -27,18 +33,22 @@
           <td>{{ don.ten_thiet_bi }}</td>
         </tr>
       {% endfor %}
-    </table>
+      </tbody>
+    </table></div>
   {% else %}
-    <div class="trong cach-duoi">Chưa có lịch giao – nhận.</div>
+    <div class="trong">Chưa có lịch nhận, trả máy.</div>
   {% endif %}
+  </section>
 
+  <section class="khu-vuc" aria-labelledby="yeu-cau-moi">
   <div class="dau-muc">
-    <h2>Yêu cầu thuê mới nhất</h2>
+    <h2 id="yeu-cau-moi">Yêu cầu thuê mới nhất</h2>
     <a class="btn btn-vien btn-nho" href="{% url 'ql_yeu_cau' %}">Xem tất cả yêu cầu</a>
   </div>
   {% if ds_moi_nhat %}
-    <table class="bang">
-      <tr><th>Đơn thuê</th><th>Thiết bị</th><th>Gói</th><th>Trạng thái</th></tr>
+    <div class="cuon-ngang"><table class="bang">
+      <thead><tr><th scope="col">Đơn thuê</th><th scope="col">Thiết bị</th><th scope="col">Gói</th><th scope="col">Trạng thái</th></tr></thead>
+      <tbody>
       {% for don in ds_moi_nhat %}
         <tr>
           <td><a href="{% url 'ql_chi_tiet_don' don.pk %}">{{ don.ma }}</a><small>{{ don.khach_hang.ho_ten }}</small></td>
@@ -47,8 +57,10 @@
           <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
         </tr>
       {% endfor %}
-    </table>
+      </tbody>
+    </table></div>
   {% else %}
     <div class="trong">Chưa có yêu cầu thuê nào.</div>
   {% endif %}
+  </section>
 {% endblock %}

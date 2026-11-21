@@ -1,6 +1,6 @@
-/* me.e_digitalcam · giao diện v2 · hướng: "phòng tối ấm" - nền giấy ấm, chữ mực nâu đen, một màu đồng làm điểm nhấn, tiêu đề serif.
-   Tự đánh giá: trang chủ dẫn bằng ảnh máy thật; trang quản lý giữ yên tĩnh, chỉ có phản hồi khi bấm/rê chuột.
-   Mọi màu, font, thời lượng chuyển động đều lấy từ token trong :root bên dưới.
+/* me.e_digitalcam: giao diện chung của website.
+   Tông màu: nền kem ấm, chữ nâu đen, màu đồng làm điểm nhấn, tiêu đề dùng font serif.
+   Mọi màu, font, thời lượng chuyển động đều lấy từ biến trong :root bên dưới.
 
    Mục lục
    1. Token (màu, chữ, khoảng cách, bo góc, bóng, chuyển động)
@@ -675,7 +675,7 @@ details > p { margin: 0 0 18px; color: var(--chu-phu); font-size: 0.9375rem; ani
 .muc .luoi-4 > .anh-fb { transition: transform var(--tg-cham) var(--cong-vao), box-shadow var(--tg-cham) var(--cong-vao); }
 .muc .luoi-4 > .anh-fb:nth-child(even) { margin-top: var(--k-7); }
 .muc .luoi-4 > .anh-fb:hover { transform: translateY(-6px) rotate(-.6deg); box-shadow: var(--bong-2); }
-.muc.toi .anh-fb { aspect-ratio: 4 / 5; border-radius: var(--bo-lon); }
+.muc.toi .anh-fb { aspect-ratio: auto; height: auto; border-radius: var(--bo-lon); }
 
 /* Banner cũ: giữ để không vỡ nếu trang khác còn dùng lớp .banner */
 .banner { background: var(--muc); color: var(--chu-sang); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; align-items: center; padding: 48px var(--le); }

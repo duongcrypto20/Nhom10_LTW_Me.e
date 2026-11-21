@@ -10,11 +10,11 @@
     </div>
   </div>
 
-  <div class="luoi luoi-3 cach-duoi">
-    <div class="the the-so nhan">Đang giữ cọc<strong>{{ tong_dang_giu|tien }}</strong><small>{{ so_dang_giu }} đơn</small></div>
-    <div class="the the-so">Đơn chưa thu cọc<strong>{{ so_chua_thu }}</strong><small>khách cọc tại quầy khi nhận máy</small></div>
-    <div class="the the-so">Đã hoàn cọc tháng này<strong>{{ da_hoan_thang|tien }}</strong></div>
-  </div>
+  <dl class="thong-ke">
+    <div><dt>Đang giữ cọc</dt><dd>{{ tong_dang_giu|tien }}<small>{{ so_dang_giu }} đơn</small></dd></div>
+    <div><dt>Đơn chưa thu cọc</dt><dd>{{ so_chua_thu }}<small>Khách cọc tại quầy khi nhận máy</small></dd></div>
+    <div><dt>Đã hoàn cọc tháng này</dt><dd>{{ da_hoan_thang|tien }}</dd></div>
+  </dl>
 
   <nav class="chip-may" aria-label="Nhóm tiền cọc">
     {% for ma, ten in cac_tab.items %}
@@ -22,10 +22,11 @@
     {% endfor %}
   </nav>
 
-  <form class="tim-kiem" method="get">
+  <form class="thanh-loc" method="get">
     <input type="hidden" name="tab" value="{{ tab }}">
-    <label class="sr-only" for="q-coc">Tìm đơn</label>
+    <div class="field"><label for="q-coc">Mã đơn, tên hoặc số điện thoại</label>
     <input id="q-coc" type="search" name="q" value="{{ tu_khoa }}" placeholder="Mã đơn, tên hoặc số điện thoại khách">
+    </div>
     <button class="btn" type="submit">Tìm</button>
   </form>
 
@@ -33,27 +34,30 @@
     <div class="cuon-ngang">
       <table class="bang">
         {% if tab == 'da_hoan' %}
-          <tr><th>Đơn</th><th>Trả máy</th><th>Tiền cọc</th><th>Phụ thu trễ</th><th>Đền bù</th><th>Đã hoàn</th><th>Trạng thái cọc</th></tr>
+          <thead><tr><th scope="col">Đơn</th><th scope="col">Trả máy</th><th scope="col" class="cot-tien">Tiền cọc</th><th scope="col" class="cot-tien">Phụ thu trễ</th><th scope="col" class="cot-tien">Đền bù</th><th scope="col" class="cot-tien">Đã hoàn</th><th scope="col">Trạng thái cọc</th></tr></thead>
+          <tbody>
           {% for don in ds_don %}
             <tr>
               <td><a href="{% url 'ql_chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a><small>{{ don.khach_hang.ho_ten }}</small></td>
-              <td>{{ don.tra_thuc_te|date:'H:i d/m/Y'|default:'—' }}</td>
-              <td>{{ don.tien_coc|tien }}</td>
-              <td>{% if don.phu_thu_tra_tre %}−{{ don.phu_thu_tra_tre|tien }}{% else %}—{% endif %}</td>
-              <td>{% if don.khau_tru_den_bu %}−{{ don.khau_tru_den_bu|tien }}{% else %}—{% endif %}</td>
-              <td><strong>{{ don.hoan_lai|tien }}</strong>{% if don.can_thu_them %}<small>thu thêm {{ don.can_thu_them|tien }}</small>{% endif %}</td>
+              <td>{{ don.tra_thuc_te|date:'H:i d/m/Y'|default:'Chưa có' }}</td>
+              <td class="cot-tien">{{ don.tien_coc|tien }}</td>
+              <td class="cot-tien">{% if don.phu_thu_tra_tre %}-{{ don.phu_thu_tra_tre|tien }}{% else %}0đ{% endif %}</td>
+              <td class="cot-tien">{% if don.khau_tru_den_bu %}-{{ don.khau_tru_den_bu|tien }}{% else %}0đ{% endif %}</td>
+              <td class="cot-tien"><strong>{{ don.hoan_lai|tien }}</strong>{% if don.can_thu_them %}<small>thu thêm {{ don.can_thu_them|tien }}</small>{% endif %}</td>
               <td><span class="tag tag-{{ don.trang_thai_coc }}">{{ don.get_trang_thai_coc_display }}</span></td>
             </tr>
           {% endfor %}
+          </tbody>
         {% else %}
-          <tr><th>Đơn</th><th>Thiết bị</th><th>Thời gian thuê</th><th>Tiền cọc</th><th>Trạng thái</th><th>Thao tác</th></tr>
+          <thead><tr><th scope="col">Đơn</th><th scope="col">Thiết bị</th><th scope="col">Thời gian thuê</th><th scope="col" class="cot-tien">Tiền cọc</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead>
+          <tbody>
           {% for don in ds_don %}
             <tr>
               <td><a href="{% url 'ql_chi_tiet_don' don.pk %}"><strong>{{ don.ma }}</strong></a><small>{{ don.khach_hang.ho_ten }}</small></td>
               <td>{{ don.ten_thiet_bi }}</td>
               <td>{{ don.gio_nhan|date:'H:i d/m' }} đến {{ don.gio_tra|date:'H:i d/m/Y' }}
                 {% if don.trang_thai == 'dang_thue' and don.gio_tra < bay_gio %}<small class="tag tag-can_dieu_chinh">Quá hạn trả</small>{% endif %}</td>
-              <td><strong>{{ don.tien_coc_da_thu|tien }}</strong><small>đã thu / tổng {{ don.tien_coc|tien }}</small>{% if don.tien_coc_con_lai %}<small>còn thu {{ don.tien_coc_con_lai|tien }}</small>{% endif %}</td>
+              <td class="cot-tien"><strong>{{ don.tien_coc_da_thu|tien }}</strong><small>đã thu / tổng {{ don.tien_coc|tien }}</small>{% if don.tien_coc_con_lai %}<small>còn thu {{ don.tien_coc_con_lai|tien }}</small>{% endif %}</td>
               <td><span class="tag tag-{{ don.trang_thai }}">{{ don.get_trang_thai_display }}</span></td>
               <td>
                 {% if don.trang_thai == 'da_xac_nhan' %}
@@ -64,6 +68,7 @@
               </td>
             </tr>
           {% endfor %}
+          </tbody>
         {% endif %}
       </table>
     </div>

@@ -5,20 +5,25 @@
 
 {% block content %}
   <div class="trang-dn">
-    <div class="trang-dn-khung">
-      <div class="hop-form">
-        <h1>Đăng nhập</h1>
+    <div class="trang-dn-khung bo-cuc-form">
+      <section class="hop-form" aria-labelledby="tieu-de-dang-nhap">
+        <header class="dau-trang"><div><h1 id="tieu-de-dang-nhap">Đăng nhập</h1></div></header>
         <form method="post" novalidate>
           {% csrf_token %}
           {% include '_form.html' %}
           <button class="btn btn-lon rong-het" type="submit">Đăng nhập</button>
         </form>
         <p>Chưa có tài khoản? <a href="{% url 'dang_ky' %}">Đăng ký</a></p>
-        <div class="alert">
-          Tài khoản demo (mật khẩu 123456):<br>
-          khach@demo.vn · nv@demo.vn · chu@demo.vn
-        </div>
-      </div>
+      </section>
+      <aside class="khu-vuc" aria-labelledby="tai-khoan-demo">
+        <h2 id="tai-khoan-demo">Tài khoản demo</h2>
+        <p class="chu-phu">Mật khẩu: 123456</p>
+        <ul>
+          <li>khach@demo.com</li>
+          <li>nv@demo.com</li>
+          <li>chu@demo.com</li>
+        </ul>
+      </aside>
     </div>
   </div>
 {% endblock %}

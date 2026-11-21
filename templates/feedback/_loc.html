@@ -1,5 +1,5 @@
 <form method="get" class="bo-loc" novalidate>
 <details {% if request.GET %}open{% endif %}><summary>Lọc phản hồi theo thiết bị, gói thuê và thời gian</summary>
   <div class="luoi luoi-2">{% include '_form.html' with form=form_loc %}</div>
-  <div class="hang-nut"><button class="btn">Áp dụng bộ lọc</button><a class="btn btn-nhat" href="{{ request.path }}">Xóa bộ lọc</a></div>
+  <div class="hang-nut"><button class="btn" type="submit">Áp dụng bộ lọc</button><a class="btn btn-nhat" href="{{ request.path }}">Xóa bộ lọc</a></div>
 </details></form>

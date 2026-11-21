@@ -6,31 +6,41 @@
   <p class="duong-dan"><a href="{% url 'ql_tien_coc' %}">Quản lý tiền cọc</a> / {{ don.ma }}</p>
   <div class="dau-trang">
     <div>
-      <h1>Hoàn cọc · {{ don.ma }}</h1>
-      <p>{{ don.khach_hang.ho_ten }} · {{ don.ten_thiet_bi }} · hạn trả {{ don.gio_tra|date:'H:i d/m/Y' }}</p>
+      <h1>Hoàn cọc {{ don.ma }}</h1>
+      <p>{{ don.khach_hang.ho_ten }}<br>{{ don.ten_thiet_bi }}<br>Hạn trả {{ don.gio_tra|date:'H:i d/m/Y' }}</p>
     </div>
   </div>
 
-  <div class="cot-65">
-    <form method="post" enctype="multipart/form-data" novalidate class="the">{% csrf_token %}
+  <div class="bo-cuc-form">
+    {# ----- Form nhân viên nhập khi khách trả máy ----- #}
+    <form method="post" novalidate class="khu-vuc">
+      {% csrf_token %}
+      <h2>Kiểm tra khi trả máy</h2>
       {% include '_form.html' %}
-      <p class="chu-nho">Chỉ chọn máy hư hỏng khi có sự cố. Khi đó cần mô tả và tải ảnh tình trạng máy; máy được chuyển sang Bảo trì.</p>
+      <p class="chu-nho">Chỉ chọn máy hư hỏng khi có sự cố, kèm mô tả. Máy hư hỏng được chuyển sang Bảo trì.</p>
       <div class="hang-nut">
-        <button class="btn" data-confirm="Hoàn cọc và hoàn tất đơn {{ don.ma }}?">Hoàn cọc</button>
+        <button type="submit" class="btn" data-confirm="Hoàn cọc và hoàn tất đơn {{ don.ma }}?">Hoàn cọc</button>
         <a class="btn btn-nhat" href="{% url 'ql_tien_coc' %}">Quay lại</a>
       </div>
     </form>
 
-    <aside class="the hop-hanh-dong">
-      <h3>Tính tiền hoàn cọc</h3>
+    {# ----- Bảng tính tiền hoàn dự kiến ----- #}
+    <aside class="khu-vuc hop-hanh-dong">
+      <h2>Tính tiền hoàn cọc</h2>
       <table class="bang-tien">
-        <tr><td>Tiền cọc đã thu</td><td>{{ don.tien_coc|tien }}</td></tr>
-        <tr><td>Phụ thu trả trễ{% if so_gio_tre %} (trễ khoảng {{ so_gio_tre }} giờ){% endif %}</td><td>−{{ phi_tre|tien }}</td></tr>
-        <tr><td>Khấu trừ đền bù</td><td>theo nhập</td></tr>
-        <tr class="tong"><td>Hoàn lại nếu máy bình thường</td><td>{{ hoan_du_kien|tien }}</td></tr>
+        <tr><td>Tiền cọc đã thu</td><td class="cot-tien">{{ don.tien_coc|tien }}</td></tr>
+        <tr>
+          <td>Phụ thu trả trễ{% if so_gio_tre %} (trễ khoảng {{ so_gio_tre }} giờ){% endif %}</td>
+          <td class="cot-tien">-{{ phi_tre|tien }}</td>
+        </tr>
+        <tr><td>Khấu trừ đền bù</td><td class="cot-tien">theo nhập</td></tr>
+        <tr class="tong"><td>Hoàn lại nếu máy bình thường</td><td class="cot-tien">{{ hoan_du_kien|tien }}</td></tr>
       </table>
-      <p class="chu-nho">Phụ thu 50.000đ mỗi giờ, tính từ phút thứ 15. Mức đền bù theo <a href="{% url 'quy_dinh' %}" target="_blank" rel="noopener">quy định đền bù thiệt hại</a>. Nếu phụ thu và đền bù lớn hơn tiền cọc, thu thêm phần chênh lệch.</p>
-      {% if don.ma_van_don_tra %}<p class="chu-nho">Khách gửi máy về qua {{ don.don_vi_van_chuyen }}, mã vận đơn {{ don.ma_van_don_tra }}.</p>{% endif %}
+      <p class="chu-nho">
+        Phụ thu 50.000đ mỗi giờ, tính từ phút thứ 15. Mức đền bù theo
+        <a href="{% url 'quy_dinh' %}" target="_blank" rel="noopener">quy định đền bù thiệt hại</a>.
+        Nếu phụ thu và đền bù lớn hơn tiền cọc, thu thêm phần chênh lệch.
+      </p>
     </aside>
   </div>
 {% endblock %}

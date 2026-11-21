@@ -1,15 +1,28 @@
 {% extends 'base_app.html' %}
 {% block title %}Điều chỉnh {{ don.ma }}{% endblock %}
 {% block content %}
-<h1>Điều chỉnh yêu cầu {{ don.ma }}</h1>
+<header class="dau-trang"><div><h1>Điều chỉnh yêu cầu {{ don.ma }}</h1></div></header>
 <p class="alert">{{ don.ly_do }}</p>
-<form method="post" novalidate>{% csrf_token %}
-  <div class="cuon-ngang"><table class="bang"><tr><th>Thiết bị</th><th>Số lượng</th></tr>
+<div class="bo-cuc-form">
+<form class="khu-vuc" method="post" novalidate>{% csrf_token %}
+  <h2>Thiết bị và thời gian</h2>
+  <div class="cuon-ngang"><table class="bang"><thead><tr><th scope="col">Thiết bị</th><th scope="col">Số lượng</th></tr></thead><tbody>
   {% for dong in cac_dong %}<tr><td><label class="sr-only" for="tb_{{ dong.pk }}">Thiết bị thay thế {{ forloop.counter }}</label>
     <select id="tb_{{ dong.pk }}" name="thiet_bi_{{ dong.pk }}">{% for tb in ds_thiet_bi %}<option value="{{ tb.pk }}" {% if tb.pk == dong.thiet_bi_id %}selected{% endif %}>{{ tb.ten }}</option>{% endfor %}</select></td>
     <td><label class="sr-only" for="sl_{{ dong.pk }}">Số lượng {{ dong.thiet_bi.ten }}</label><input id="sl_{{ dong.pk }}" type="number" min="0" max="20" name="sl_{{ dong.pk }}" value="{{ dong.so_luong }}"></td></tr>{% endfor %}
-  </table></div>
+  </tbody></table></div>
   <p>Bạn có thể đổi thiết bị, gói và thời gian. Đặt số lượng 0 để bỏ một dòng; đơn phải còn ít nhất một thiết bị.</p>
-  <div class="hop-form">{% include '_form.html' %}<div class="hang-nut"><button class="btn">Gửi lại yêu cầu</button><a class="btn btn-nhat" href="{% url 'chi_tiet_don' don.pk %}">Hủy thay đổi</a></div></div>
+  {% include '_form.html' %}
+  <div class="hang-nut"><button class="btn" type="submit">Gửi lại yêu cầu</button><a class="btn btn-nhat" href="{% url 'chi_tiet_don' don.pk %}">Hủy thay đổi</a></div>
 </form>
+<aside class="khu-vuc" aria-labelledby="yeu-cau-hien-tai">
+  <h2 id="yeu-cau-hien-tai">Yêu cầu hiện tại</h2>
+  <table class="thong-tin"><tbody>
+    <tr><th scope="row">Đơn</th><td>{{ don.ma }}</td></tr>
+    <tr><th scope="row">Gói thuê</th><td>{{ don.goi_thue.ten }}</td></tr>
+    <tr><th scope="row">Giờ nhận máy</th><td>{{ don.gio_nhan|date:'H:i d/m/Y' }}</td></tr>
+    <tr><th scope="row">Giờ trả dự kiến</th><td>{{ don.gio_tra|date:'H:i d/m/Y' }}</td></tr>
+  </tbody></table>
+</aside>
+</div>
 {% endblock %}

@@ -3,51 +3,78 @@
 {% block title %}Đơn {{ don.ma }}{% endblock %}
 
 {% block content %}
-  <p class="duong-dan"><a href="{% url 'ql_kiem_tra_don' %}">Kiểm tra đơn thuê</a> / {{ don.ma }}</p>
+  <p class="duong-dan"><a href="{% url 'ql_yeu_cau' %}">Yêu cầu thuê</a> / {{ don.ma }}</p>
+
+  {# ----- Đầu trang: thông tin khách và nút thao tác theo trạng thái đơn ----- #}
   <div class="dau-trang">
     <div>
       <h1>Đơn {{ don.ma }}</h1>
-      <p>{{ don.khach_hang.ho_ten }} · {{ don.khach_hang.so_dien_thoai|default:'chưa có số điện thoại' }} · CCCD {{ don.khach_hang.cccd|default:'chưa cập nhật' }}</p>
+      <p>
+        {{ don.khach_hang.ho_ten }}<br>
+        {{ don.khach_hang.so_dien_thoai|default:'chưa có số điện thoại' }}<br>
+        CCCD {{ don.khach_hang.cccd|default:'chưa cập nhật' }}
+      </p>
     </div>
     <div class="hang-nut">
       {% if don.trang_thai == 'cho_xu_ly' %}
-        <a class="btn" href="{% url 'ql_xu_ly_yeu_cau' don.pk %}">Kiểm tra lịch &amp; xử lý</a>
+        <a class="btn" href="{% url 'ql_xu_ly_yeu_cau' don.pk %}">Kiểm tra lịch và xử lý</a>
       {% elif don.trang_thai == 'da_xac_nhan' %}
-        <form method="post" action="{% url 'ql_phan_bo_lai' don.pk %}">{% csrf_token %}<button class="btn btn-vien">Đổi máy khác cùng dòng</button></form>
-        <a class="btn" href="{% url 'ql_thu_coc' don.pk %}">{% if don.tien_coc_con_lai %}Thu cọc{% else %}Xác nhận cọc, khách nhận máy{% endif %}</a>
+        <form method="post" action="{% url 'ql_phan_bo_lai' don.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-vien">Đổi máy khác cùng dòng</button>
+        </form>
+        <a class="btn" href="{% url 'ql_thu_coc' don.pk %}">
+          {% if don.tien_coc_con_lai %}Thu cọc{% else %}Xác nhận cọc, khách nhận máy{% endif %}
+        </a>
       {% elif don.trang_thai == 'dang_thue' %}
         <a class="btn" href="{% url 'ql_hoan_coc' don.pk %}">Hoàn cọc</a>
-      {% endif %}
-      {% if don.trang_thai == 'da_xac_nhan' or don.trang_thai == 'dang_thue' or don.trang_thai == 'hoan_tat' %}
-        <a class="btn btn-vien" href="{% url 'ql_bao_su_co' don.pk %}">Báo sự cố máy</a>
       {% endif %}
     </div>
   </div>
 
-  <div class="cot-65">
+  <div class="bo-cuc-form">
+    {# ----- Cột trái: thông tin đơn ----- #}
     <div>
       {% include 'rentals/_thong_tin_don.html' %}
       {% if don.ly_do %}<div class="alert cach-tren">Ghi chú xử lý: {{ don.ly_do }}</div>{% endif %}
     </div>
 
-    <aside class="the hop-hanh-dong">
+    {# ----- Cột phải: việc cần làm tiếp theo ----- #}
+    <aside class="khu-vuc hop-hanh-dong">
       {% if don.cho_dat_coc %}
-        <h3>Chờ khách đặt cọc</h3>
-        <p>Khách chưa cọc lịch online {{ don.tien_coc_giu_lich|tien }}.{% if don.trang_thai == 'da_xac_nhan' %} Máy đang được giữ theo lịch đã xác nhận.{% else %} Máy chưa được giữ.{% endif %}</p>
+        <h2>Chờ khách đặt cọc</h2>
+        <p>
+          Khách chưa cọc lịch online {{ don.tien_coc_giu_lich|tien }}.
+          {% if don.trang_thai == 'da_xac_nhan' %}Máy đang được giữ theo lịch đã xác nhận.{% else %}Máy chưa được giữ.{% endif %}
+        </p>
         <p class="chu-nho">Nếu khách không cọc, hủy đơn để trả máy về lịch trống. Khách vẫn có thể cọc tiền mặt khi nhận máy.</p>
-        <form method="post" action="{% url 'ql_huy_don' don.pk %}" novalidate>{% csrf_token %}
-          <div class="field"><label for="ly-do-huy">Lý do hủy</label><input id="ly-do-huy" name="ly_do" value="Khách không đặt cọc để giữ lịch."></div>
-          <button class="btn btn-vien" data-confirm="Hủy đơn {{ don.ma }} và trả máy về lịch trống?">Hủy đơn chưa cọc</button>
+        <form method="post" action="{% url 'ql_huy_don' don.pk %}" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label for="ly-do-huy">Lý do hủy</label>
+            <input id="ly-do-huy" name="ly_do" value="Khách không đặt cọc để giữ lịch.">
+          </div>
+          <button type="submit" class="btn btn-vien" data-confirm="Hủy đơn {{ don.ma }} và trả máy về lịch trống?">Hủy đơn chưa cọc</button>
         </form>
+
       {% elif don.trang_thai == 'da_xac_nhan' %}
-        <h3>Đã cọc, chờ khách nhận máy</h3>
-        <p>Khách đã cọc {{ don.tien_coc_da_thu|tien }}.{% if don.tien_coc_con_lai %} Thu phần cọc máy còn lại {{ don.tien_coc_con_lai|tien }} khi nhận máy.{% endif %} Khách nhận máy lúc {{ don.gio_nhan|date:'H:i d/m/Y' }}.</p>
+        <h2>Đã cọc, chờ khách nhận máy</h2>
+        <p>
+          Khách đã cọc {{ don.tien_coc_da_thu|tien }}.
+          {% if don.tien_coc_con_lai %}Thu phần cọc máy còn lại {{ don.tien_coc_con_lai|tien }} khi nhận máy.{% endif %}
+          Khách nhận máy lúc {{ don.gio_nhan|date:'H:i d/m/Y' }}.
+        </p>
+
       {% elif don.trang_thai == 'dang_thue' %}
-        <h3>Đang thuê</h3>
-        <p>Hạn trả {{ don.gio_tra|date:'H:i d/m/Y' }}.{% if don.ngay_bao_tra %} Khách đã báo: {{ don.get_hinh_thuc_tra_display }}{% if don.ma_van_don_tra %} · {{ don.don_vi_van_chuyen }} · {{ don.ma_van_don_tra }}{% endif %}.{% endif %}</p>
+        <h2>Đang thuê</h2>
+        <p>Hạn trả {{ don.gio_tra|date:'H:i d/m/Y' }}. Khi khách trả máy, bấm Hoàn cọc.</p>
+
       {% else %}
-        <h3>{{ don.get_trang_thai_display }}</h3>
-        <p>Tiền cọc: {{ don.get_trang_thai_coc_display }}{% if don.trang_thai == 'hoan_tat' %} · đã hoàn {{ don.hoan_lai|tien }}{% endif %}.</p>
+        <h2>{{ don.get_trang_thai_display }}</h2>
+        <p>
+          Tiền cọc: {{ don.get_trang_thai_coc_display }}
+          {% if don.trang_thai == 'hoan_tat' %}<br>Đã hoàn {{ don.hoan_lai|tien }}{% endif %}.
+        </p>
       {% endif %}
     </aside>
   </div>
