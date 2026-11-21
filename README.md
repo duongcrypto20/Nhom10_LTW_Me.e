@@ -33,9 +33,9 @@ Nếu từng chạy bản cũ có thư mục `customers/` hoặc `me_e_nhom10/`,
 
 | Email | Vai trò |
 |---|---|
-| khach@demo.vn | Khách hàng |
-| nv@demo.vn | Nhân viên |
-| chu@demo.vn | Chủ cửa hàng (vào được cả /admin/) |
+| khach@demo.com | Khách hàng |
+| nv@demo.com | Nhân viên |
+| chu@demo.com | Chủ cửa hàng (vào được cả /admin/) |
 
 ## Cấu trúc
 
