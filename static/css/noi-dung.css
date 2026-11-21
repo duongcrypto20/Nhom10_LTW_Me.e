@@ -303,6 +303,220 @@
   .trang-noi-dung .quy-dinh-anh { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .trang-noi-dung .hang-ngay-gio { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+/* =========================================================================
+   9. Hoàn thiện bố cục và biểu mẫu (chỉ áp dụng cho các trang bên trong)
+   ========================================================================= */
+
+/* 9.1 Màu dùng riêng cho biểu mẫu */
+.trang-noi-dung {
+  --o-nhap-vien: #b9ada0;
+  --o-nhap-nen: var(--trang);
+  --o-nhap-nen-loi: #fdf5f1;
+  --vong-focus: rgb(142 79 42 / 18%);
+  --vong-loi: rgb(148 59 37 / 16%);
+}
+
+/* 9.2 Khung form: nền trắng, viền mảnh, tiêu đề tách khỏi các ô bằng một đường kẻ */
+.trang-noi-dung form.khu-vuc,
+.trang-noi-dung aside.khu-vuc,
+.trang-noi-dung section.khu-vuc:has(> h2) {
+  padding: 28px;
+  background: var(--trang);
+  border: 1px solid var(--vien);
+  border-radius: var(--bo);
+}
+.trang-noi-dung :is(form.khu-vuc, aside.khu-vuc, section.khu-vuc, .hop-form) > h2:first-of-type {
+  margin: 0 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--vien);
+  font-size: 20px;
+}
+.trang-noi-dung .hop-form { padding: 32px; }
+.trang-noi-dung .bo-cuc-form > .khu-vuc { margin-bottom: 0; }
+.trang-noi-dung .hop-hanh-dong { position: sticky; top: 96px; }
+
+/* 9.3 Form dài (thêm / sửa thiết bị, gói, mã giảm giá): chia 2 cột trên màn hình rộng.
+   Ô mô tả dài, ô chọn nhiều, ô tải file, ô đánh dấu luôn chiếm hết hàng. */
+@media (min-width: 1100px) {
+  .trang-noi-dung .hop-form form:has(> .field ~ .field ~ .field ~ .field) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+  .trang-noi-dung .hop-form form > :not(.field),
+  .trang-noi-dung .hop-form form > .field:has(textarea, fieldset, .check, input[type=file]) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 9.4 Nhãn: ô bắt buộc có dấu * màu đỏ đứng sau nhãn */
+.trang-noi-dung .field > label { display: block; color: var(--muc); }
+.trang-noi-dung .field:has(> :is(input, select, textarea):required) > label::after {
+  content: " *";
+  color: var(--loi);
+  font-weight: 600;
+}
+
+/* 9.5 Ô nhập: viền rõ hơn, đổi màu khi rê chuột, vòng sáng khi đang nhập */
+.trang-noi-dung input:not([type=checkbox], [type=radio], [type=hidden], [type=file]),
+.trang-noi-dung select,
+.trang-noi-dung textarea {
+  width: 100%;
+  border-color: var(--o-nhap-vien);
+  background-color: var(--o-nhap-nen);
+  transition: border-color var(--tg-nhanh) ease, box-shadow var(--tg-nhanh) ease, background-color var(--tg-nhanh) ease;
+}
+.trang-noi-dung :is(input:not([type=checkbox], [type=radio], [type=file]), select, textarea):hover { border-color: var(--vien-dam); }
+.trang-noi-dung :is(input:not([type=checkbox], [type=radio], [type=file]), select, textarea):focus {
+  outline: none;
+  border-color: var(--dong);
+  box-shadow: 0 0 0 4px var(--vong-focus);
+}
+.trang-noi-dung :is(input:not([type=checkbox], [type=radio], [type=file]), select, textarea):focus-visible { outline: none; }
+.trang-noi-dung textarea { resize: vertical; line-height: 1.6; }
+
+/* Ô chọn: mũi tên tự vẽ bằng gradient, đồng màu với chữ phụ */
+.trang-noi-dung select:not([multiple]) {
+  appearance: none;
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--chu-phu) 50%),
+    linear-gradient(135deg, var(--chu-phu) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 15px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* Ô tải file: nút "Chọn tệp" cùng kiểu nút viền của website */
+.trang-noi-dung input[type=file] {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px;
+  border: 1px dashed var(--o-nhap-vien);
+  border-radius: var(--bo-nho);
+  background: var(--giay);
+  color: var(--chu-phu);
+  font: 400 14px/1.5 var(--font-chu);
+  cursor: pointer;
+}
+.trang-noi-dung input[type=file]:hover { border-color: var(--dong); }
+.trang-noi-dung input[type=file]:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.trang-noi-dung input[type=file]::file-selector-button {
+  margin-right: 12px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--vien-dam);
+  border-radius: var(--bo-nho);
+  background: var(--trang);
+  color: var(--chu);
+  font: 600 14px/1.5 var(--font-chu);
+  cursor: pointer;
+  transition: background-color var(--tg-nhanh) ease;
+}
+.trang-noi-dung input[type=file]:hover::file-selector-button { background: var(--kem); }
+
+/* 9.6 Nhóm lựa chọn (radio, chọn nhiều máy): mỗi lựa chọn là một ô bấm được, ô đang chọn đổi màu */
+.trang-noi-dung .nhom-lua-chon > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trang-noi-dung .nhom-lua-chon > div > div { flex: 1 1 200px; min-width: 0; }
+.trang-noi-dung .nhom-lua-chon label {
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--o-nhap-vien);
+  border-radius: var(--bo-nho);
+  background: var(--trang);
+  cursor: pointer;
+  transition: border-color var(--tg-nhanh) ease, background-color var(--tg-nhanh) ease;
+}
+.trang-noi-dung .nhom-lua-chon label:hover { border-color: var(--dong); }
+.trang-noi-dung .nhom-lua-chon label:has(input:checked) {
+  border-color: var(--dong);
+  background: var(--kem);
+  color: var(--dong-dam);
+  font-weight: 500;
+}
+.trang-noi-dung .nhom-lua-chon label:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Ô đánh dấu xác nhận: nằm trong một khung nhạt để không bị bỏ sót */
+.trang-noi-dung .field label.check {
+  padding: 12px 14px;
+  border: 1px solid var(--vien);
+  border-radius: var(--bo-nho);
+  background: var(--giay);
+  cursor: pointer;
+}
+.trang-noi-dung .field label.check:has(input:checked) { border-color: var(--dong); background: var(--kem); }
+.trang-noi-dung .field label.check::after { content: none; }
+
+/* 9.7 Lỗi: ô bị lỗi có nền hồng nhạt, chữ lỗi nằm sát ngay dưới ô */
+.trang-noi-dung .field.co-loi :is(input:not([type=checkbox], [type=radio]), select, textarea) {
+  border-color: var(--loi);
+  background-color: var(--o-nhap-nen-loi);
+}
+.trang-noi-dung .field.co-loi :is(input, select, textarea):focus { box-shadow: 0 0 0 4px var(--vong-loi); }
+.trang-noi-dung .field.co-loi > label, .trang-noi-dung .field.co-loi legend { color: var(--loi); }
+.trang-noi-dung .field.co-loi label.check { border-color: var(--loi); }
+.trang-noi-dung .field .loi { margin-top: 6px; font-size: 14px; line-height: 1.5; }
+.trang-noi-dung .field .loi::before { content: none; }
+
+/* Khung tóm tắt lỗi ở đầu form */
+.trang-noi-dung .alert p { margin: 0; }
+.trang-noi-dung .alert p + p, .trang-noi-dung .alert p + ul { margin-top: 8px; }
+.trang-noi-dung .alert ul { margin: 0; padding-left: 20px; }
+.trang-noi-dung .alert li + li { margin-top: 4px; }
+.trang-noi-dung .alert a { color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 9.8 Hàng nút cuối form: tách khỏi các ô bằng đường kẻ */
+.trang-noi-dung form > .hang-nut:last-child {
+  margin-top: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--vien);
+}
+.trang-noi-dung .btn {
+  transition: background-color var(--tg-nhanh) ease, border-color var(--tg-nhanh) ease, color var(--tg-nhanh) ease;
+}
+.trang-noi-dung .btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.trang-noi-dung .btn-nho { min-height: 36px; height: 36px; padding: 4px 12px; font-size: 13px; }
+
+/* 9.9 Thanh tìm kiếm / lọc: nằm trong một dải nền trắng */
+.trang-noi-dung form.thanh-loc {
+  padding: 16px;
+  background: var(--trang);
+  border: 1px solid var(--vien);
+  border-radius: var(--bo);
+}
+.trang-noi-dung :is(.loc a, .loc button) { transition: background-color var(--tg-nhanh) ease, border-color var(--tg-nhanh) ease; }
+.trang-noi-dung :is(.loc a, .loc button):hover { border-color: var(--vien-dam); color: var(--chu); }
+
+/* 9.10 Bảng dữ liệu: đặt trong khung bo góc, tiêu đề cột nền kem */
+.trang-noi-dung .cuon-ngang:has(> .bang) {
+  border: 1px solid var(--vien);
+  border-radius: var(--bo);
+  background: var(--trang);
+}
+.trang-noi-dung .cuon-ngang > .bang tbody tr:last-child :is(td, th) { border-bottom: 0; }
+.trang-noi-dung .bang thead th { border-bottom: 1px solid var(--vien); text-align: left; white-space: nowrap; }
+.trang-noi-dung .bang thead th.cot-tien { text-align: right; }
+.trang-noi-dung .bang td small, .trang-noi-dung .bang th small { display: block; color: var(--chu-phu); }
+
+/* 9.11 Phân trang */
+.trang-noi-dung .phan-trang { justify-content: center; color: var(--chu-phu); font-size: 14px; }
+
+/* 9.12 Máy tính bảng và điện thoại */
+@media (max-width: 1100px) {
+  .trang-noi-dung .hop-hanh-dong { position: static; }
+}
+@media (max-width: 600px) {
+  .trang-noi-dung :is(form.khu-vuc, aside.khu-vuc, section.khu-vuc:has(> h2), .hop-form) { padding: 20px; }
+  .trang-noi-dung form.thanh-loc { padding: 12px; }
+  .trang-noi-dung .nhom-lua-chon > div > div { flex-basis: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .trang-noi-dung *, .trang-noi-dung *::before, .trang-noi-dung *::after { animation: none; transition-duration: 0ms; scroll-behavior: auto; }
 }

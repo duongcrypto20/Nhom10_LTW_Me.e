@@ -61,6 +61,23 @@ def ap_dung_thong_bao_loi(form):
         thong_bao_moi = thong_bao_loi(field, field.label)
         thong_bao_moi.update(getattr(field, 'thong_bao_rieng', {}))
         field.error_messages.update(thong_bao_moi)
+        dat_dong_chon_trong(field)
+
+
+# Các dòng "chưa chọn" mặc định của Django (bản tiếng Việt chưa dịch dòng cuối)
+NHAN_TRONG_MAC_DINH = ('', '---------', '- Select an option -')
+
+
+def dat_dong_chon_trong(field):
+    """Ô chọn (select) chưa chọn gì thì hiện "-- Chọn ... --" thay cho dòng trống hoặc "---------"."""
+    nhan_trong = f'-- Chọn {str(field.label or "").lower()} --'
+    if isinstance(field, forms.ModelChoiceField):
+        if field.empty_label is not None and str(field.empty_label) in NHAN_TRONG_MAC_DINH:
+            field.empty_label = nhan_trong
+    elif isinstance(field, forms.ChoiceField) and not isinstance(field.widget, forms.RadioSelect):
+        lua_chon = list(field.choices)
+        if lua_chon and lua_chon[0][0] == '' and str(lua_chon[0][1]) in NHAN_TRONG_MAC_DINH:
+            field.choices = [('', nhan_trong)] + lua_chon[1:]
 
 
 class FormCoBan(forms.Form):
