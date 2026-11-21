@@ -7,7 +7,7 @@ Dữ liệu được tạo:
     - 12 dòng máy, mỗi dòng 1-2 máy (số sê-ri), bảng giá và tiền cọc
     - 2 mã giảm giá
     - 9 đơn thuê mẫu ở đủ các trạng thái, kèm giao dịch tiền cọc
-    - 3 đánh giá của khách và một số thông báo
+    - 3 đánh giá của khách, 2 sự cố máy và một số thông báo
 
 Giá thuê lấy theo ảnh "THÔNG TIN/giá máy.jpg"; tiền cọc theo "quy định cọc.jpg"
 (700.000đ mỗi máy, máy compact 300.000đ). Ảnh máy nằm trong media/thietbi/.
@@ -24,7 +24,7 @@ from django.utils import timezone
 from accounts.models import User
 from catalog.models import GiaThue, GoiThue, LoaiThietBi, MaGiamGia, May, ThietBi
 from feedback.models import DanhGia
-from rentals.models import ChiTietDonThue, DonThue, GiaoDich, PhanBoMay, ThongBao
+from rentals.models import ChiTietDonThue, DonThue, GiaoDich, PhanBoMay, SuCo, ThongBao
 
 MAT_KHAU_DEMO = '123456'
 
@@ -309,7 +309,31 @@ class Command(BaseCommand):
                      ly_do='Khách hàng hủy yêu cầu.')
 
         self.tao_danh_gia_va_thong_bao(don_1, don_2, don_3, don_5)
-        self.stdout.write('Đã tạo 9 đơn thuê mẫu, 3 đánh giá và thông báo.')
+        self.tao_su_co(don_3, don_4)
+        self.stdout.write('Đã tạo 9 đơn thuê mẫu, 3 đánh giá, 2 sự cố và thông báo.')
+
+    # -----------------------------------------------------------------------
+    # 7. Sự cố máy mẫu (chưa kèm ảnh, nhân viên tải ảnh khi ghi nhận thật)
+    # -----------------------------------------------------------------------
+
+    def tao_su_co(self, don_3, don_4):
+        nhan_vien = User.objects.get(username='nv@demo.com')
+
+        # Lỗi nhẹ của đơn đã hoàn tất, đã xử lý xong
+        may_m50 = PhanBoMay.objects.filter(chi_tiet__don=don_3).first().may
+        SuCo.objects.create(
+            don=don_3, may=may_m50, muc_do=SuCo.NHE, nhan_vien=nhan_vien,
+            mo_ta='Màn hình có một vết trầy nhẹ khoảng 1cm ở góc phải, máy vẫn chụp bình thường.',
+            trang_thai=SuCo.DA_XU_LY,
+            ket_qua_xu_ly='Đã dán lại miếng dán màn hình, khấu trừ 200.000đ vào tiền cọc.',
+        )
+
+        # Lỗi nặng của đơn đang thuê: khách báo máy rơi, chờ khách mang máy về
+        may_x100v = PhanBoMay.objects.filter(chi_tiet__don=don_4).first().may
+        SuCo.objects.create(
+            don=don_4, may=may_x100v, muc_do=SuCo.NANG, nhan_vien=nhan_vien,
+            mo_ta='Khách báo máy bị rơi, ống kính không thu vào được. Chờ khách mang máy về kiểm tra.',
+        )
 
     # -----------------------------------------------------------------------
     # 6. Đánh giá và thông báo mẫu

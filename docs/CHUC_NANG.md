@@ -28,7 +28,7 @@ và Báo cáo tiến độ 2 (đặc tả use case, thiết kế cơ sở dữ l
 | UC-4.1 → 4.5 Quản lý phản hồi | Gửi đánh giá (kèm ảnh), xem, duyệt / ẩn, thống kê, trả lời | |
 | UC-5.1 Kiểm tra thông tin đơn thuê | **Bỏ trang riêng**, gộp vào ô tìm kiếm (mã đơn, tên, SĐT) ở Yêu cầu thuê và Quản lý tiền cọc | |
 | UC-5.2 Ghi nhận giao, nhận trả | **Gộp** vào 2 thao tác tiền cọc: Thu cọc (khách nhận máy), Hoàn cọc (khách trả máy, chọn trả trực tiếp / gửi về) | Bỏ mã vận đơn, khách tự báo trả máy |
-| UC-5.3 Kiểm tra tình trạng thiết bị | **Thu gọn**: khi hoàn cọc, nhân viên chọn máy hư hỏng và mô tả | Bỏ biên bản kiểm tra từng máy, ảnh sự cố |
+| UC-5.3 Kiểm tra tình trạng thiết bị | **Trang Sự cố máy**: nhân viên ghi nhận sự cố cho máy của đơn (mức độ nhẹ / nặng, mô tả, tối đa 5 ảnh máy hỏng), cập nhật kết quả xử lý. Lỗi nặng thì máy chuyển Bảo trì và được chọn sẵn là hư hỏng khi hoàn cọc | Bỏ biên bản kiểm tra từng máy |
 | UC-5.4 Quản lý tiền cọc | **Giữ**: trang Quản lý tiền cọc (Chưa thu / Đang giữ / Đã hoàn) | Cọc lịch online 50.000đ, phụ thu trễ tự tính, khấu trừ đền bù |
 | UC-5.5 Cập nhật trạng thái thiết bị, đơn thuê | **Tự động**: thu cọc → đơn và máy Đang thuê; hoàn cọc → đơn Hoàn tất, máy Sẵn sàng hoặc Bảo trì | Không còn màn hình riêng |
 | UC-6.1 → 6.4 Tài khoản và phân quyền | Đăng ký, đăng nhập, thông tin cá nhân, đổi mật khẩu, phân quyền, khóa tài khoản | Chủ cửa hàng có thêm Báo cáo doanh thu |
@@ -49,7 +49,7 @@ và Báo cáo tiến độ 2 (đặc tả use case, thiết kế cơ sở dữ l
 | ChiTietDonThue | `rentals.ChiTietDonThue` + `rentals.PhanBoMay` | PhanBoMay ghi máy nào được giữ cho đơn |
 | GiaoDich | `rentals.GiaoDich` | Đặt cọc, thanh toán, hoàn cọc, thu thêm |
 | KiemTraThietBi | **Bỏ** | Tình trạng khi trả ghi vào `DonThue.tinh_trang_khi_tra` |
-| SuCo | **Bỏ** | Máy hỏng: khấu trừ ở `DonThue.khau_tru_den_bu`, máy chuyển Bảo trì |
+| SuCo | `rentals.SuCo` + `rentals.AnhSuCo` | Mức độ nhẹ / nặng, mô tả, trạng thái xử lý; nhiều ảnh máy hỏng. Tiền đền bù vẫn trừ ở `DonThue.khau_tru_den_bu` |
 | LichSuBaoTri | **Bỏ** | Dùng tình trạng máy `Bảo trì` |
 | ThongBaoHeThong | `rentals.ThongBao` | |
 | DanhGia | `feedback.DanhGia` | |

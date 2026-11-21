@@ -1,0 +1,36 @@
+{% extends 'base_app.html' %}
+{% block title %}Ghi nhận sự cố {{ don.ma }}{% endblock %}
+
+{% block content %}
+  <p class="duong-dan">
+    <a href="{% url 'ql_su_co' %}">Sự cố máy</a> /
+    <a href="{% url 'ql_chi_tiet_don' don.pk %}">{{ don.ma }}</a>
+  </p>
+  <div class="dau-trang">
+    <div>
+      <h1>Ghi nhận sự cố {{ don.ma }}</h1>
+      <p>{{ don.khach_hang.ho_ten }}<br>{{ don.ten_thiet_bi }}<br>{{ don.get_trang_thai_display }}</p>
+    </div>
+  </div>
+
+  <div class="bo-cuc-form">
+    {# ----- Form ghi nhận: chọn máy, mức độ, mô tả, ảnh máy hỏng ----- #}
+    <form method="post" enctype="multipart/form-data" novalidate class="khu-vuc">
+      {% csrf_token %}
+      <h2>Thông tin sự cố</h2>
+      {% include '_form.html' %}
+      <div class="hang-nut">
+        <button type="submit" class="btn">Lưu sự cố</button>
+        <a class="btn btn-nhat" href="{% url 'ql_chi_tiet_don' don.pk %}">Hủy</a>
+      </div>
+    </form>
+
+    {# ----- Hướng dẫn chọn mức độ ----- #}
+    <aside class="khu-vuc hop-hanh-dong">
+      <h2>Chọn mức độ</h2>
+      <p><span class="tag tag-nhe">Lỗi nhẹ</span><br>Trầy xước nhỏ, thiếu nắp, dây đeo... Máy vẫn dùng và cho thuê được.</p>
+      <p><span class="tag tag-nang">Lỗi nặng</span><br>Vỡ màn hình, hỏng ống kính, không lên nguồn... Máy được chuyển sang Bảo trì, không cho thuê tiếp.</p>
+      <p class="chu-nho">Chụp rõ chỗ hỏng để làm bằng chứng khi hoàn cọc và tính đền bù theo quy định.</p>
+    </aside>
+  </div>
+{% endblock %}

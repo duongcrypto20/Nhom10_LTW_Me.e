@@ -3,6 +3,7 @@ Kiểm thử app rentals: đặt thuê, giữ máy, đặt cọc, thu cọc khi 
 
 Chạy:  python manage.py test rentals
 """
+import tempfile
 from datetime import timedelta
 from uuid import uuid4
 
@@ -15,7 +16,7 @@ from accounts.models import User
 from catalog.models import GiaThue, GoiThue, LoaiThietBi, MaGiamGia, May, ThietBi
 
 from . import services
-from .models import DonThue, GiaoDich, PhanBoMay
+from .models import DonThue, GiaoDich, PhanBoMay, SuCo
 from .utils import dem_may_trong, tinh_phi_tra_tre
 
 
@@ -337,3 +338,93 @@ class GiaoDienTests(CoSoTest):
         self.client.force_login(self.nv)
         response = self.client.get(reverse('ql_tien_coc'), {'tab': 'dang_giu', 'q': don.ma})
         self.assertContains(response, don.ma)
+
+
+def tao_anh_png(ten='hong.png'):
+    """Tạo một ảnh PNG nhỏ thật trong bộ nhớ để thử chức năng tải ảnh."""
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    bo_dem = BytesIO()
+    Image.new('RGB', (10, 10), 'red').save(bo_dem, 'PNG')
+    return SimpleUploadedFile(ten, bo_dem.getvalue(), content_type='image/png')
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class SuCoTests(CoSoTest):
+    """Nhân viên ghi nhận sự cố: mức độ, mô tả, ảnh máy hỏng."""
+
+    def don_dang_thue(self):
+        don = self.tao_don()
+        self.giao_may(don)
+        return don, PhanBoMay.objects.get(chi_tiet__don=don).may
+
+    def test_ghi_nhan_su_co_kem_nhieu_anh(self):
+        don, may = self.don_dang_thue()
+        self.client.force_login(self.nv)
+        response = self.client.post(reverse('ql_ghi_nhan_su_co', args=[don.pk]), {
+            'may': may.pk,
+            'muc_do': SuCo.NHE,
+            'mo_ta': 'Trầy nhẹ ở viền màn hình',
+            'anh': [tao_anh_png('a.png'), tao_anh_png('b.png')],
+        })
+        su_co = SuCo.objects.get()
+        self.assertRedirects(response, reverse('ql_chi_tiet_su_co', args=[su_co.pk]))
+        self.assertEqual(su_co.cac_anh.count(), 2)
+        self.assertContains(self.client.get(reverse('ql_su_co')), su_co.cac_anh.first().anh.url)
+
+    def test_bat_buoc_co_anh_va_mo_ta(self):
+        don, may = self.don_dang_thue()
+        self.client.force_login(self.nv)
+        response = self.client.post(reverse('ql_ghi_nhan_su_co', args=[don.pk]), {
+            'may': may.pk, 'muc_do': SuCo.NANG, 'mo_ta': 'hỏng',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('anh', response.context['form'].errors)
+        self.assertIn('mo_ta', response.context['form'].errors)
+        self.assertFalse(SuCo.objects.exists())
+
+    def test_file_khong_phai_anh_bi_tu_choi(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        don, may = self.don_dang_thue()
+        self.client.force_login(self.nv)
+        response = self.client.post(reverse('ql_ghi_nhan_su_co', args=[don.pk]), {
+            'may': may.pk, 'muc_do': SuCo.NHE, 'mo_ta': 'Trầy nhẹ ở viền màn hình',
+            'anh': SimpleUploadedFile('gia.png', b'khong phai anh', content_type='image/png'),
+        })
+        self.assertIn('anh', response.context['form'].errors)
+
+    def test_loi_nang_khi_may_o_cua_hang_thi_chuyen_bao_tri(self):
+        don = self.tao_don()
+        services.xac_nhan_lich(don.pk)
+        may = PhanBoMay.objects.get(chi_tiet__don=don).may
+        services.ghi_nhan_su_co(don.pk, self.nv, may, SuCo.NANG, 'Không lên nguồn', [tao_anh_png()])
+        may.refresh_from_db()
+        self.assertEqual(may.tinh_trang, May.BAO_TRI)
+
+    def test_loi_nang_duoc_chon_san_khi_hoan_coc(self):
+        don, may = self.don_dang_thue()
+        services.ghi_nhan_su_co(don.pk, self.nv, may, SuCo.NANG, 'Vỡ ống kính', [tao_anh_png()])
+        self.client.force_login(self.nv)
+        response = self.client.get(reverse('ql_hoan_coc', args=[don.pk]))
+        self.assertEqual(response.context['form'].initial['may_hu_hong'], [may.pk])
+
+    def test_cap_nhat_da_xu_ly_can_ket_qua(self):
+        don, may = self.don_dang_thue()
+        su_co = services.ghi_nhan_su_co(don.pk, self.nv, may, SuCo.NHE, 'Trầy nhẹ viền máy', [tao_anh_png()])
+        self.client.force_login(self.nv)
+        url = reverse('ql_chi_tiet_su_co', args=[su_co.pk])
+
+        self.client.post(url, {'trang_thai': SuCo.DA_XU_LY, 'ket_qua_xu_ly': ''})
+        su_co.refresh_from_db()
+        self.assertEqual(su_co.trang_thai, SuCo.CHO_XU_LY)
+
+        self.client.post(url, {'trang_thai': SuCo.DA_XU_LY, 'ket_qua_xu_ly': 'Đã dán lại màn hình'})
+        su_co.refresh_from_db()
+        self.assertEqual(su_co.trang_thai, SuCo.DA_XU_LY)
+
+    def test_khach_khong_vao_duoc_trang_su_co(self):
+        self.client.force_login(self.khach)
+        self.assertEqual(self.client.get(reverse('ql_su_co')).status_code, 403)

@@ -31,4 +31,9 @@ urlpatterns = [
     # ----- Lịch máy và báo cáo -----
     path('quan-ly/lich/', views.ql_lich, name='ql_lich'),
     path('quan-ly/bao-cao/', views.ql_bao_cao, name='ql_bao_cao'),
+
+    # ----- Sự cố máy -----
+    path('quan-ly/su-co/', views.ql_su_co, name='ql_su_co'),
+    path('quan-ly/su-co/<int:pk>/', views.ql_chi_tiet_su_co, name='ql_chi_tiet_su_co'),
+    path('quan-ly/su-co/ghi-nhan/don/<int:pk>/', views.ql_ghi_nhan_su_co, name='ql_ghi_nhan_su_co'),
 ]

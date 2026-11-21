@@ -1,0 +1,51 @@
+{% extends 'base_app.html' %}
+{% block title %}Sự cố {{ su_co.may.so_seri }}{% endblock %}
+
+{% block content %}
+  <p class="duong-dan"><a href="{% url 'ql_su_co' %}">Sự cố máy</a> / {{ su_co.may.so_seri }}</p>
+  <div class="dau-trang">
+    <div>
+      <h1>Sự cố {{ su_co.may.so_seri }}</h1>
+      <p>
+        {{ su_co.may.thiet_bi.ten }}<br>
+        Đơn <a href="{% url 'ql_chi_tiet_don' su_co.don.pk %}">{{ su_co.don.ma }}</a> · {{ su_co.don.khach_hang.ho_ten }}<br>
+        Ghi nhận {{ su_co.ngay_tao|date:'H:i d/m/Y' }} bởi {{ su_co.nhan_vien.ho_ten|default:'nhân viên' }}
+      </p>
+    </div>
+    <div>
+      <span class="tag tag-{{ su_co.muc_do }}">{{ su_co.get_muc_do_display }}</span>
+      <span class="tag tag-{{ su_co.trang_thai }}">{{ su_co.get_trang_thai_display }}</span>
+    </div>
+  </div>
+
+  <div class="bo-cuc-form">
+    {# ----- Mô tả và ảnh máy hỏng ----- #}
+    <section class="khu-vuc">
+      <h2>Mô tả sự cố</h2>
+      <p>{{ su_co.mo_ta|linebreaksbr }}</p>
+      {% if su_co.cac_anh.all %}
+        <div class="anh-su-co lon">
+          {% for a in su_co.cac_anh.all %}
+            <a href="{{ a.anh.url }}" target="_blank" rel="noopener">
+              <img src="{{ a.anh.url }}" alt="Ảnh máy hỏng {{ forloop.counter }}">
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="chu-nho">Chưa có ảnh.</p>
+      {% endif %}
+    </section>
+
+    {# ----- Cập nhật kết quả xử lý ----- #}
+    <form method="post" novalidate class="khu-vuc hop-hanh-dong">
+      {% csrf_token %}
+      <h2>Cập nhật xử lý</h2>
+      {% include '_form.html' %}
+      <div class="hang-nut">
+        <button type="submit" class="btn">Lưu xử lý</button>
+        <a class="btn btn-nhat" href="{% url 'ql_su_co' %}">Quay lại</a>
+      </div>
+      <p class="chu-nho">Sửa máy xong, đổi tình trạng máy về Sẵn sàng ở trang Thiết bị.</p>
+    </form>
+  </div>
+{% endblock %}

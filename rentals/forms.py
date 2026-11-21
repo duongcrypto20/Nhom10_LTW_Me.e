@@ -5,6 +5,8 @@ Các form của app rentals.
     XuLyYeuCauForm  : nhân viên nhập lý do điều chỉnh / hủy (UC-1.4)
     ThuCocForm      : nhân viên thu cọc khi khách nhận máy
     HoanCocForm     : nhân viên hoàn cọc khi khách trả máy
+    GhiNhanSuCoForm : nhân viên ghi nhận sự cố máy (mức độ, mô tả, ảnh hỏng)
+    XuLySuCoForm    : cập nhật kết quả xử lý sự cố
 """
 from django import forms
 from django.db.models import Q
@@ -12,7 +14,7 @@ from django.utils import timezone
 
 from catalog.models import GoiThue, MaGiamGia, May
 
-from .models import DonThue
+from .models import DonThue, SuCo
 
 DINH_DANG_GIO = '%Y-%m-%dT%H:%M'
 
@@ -179,4 +181,109 @@ class HoanCocForm(forms.Form):
             self.add_error('mo_ta_hu_hong', 'Vui lòng mô tả tình trạng hư hỏng.')
         if du_lieu.get('khau_tru_den_bu') and not co_may_hong:
             self.add_error('may_hu_hong', 'Chọn máy hư hỏng trước khi khấu trừ đền bù.')
+        return du_lieu
+
+
+# ===========================================================================
+# 4. SỰ CỐ MÁY
+# ===========================================================================
+
+SO_ANH_TOI_DA = 5
+KICH_THUOC_ANH_TOI_DA = 5 * 1024 * 1024  # 5MB mỗi ảnh
+
+
+class NhieuAnhInput(forms.ClearableFileInput):
+    """Ô chọn file cho phép chọn nhiều ảnh một lúc."""
+
+    allow_multiple_selected = True
+
+
+class NhieuAnhField(forms.ImageField):
+    """
+    Trường nhận nhiều ảnh (theo hướng dẫn "upload nhiều file" của Django).
+
+    Mỗi ảnh phải là JPG / PNG / WebP thật (Pillow đọc nội dung file), tối đa 5MB.
+    Trả về danh sách ảnh.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('widget', NhieuAnhInput(attrs={'accept': 'image/jpeg,image/png,image/webp'}))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        # Không chọn ảnh nào
+        if not data:
+            if self.required:
+                raise forms.ValidationError('Cần tải lên ít nhất một ảnh máy hỏng.')
+            return []
+
+        ds_anh = data if isinstance(data, (list, tuple)) else [data]
+        if len(ds_anh) > SO_ANH_TOI_DA:
+            raise forms.ValidationError(f'Chỉ tải tối đa {SO_ANH_TOI_DA} ảnh mỗi lần.')
+
+        # Kiểm tra từng ảnh bằng ImageField gốc của Django
+        ket_qua = []
+        for anh in ds_anh:
+            anh = super().clean(anh, initial)
+            if anh.size > KICH_THUOC_ANH_TOI_DA:
+                raise forms.ValidationError('Mỗi ảnh tối đa 5MB.')
+            if anh.image.format not in ('JPEG', 'PNG', 'WEBP'):
+                raise forms.ValidationError('Vui lòng chọn ảnh JPG, PNG hoặc WebP.')
+            ket_qua.append(anh)
+        return ket_qua
+
+
+class GhiNhanSuCoForm(forms.Form):
+    """Nhân viên ghi nhận sự cố cho một máy của đơn thuê."""
+
+    may = forms.ModelChoiceField(
+        label='Máy gặp sự cố', queryset=May.objects.none(), empty_label='-- Chọn máy --',
+    )
+    muc_do = forms.ChoiceField(
+        label='Mức độ',
+        choices=SuCo.MUC_DO,
+        widget=forms.RadioSelect,
+        initial=SuCo.NHE,
+        help_text='Lỗi nhẹ: máy vẫn dùng được. Lỗi nặng: phải sửa, máy chuyển sang Bảo trì.',
+    )
+    mo_ta = forms.CharField(
+        label='Mô tả sự cố',
+        widget=forms.Textarea(attrs={
+            'rows': 4,
+            'placeholder': 'Ví dụ: màn hình bị trầy một vết dài 2cm ở góc phải, máy vẫn chụp được',
+        }),
+    )
+    anh = NhieuAnhField(label=f'Ảnh máy hỏng (tối đa {SO_ANH_TOI_DA} ảnh, mỗi ảnh tối đa 5MB)')
+
+    def __init__(self, *args, don=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Chỉ cho chọn các máy đang được giữ cho đơn này
+        if don is not None:
+            self.fields['may'].queryset = (
+                May.objects
+                .filter(cac_phan_bo__chi_tiet__don=don)
+                .select_related('thiet_bi')
+                .distinct()
+            )
+        self.fields['may'].label_from_instance = lambda may: f'{may.thiet_bi.ten}, {may.so_seri}'
+
+    def clean_mo_ta(self):
+        mo_ta = self.cleaned_data['mo_ta'].strip()
+        if len(mo_ta) < 10:
+            raise forms.ValidationError('Vui lòng mô tả sự cố rõ hơn (ít nhất 10 ký tự).')
+        return mo_ta
+
+
+class XuLySuCoForm(forms.ModelForm):
+    """Cập nhật trạng thái và kết quả xử lý sự cố."""
+
+    class Meta:
+        model = SuCo
+        fields = ['trang_thai', 'ket_qua_xu_ly']
+        widgets = {'ket_qua_xu_ly': forms.Textarea(attrs={'rows': 3})}
+
+    def clean(self):
+        du_lieu = super().clean()
+        if du_lieu.get('trang_thai') == SuCo.DA_XU_LY and not du_lieu.get('ket_qua_xu_ly', '').strip():
+            self.add_error('ket_qua_xu_ly', 'Cần ghi kết quả trước khi đánh dấu đã xử lý.')
         return du_lieu

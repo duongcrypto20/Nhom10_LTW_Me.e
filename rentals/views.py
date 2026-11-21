@@ -5,6 +5,7 @@ Các màn hình của app rentals.
     Phần B. Nhân viên  : tổng quan, yêu cầu thuê, chi tiết đơn, đổi máy, hủy đơn
     Phần C. Tiền cọc   : danh sách tiền cọc, thu cọc khi nhận máy, hoàn cọc khi trả máy
     Phần D. Lịch máy và báo cáo doanh thu
+    Phần E. Sự cố máy  : danh sách, ghi nhận (mức độ, mô tả, ảnh hỏng), cập nhật xử lý
 """
 import math
 import uuid
@@ -28,8 +29,8 @@ from catalog.forms import KiemTraMayTrongForm
 from catalog.models import GoiThue, May, ThietBi
 
 from . import services
-from .forms import DatThueForm, HoanCocForm, ThuCocForm, XuLyYeuCauForm
-from .models import DonThue, GiaoDich
+from .forms import DatThueForm, GhiNhanSuCoForm, HoanCocForm, ThuCocForm, XuLySuCoForm, XuLyYeuCauForm
+from .models import DonThue, GiaoDich, SuCo
 from .utils import dem_may_trong, doc_thang, ds_don_trung_lich, lich_thang, tinh_phi_tra_tre
 
 # Tên khóa lưu bản nháp đặt thuê trong session
@@ -585,7 +586,12 @@ def ql_hoan_coc(request, pk):
     form = HoanCocForm(
         request.POST or None,
         don=don,
-        initial={'tra_thuc_te': bay_gio, 'hinh_thuc_tra': 'truc_tiep'},
+        initial={
+            'tra_thuc_te': bay_gio,
+            'hinh_thuc_tra': 'truc_tiep',
+            # Máy đã ghi nhận sự cố nặng thì được chọn sẵn là "hư hỏng"
+            'may_hu_hong': services.ma_may_co_su_co_nang(don),
+        },
     )
 
     if request.method == 'POST' and form.is_valid():
@@ -706,3 +712,72 @@ def ql_bao_cao(request):
         'tong_doanh_thu': sum(don.doanh_thu for don in ds),
         'theo_may': sorted(theo_may.values(), key=lambda muc: -muc['tien_thue']),
     })
+
+
+# ===========================================================================
+# PHẦN E. SỰ CỐ MÁY
+# ===========================================================================
+
+@nhan_vien_required
+def ql_su_co(request):
+    """Danh sách sự cố, lọc theo mức độ / trạng thái; nhập mã đơn để ghi nhận sự cố mới."""
+    # Nhân viên nhập mã đơn ở ô "Ghi nhận sự cố mới" thì chuyển sang trang ghi nhận
+    ma_don = request.GET.get('ma_don', '').strip()
+    if ma_don:
+        don = loc_don(DonThue.objects.all(), ma_don).first()
+        if don:
+            return redirect('ql_ghi_nhan_su_co', pk=don.pk)
+        messages.error(request, f'Không tìm thấy đơn "{ma_don}".')
+
+    muc_do = request.GET.get('muc_do', '')
+    trang_thai = request.GET.get('trang_thai', '')
+    ds = SuCo.objects.select_related('don', 'may__thiet_bi', 'nhan_vien').prefetch_related('cac_anh')
+    if muc_do:
+        ds = ds.filter(muc_do=muc_do)
+    if trang_thai:
+        ds = ds.filter(trang_thai=trang_thai)
+
+    return render(request, 'quanly/su_co.html', {
+        'ds_su_co': Paginator(ds, 20).get_page(request.GET.get('page')),
+        'ds_muc_do': SuCo.MUC_DO,
+        'ds_trang_thai': SuCo.TRANG_THAI,
+        'muc_do_chon': muc_do,
+        'trang_thai_chon': trang_thai,
+        'so_cho_xu_ly': SuCo.objects.filter(trang_thai=SuCo.CHO_XU_LY).count(),
+    })
+
+
+@nhan_vien_required
+def ql_ghi_nhan_su_co(request, pk):
+    """Trang ghi nhận sự cố: chọn máy, mức độ nhẹ / nặng, mô tả và tải ảnh máy hỏng."""
+    don = get_object_or_404(ds_don(), pk=pk)
+    form = GhiNhanSuCoForm(request.POST or None, request.FILES or None, don=don)
+
+    if request.method == 'POST' and form.is_valid():
+        du_lieu = form.cleaned_data
+        try:
+            su_co = services.ghi_nhan_su_co(
+                pk, request.user, du_lieu['may'], du_lieu['muc_do'], du_lieu['mo_ta'], du_lieu['anh'],
+            )
+            messages.success(request, 'Đã ghi nhận sự cố và lưu ảnh máy hỏng.')
+            return redirect('ql_chi_tiet_su_co', pk=su_co.pk)
+        except ValidationError as loi:
+            form.add_error(None, ' '.join(loi.messages))
+
+    return render(request, 'quanly/ghi_nhan_su_co.html', {'don': don, 'form': form})
+
+
+@nhan_vien_required
+def ql_chi_tiet_su_co(request, pk):
+    """Xem mô tả, ảnh máy hỏng và cập nhật kết quả xử lý sự cố."""
+    su_co = get_object_or_404(
+        SuCo.objects.select_related('don__khach_hang', 'may__thiet_bi', 'nhan_vien'), pk=pk,
+    )
+    form = XuLySuCoForm(request.POST or None, instance=su_co)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Đã cập nhật xử lý sự cố.')
+        return redirect('ql_chi_tiet_su_co', pk=pk)
+
+    return render(request, 'quanly/chi_tiet_su_co.html', {'su_co': su_co, 'form': form})

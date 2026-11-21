@@ -8,6 +8,7 @@ Mỗi hàm ở đây là một bước trong quy trình TO-BE:
     3. Khách cọc lịch online: dat_coc_online()
     4. Khách nhận máy       : thu_coc_khi_nhan_may()
     5. Khách trả máy        : hoan_coc_khi_tra_may()
+    6. Sự cố máy            : ghi_nhan_su_co()
 
 Hàm nào thay đổi đơn, máy và tiền cùng lúc đều chạy trong transaction.atomic:
 nếu một bước bị lỗi thì toàn bộ thay đổi được hủy, không có chuyện thu tiền mà máy chưa giữ.
@@ -24,7 +25,7 @@ from catalog.models import GiaThue, GoiThue, MaGiamGia, May, ThietBi
 from catalog.pricing import bao_gia
 from catalog.templatetags.dinh_dang import tien
 
-from .models import ChiTietDonThue, DonThue, GiaoDich, PhanBoMay
+from .models import AnhSuCo, ChiTietDonThue, DonThue, GiaoDich, PhanBoMay, SuCo
 from .utils import cac_may_trong, gui_thong_bao, tinh_phi_tra_tre
 
 
@@ -531,3 +532,49 @@ def hoan_coc_khi_tra_may(pk, nhan_vien, tra_thuc_te, hinh_thuc_tra, phuong_thuc,
     if don.phu_thu_tra_tre:
         loi_nhan += f', phụ thu trả trễ {tien(don.phu_thu_tra_tre)}'
     gui_thong_bao(don.khach_hang, loi_nhan + '. Mời bạn gửi đánh giá cho đơn thuê.', don)
+
+
+# ===========================================================================
+# 6. SỰ CỐ MÁY
+# ===========================================================================
+
+@transaction.atomic
+def ghi_nhan_su_co(pk, nhan_vien, may, muc_do, mo_ta, ds_anh):
+    """
+    Nhân viên ghi nhận sự cố cho một máy của đơn, kèm ảnh chụp chỗ hỏng.
+
+    Lỗi nặng: máy chuyển sang "Bảo trì" ngay nếu máy đang ở cửa hàng.
+    Nếu khách đang cầm máy thì máy chuyển "Bảo trì" khi nhân viên hoàn cọc.
+    """
+    don = khoa_don(pk)
+    if don.trang_thai not in (DonThue.DA_XAC_NHAN, DonThue.DANG_THUE, DonThue.HOAN_TAT):
+        raise ValidationError('Chỉ ghi nhận sự cố cho đơn đã giữ máy, đang thuê hoặc vừa hoàn tất.')
+    if not PhanBoMay.objects.filter(chi_tiet__don=don, may=may).exists():
+        raise ValidationError('Máy này không thuộc đơn thuê.')
+
+    # Lưu sự cố và từng ảnh
+    su_co = SuCo.objects.create(don=don, may=may, muc_do=muc_do, mo_ta=mo_ta, nhan_vien=nhan_vien)
+    for anh in ds_anh:
+        AnhSuCo.objects.create(su_co=su_co, anh=anh)
+
+    # Lỗi nặng và máy không ở trong tay khách: ngừng cho thuê máy này
+    if muc_do == SuCo.NANG and may.tinh_trang != May.DANG_THUE:
+        may.tinh_trang = May.BAO_TRI
+        may.save(update_fields=['tinh_trang'])
+
+    gui_thong_bao(
+        don.khach_hang,
+        f'{don.ma}: cửa hàng đã ghi nhận sự cố ({su_co.get_muc_do_display()}) của máy {may.so_seri}.',
+        don,
+        tieu_de='Sự cố thiết bị',
+    )
+    return su_co
+
+
+def ma_may_co_su_co_nang(don):
+    """Id các máy của đơn có sự cố nặng chưa xử lý, dùng để chọn sẵn ở trang hoàn cọc."""
+    return list(
+        SuCo.objects
+        .filter(don=don, muc_do=SuCo.NANG, trang_thai=SuCo.CHO_XU_LY)
+        .values_list('may_id', flat=True)
+    )

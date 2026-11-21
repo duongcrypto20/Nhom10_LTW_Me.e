@@ -6,6 +6,7 @@ Các bảng dữ liệu của app rentals (đặt thuê và tiền cọc).
     PhanBoMay        : chiếc máy (số sê-ri) được giữ cho từng dòng của đơn
     GiaoDich         : sổ ghi tiền: đặt cọc, thanh toán tiền thuê, hoàn cọc, thu thêm
     ThongBao         : thông báo gửi cho khách hàng và nhân viên
+    SuCo, AnhSuCo    : sự cố của máy (mức độ, mô tả) và ảnh chụp chỗ hỏng
 """
 from django.conf import settings
 from django.db import models
@@ -286,3 +287,63 @@ class ThongBao(models.Model):
         ordering = ['-ngay_tao']
         verbose_name = 'Thông báo'
         verbose_name_plural = 'Thông báo'
+
+
+# ===========================================================================
+# 5. SỰ CỐ MÁY
+# ===========================================================================
+
+class SuCo(models.Model):
+    """
+    Sự cố của một chiếc máy thuộc đơn thuê (hỏng hóc, rơi vỡ, thiếu phụ kiện...).
+
+    Nhân viên ghi nhận kèm mức độ và ảnh chụp chỗ hỏng.
+    Lỗi nặng thì máy được chuyển sang "Bảo trì" để không cho thuê tiếp.
+    """
+
+    NHE = 'nhe'
+    NANG = 'nang'
+    MUC_DO = [
+        (NHE, 'Lỗi nhẹ'),
+        (NANG, 'Lỗi nặng'),
+    ]
+
+    CHO_XU_LY = 'cho_xu_ly'
+    DA_XU_LY = 'da_xu_ly'
+    TRANG_THAI = [
+        (CHO_XU_LY, 'Chờ xử lý'),
+        (DA_XU_LY, 'Đã xử lý'),
+    ]
+
+    don = models.ForeignKey(DonThue, on_delete=models.CASCADE, related_name='cac_su_co')
+    may = models.ForeignKey(May, on_delete=models.PROTECT, related_name='cac_su_co')
+    muc_do = models.CharField('Mức độ', max_length=10, choices=MUC_DO, default=NHE)
+    mo_ta = models.TextField('Mô tả sự cố')
+    trang_thai = models.CharField('Trạng thái', max_length=20, choices=TRANG_THAI, default=CHO_XU_LY)
+    ket_qua_xu_ly = models.TextField('Kết quả xử lý', blank=True)
+    nhan_vien = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='cac_su_co_da_ghi',
+    )
+    ngay_tao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-ngay_tao']
+        verbose_name = 'Sự cố'
+        verbose_name_plural = 'Sự cố'
+
+    def __str__(self):
+        return f'{self.don.ma} - {self.may.so_seri}'
+
+
+class AnhSuCo(models.Model):
+    """Ảnh chụp chỗ hỏng của máy, một sự cố có thể có nhiều ảnh."""
+
+    su_co = models.ForeignKey(SuCo, on_delete=models.CASCADE, related_name='cac_anh')
+    anh = models.ImageField('Ảnh máy hỏng', upload_to='su_co/')
+    ngay_tao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['ngay_tao']

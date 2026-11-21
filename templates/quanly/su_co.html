@@ -1,0 +1,68 @@
+{% extends 'base_app.html' %}
+{% block title %}Sự cố máy{% endblock %}
+
+{% block content %}
+  <div class="dau-trang">
+    <div>
+      <h1>Sự cố máy</h1>
+      <p>Máy hỏng, rơi vỡ, thiếu phụ kiện kèm mức độ và ảnh chụp chỗ hỏng. Đang chờ xử lý: {{ so_cho_xu_ly }}.</p>
+    </div>
+  </div>
+
+  {# ----- Ghi nhận sự cố mới: nhập mã đơn để mở trang ghi nhận ----- #}
+  <form method="get" class="thanh-loc">
+    <div class="field">
+      <label for="ma-don-su-co">Ghi nhận sự cố mới</label>
+      <input id="ma-don-su-co" type="search" name="ma_don" placeholder="Nhập mã đơn, ví dụ DH1004">
+    </div>
+    <button class="btn" type="submit">Ghi nhận sự cố</button>
+  </form>
+
+  {# ----- Lọc theo mức độ và trạng thái ----- #}
+  <nav class="loc" aria-label="Mức độ sự cố">
+    <a href="{% querystring muc_do=None page=None %}" class="{% if not muc_do_chon %}chon{% endif %}">Mọi mức độ</a>
+    {% for ma, ten in ds_muc_do %}
+      <a href="{% querystring muc_do=ma page=None %}" class="{% if muc_do_chon == ma %}chon{% endif %}">{{ ten }}</a>
+    {% endfor %}
+  </nav>
+  <nav class="loc" aria-label="Trạng thái xử lý">
+    <a href="{% querystring trang_thai=None page=None %}" class="{% if not trang_thai_chon %}chon{% endif %}">Mọi trạng thái</a>
+    {% for ma, ten in ds_trang_thai %}
+      <a href="{% querystring trang_thai=ma page=None %}" class="{% if trang_thai_chon == ma %}chon{% endif %}">{{ ten }}</a>
+    {% endfor %}
+  </nav>
+
+  {# ----- Danh sách sự cố dạng thẻ có ảnh ----- #}
+  {% if ds_su_co %}
+    <div class="luoi-su-co">
+      {% for sc in ds_su_co %}
+        <article class="the the-su-co">
+          {% with anh_dau=sc.cac_anh.all|first %}
+            {% if anh_dau %}
+              <a class="anh-chinh" href="{% url 'ql_chi_tiet_su_co' sc.pk %}">
+                <img src="{{ anh_dau.anh.url }}" alt="Ảnh máy hỏng {{ sc.may.so_seri }}" loading="lazy">
+                {% if sc.cac_anh.all|length > 1 %}<span>+{{ sc.cac_anh.all|length|add:'-1' }} ảnh</span>{% endif %}
+              </a>
+            {% else %}
+              <div class="anh-chinh trong-anh">Chưa có ảnh</div>
+            {% endif %}
+          {% endwith %}
+          <div>
+            <h2>{{ sc.may.thiet_bi.ten }}</h2>
+            <p class="chu-phu">Sê-ri {{ sc.may.so_seri }} · Đơn <a href="{% url 'ql_chi_tiet_don' sc.don.pk %}">{{ sc.don.ma }}</a></p>
+            <p>
+              <span class="tag tag-{{ sc.muc_do }}">{{ sc.get_muc_do_display }}</span>
+              <span class="tag tag-{{ sc.trang_thai }}">{{ sc.get_trang_thai_display }}</span>
+            </p>
+            <p>{{ sc.mo_ta|truncatechars:120 }}</p>
+            <p class="chu-nho">{{ sc.ngay_tao|date:'H:i d/m/Y' }} · {{ sc.nhan_vien.ho_ten|default:'' }}</p>
+            <a class="btn btn-vien btn-nho" href="{% url 'ql_chi_tiet_su_co' sc.pk %}">Xem ảnh và xử lý</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% include '_pagination.html' with page_obj=ds_su_co %}
+  {% else %}
+    <div class="trong">Chưa có sự cố nào.</div>
+  {% endif %}
+{% endblock %}

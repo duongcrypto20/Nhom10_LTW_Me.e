@@ -42,6 +42,7 @@ có tiêu đề (`# ====== 1. ... ======`) để dễ tìm.
 | rentals | `PhanBoMay` | Máy (số sê-ri) được giữ cho đơn |
 | rentals | `GiaoDich` | Sổ tiền: đặt cọc, thanh toán, hoàn cọc, thu thêm |
 | rentals | `ThongBao` | Thông báo cho người dùng |
+| rentals | `SuCo`, `AnhSuCo` | Sự cố của máy (mức độ, mô tả, xử lý) và ảnh máy hỏng |
 | feedback | `DanhGia` | Đánh giá của khách cho đơn đã hoàn tất |
 
 ## Luồng đặt thuê và tiền cọc (`rentals/services.py`)
@@ -52,6 +53,7 @@ có tiêu đề (`# ====== 1. ... ======`) để dễ tìm.
    Nếu khách chưa cọc online, nhân viên có thể `xac_nhan_lich` để giữ máy, khách cọc tại quầy.
 4. `thu_coc_khi_nhan_may`: thu tiền thuê và phần cọc còn thiếu, đơn và máy chuyển sang Đang thuê.
 5. `hoan_coc_khi_tra_may`: tính phụ thu trễ, khấu trừ đền bù, ghi hoàn cọc, máy hỏng chuyển Bảo trì.
+6. `ghi_nhan_su_co`: lưu sự cố và ảnh máy hỏng; lỗi nặng thì máy chuyển Bảo trì.
 
 Các hàm thay đổi dữ liệu đều dùng `transaction.atomic`: một bước lỗi thì toàn bộ thay đổi bị hủy.
 `khoa_don` khóa đơn để hai nhân viên không xử lý cùng một đơn một lúc.

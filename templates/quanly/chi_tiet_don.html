@@ -29,6 +29,9 @@
       {% elif don.trang_thai == 'dang_thue' %}
         <a class="btn" href="{% url 'ql_hoan_coc' don.pk %}">Hoàn cọc</a>
       {% endif %}
+      {% if don.trang_thai == 'da_xac_nhan' or don.trang_thai == 'dang_thue' or don.trang_thai == 'hoan_tat' %}
+        <a class="btn btn-vien" href="{% url 'ql_ghi_nhan_su_co' don.pk %}">Ghi nhận sự cố</a>
+      {% endif %}
     </div>
   </div>
 
@@ -37,6 +40,30 @@
     <div>
       {% include 'rentals/_thong_tin_don.html' %}
       {% if don.ly_do %}<div class="alert cach-tren">Ghi chú xử lý: {{ don.ly_do }}</div>{% endif %}
+
+      {# ----- Các sự cố đã ghi nhận của đơn ----- #}
+      {% if don.cac_su_co.all %}
+        <section class="khu-vuc cach-tren" aria-labelledby="su-co-don">
+          <h2 id="su-co-don">Sự cố máy</h2>
+          {% for sc in don.cac_su_co.all %}
+            <div class="dong-su-co">
+              <p>
+                <a href="{% url 'ql_chi_tiet_su_co' sc.pk %}"><strong>{{ sc.may.so_seri }}</strong></a>
+                <span class="tag tag-{{ sc.muc_do }}">{{ sc.get_muc_do_display }}</span>
+                <span class="tag tag-{{ sc.trang_thai }}">{{ sc.get_trang_thai_display }}</span>
+              </p>
+              <p>{{ sc.mo_ta }}</p>
+              {% if sc.cac_anh.all %}
+                <div class="anh-su-co">
+                  {% for a in sc.cac_anh.all %}
+                    <a href="{{ a.anh.url }}" target="_blank" rel="noopener"><img src="{{ a.anh.url }}" alt="Ảnh máy hỏng {{ sc.may.so_seri }}" loading="lazy"></a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
     </div>
 
     {# ----- Cột phải: việc cần làm tiếp theo ----- #}

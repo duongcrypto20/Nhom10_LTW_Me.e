@@ -339,8 +339,8 @@ form.inline { display: inline; }
   background: var(--xam-nen); color: var(--chu-phu);
 }
 .tag-cho_xu_ly, .tag-chua_thu { background: var(--cho-nen); color: var(--cho); }
-.tag-can_dieu_chinh, .tag-hu_hong, .tag-khoa { background: var(--loi-nen); color: var(--loi); }
-.tag-da_xac_nhan, .tag-hoan_mot_phan, .tag-bao_tri { background: var(--xanh-nen); color: var(--xanh); }
+.tag-can_dieu_chinh, .tag-hu_hong, .tag-khoa, .tag-nang { background: var(--loi-nen); color: var(--loi); }
+.tag-da_xac_nhan, .tag-hoan_mot_phan, .tag-bao_tri, .tag-nhe { background: var(--xanh-nen); color: var(--xanh); }
 .tag-dang_thue, .tag-da_thu { background: var(--thue-nen); color: var(--thue); }
 .tag-hoan_tat, .tag-da_hoan, .tag-san_sang, .tag-da_duyet, .tag-ok { background: var(--ok-nen); color: var(--ok); }
 

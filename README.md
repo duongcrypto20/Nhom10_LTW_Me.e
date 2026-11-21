@@ -28,14 +28,14 @@ Mở http://127.0.0.1:8000/
 | Email | Vai trò | Có sẵn |
 |---|---|---|
 | chu@demo.com | Chủ cửa hàng (vào được cả /admin/) | Báo cáo doanh thu, phân quyền |
-| nv@demo.com | Nhân viên | Yêu cầu thuê, tiền cọc, phản hồi |
+| nv@demo.com | Nhân viên | Yêu cầu thuê, tiền cọc, sự cố máy, phản hồi |
 | khach@demo.com | Khách hàng | 1 đơn hoàn tất, 1 đơn đang thuê, 1 đơn đã hủy |
 | ngoc@demo.com | Khách hàng | 1 đơn trả trễ, 1 đơn đã cọc chờ nhận máy |
 | phuc@demo.com | Khách hàng | 1 đơn có máy hư hỏng, 1 đơn chờ xử lý |
 | trang@demo.com | Khách hàng | 1 đơn chưa cọc, 1 đơn cần điều chỉnh |
 
 Lệnh `taodulieu` tạo 12 dòng máy (ảnh trong `media/thietbi/`), 5 gói thuê, bảng giá,
-2 mã giảm giá (`MEE10`, `GIAM50K`), 9 đơn thuê ở đủ các trạng thái và 3 đánh giá.
+2 mã giảm giá (`MEE10`, `GIAM50K`), 9 đơn thuê ở đủ các trạng thái, 3 đánh giá và 2 sự cố máy.
 
 ## Cấu trúc thư mục
 
@@ -68,6 +68,9 @@ Mỗi app theo đúng mẫu của Django:
 4. Khách đến nhận máy → nhân viên vào **Quản lý tiền cọc → Thu cọc**: thu tiền thuê và phần cọc còn lại.
 5. Khách trả máy → nhân viên **Hoàn cọc**: hệ thống tự tính phụ thu trả trễ, khấu trừ đền bù nếu máy hỏng.
 6. Khách viết **đánh giá** → nhân viên duyệt và trả lời.
+
+Khi máy gặp sự cố, nhân viên mở chi tiết đơn → **Ghi nhận sự cố** (hoặc menu **Sự cố máy**, nhập mã đơn):
+chọn máy, mức độ lỗi nhẹ / nặng, mô tả và tải ảnh máy hỏng. Lỗi nặng thì máy chuyển sang Bảo trì.
 
 ## Phân quyền
 

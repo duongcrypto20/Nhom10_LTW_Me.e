@@ -1,7 +1,7 @@
 """Trang admin của app rentals: chỉ để xem, mọi thao tác nghiệp vụ làm trên website."""
 from django.contrib import admin
 
-from .models import ChiTietDonThue, DonThue, GiaoDich, PhanBoMay, ThongBao
+from .models import AnhSuCo, ChiTietDonThue, DonThue, GiaoDich, PhanBoMay, SuCo, ThongBao
 
 
 class ChiXemAdmin(admin.ModelAdmin):
@@ -34,6 +34,13 @@ class GiaoDichAdmin(ChiXemAdmin):
     list_filter = ('loai', 'phuong_thuc')
 
 
+@admin.register(SuCo)
+class SuCoAdmin(ChiXemAdmin):
+    list_display = ('don', 'may', 'muc_do', 'trang_thai', 'ngay_tao')
+    list_filter = ('muc_do', 'trang_thai')
+
+
 admin.site.register(ChiTietDonThue, ChiXemAdmin)
+admin.site.register(AnhSuCo, ChiXemAdmin)
 admin.site.register(PhanBoMay, ChiXemAdmin)
 admin.site.register(ThongBao, ChiXemAdmin)
