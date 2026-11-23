@@ -85,7 +85,7 @@ thêm thiết bị, gói thuê, mã giảm giá, danh mục, phân quyền tài 
 | Cọc 700.000đ mỗi máy, máy compact 300.000đ | `ThietBi.tien_coc`, đặt trong `taodulieu` |
 | Cọc lịch 50.000đ để giữ máy, tính vào tổng cọc | `DonThue.COC_GIU_LICH`, `services.dat_coc_online` |
 | Thuê 1 ngày tính 23 giờ, 1 buổi 6 giờ | Gói `1 ngày` 23 giờ, `6 giờ` 6 giờ |
-| Trả trễ từ phút 15 phụ thu 50.000đ mỗi giờ | `rentals/utils.py` → `tinh_phi_tra_tre` |
+| Trả trễ phụ thu 30k | `rentals/utils.py` → `tinh_phi_tra_tre` |
 | Đã cọc thì không nhận hủy lịch | `DonThue.co_the_huy` |
 | Đền bù thiệt hại trừ vào cọc, vượt cọc thì thu thêm | `services.hoan_coc_khi_tra_may` |
 
